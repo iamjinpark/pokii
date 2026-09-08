@@ -49,6 +49,7 @@ Task 1~4는 위와 무관하게 진행할 수 있다.
 ```
 src/
   app/                    expo-router 라우트 전용. 여기 있는 파일은 전부 라우트다
+    index.tsx             Task 1이 만들고 Task 7이 지우는 임시 진입점
     _layout.tsx           루트 레이아웃. Query · Auth 프로바이더
     (auth)/login.tsx
     (app)/_layout.tsx
@@ -71,6 +72,7 @@ src/
     index.ts              언어 감지와 t()
     en.ts
     ko.ts
+    i18n.test.ts
   theme.ts                색 토큰
 supabase/
   migrations/
@@ -1237,6 +1239,15 @@ export { default } from '@/screens/login-screen';
 
 - [ ] **Step 5: 세션에 따라 화면 가르기**
 
+Task 1이 만든 `src/app/index.tsx` 를 먼저 지운다.
+
+```bash
+rm src/app/index.tsx
+```
+
+지우지 않으면 Task 8이 만드는 `src/app/(app)/index.tsx` 와 함께 경로 `/` 에 라우트가 둘이 된다.
+expo-router에서 괄호로 묶은 라우트 그룹은 URL에 나타나지 않으므로 `(app)/index.tsx` 도 `/` 를 가리킨다.
+
 `src/app/_layout.tsx`:
 
 ```tsx
@@ -1305,6 +1316,7 @@ Expected:
 
 ```bash
 git add src/utils/sign-in.ts src/hooks/use-session.ts src/screens/login-screen.tsx "src/app/(auth)" src/app/_layout.tsx
+git rm --cached src/app/index.tsx 2>/dev/null || git add -u src/app/index.tsx
 git commit -m "feat(auth): #<이슈번호> Google/Kakao OAuth 로그인 추가
 
 - **구현**
