@@ -1093,6 +1093,13 @@ git commit -m "feat(setup): #<이슈번호> Supabase 클라이언트와 TanStack
   - `signInWith(provider: 'google' | 'kakao'): Promise<void>`
   - `useSession(): { session: Session | null; loading: boolean }`
 
+**세션 자동 갱신에 AppState 연결이 필요하다.** `src/utils/supabase.ts` 는 `autoRefreshToken: true`
+로 설정되어 있으나, 이 갱신은 JS 타이머로 돌기 때문에 OS가 앱을 백그라운드로 보내면 함께 멈춘다.
+다시 앱을 열었을 때 만료된 세션으로 잠시 동작하게 된다.
+
+`react-native` 의 `AppState` 를 구독해 포그라운드 진입 시 `supabase.auth.startAutoRefresh()`,
+백그라운드 진입 시 `stopAutoRefresh()` 를 호출한다. 루트 레이아웃에 두는 것이 자연스럽다.
+
 **선행 조건:** H2·H3·H4가 끝나 있어야 한다.
 
 - [ ] **Step 1: 의존성 설치**
@@ -1317,6 +1324,7 @@ Expected:
 3. 로그인하면 앱으로 돌아오고 화면이 바뀐다
 4. 앱을 완전히 껐다 켜도 로그인 상태가 유지된다
 5. Kakao도 같은 흐름으로 동작한다
+6. `.env` 의 값을 일부러 지우고 앱을 다시 열면 오류 메시지가 보인다 (흰 화면이 아니라)
 
 **Android 에뮬레이터에서 반드시 확인한다.** 리다이렉트 스킴 처리가 iOS와 다르므로 iOS만 확인하고 넘어가면 안 된다.
 
