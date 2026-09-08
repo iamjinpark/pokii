@@ -4,7 +4,7 @@
 
 **Goal:** Expo 앱이 실행되고, Google/Kakao로 로그인하고, 빈 나무 화면을 본다. 열흘 송이의 날짜 규칙은 테스트로 증명된다.
 
-**Architecture:** `src/domain/`에 Supabase도 React Native도 모르는 순수 함수로 날짜·송이 규칙을 두고 Jest로 검증한다. 데이터는 Supabase Postgres에 두고 RLS·트리거·제약으로 무결성을 지킨다. 화면은 expo-router가 라우팅하고 TanStack Query가 서버 상태를 담당한다.
+**Architecture:** `src/utils/`에 Supabase도 React Native도 모르는 순수 함수로 날짜·송이 규칙을 두고 Jest로 검증한다. 데이터는 Supabase Postgres에 두고 RLS·트리거·제약으로 무결성을 지킨다. 화면은 expo-router가 라우팅하고 TanStack Query가 서버 상태를 담당한다.
 
 **Tech Stack:** Expo SDK (expo-router) · TypeScript strict · Supabase (Postgres + Auth + RLS) · TanStack Query · expo-auth-session · jest-expo
 
@@ -17,9 +17,9 @@
 - TypeScript strict. `any` 금지.
 - 파일명은 **kebab-case**.
 - 컴포넌트 파일당 default export 1개.
-- Supabase 접근은 `src/lib/supabase.ts` 를 경유한다. 컴포넌트에서 직접 쿼리 금지.
+- Supabase 접근은 `src/utils/supabase.ts` 를 경유한다. 컴포넌트에서 직접 쿼리 금지.
 - **모든 테이블에 RLS를 건다.** 정책 없는 테이블은 만들지 않는다.
-- `src/domain/` 은 Supabase와 React Native를 import 하지 않는다. 이 규칙이 깨지면 에뮬레이터 없이 테스트할 수 없게 된다.
+- `src/utils/date.ts` 와 `src/utils/bunch.ts` 는 Supabase와 React Native를 import 하지 않는다. 이 두 파일이 순수해야 에뮬레이터 없이 도메인 규칙을 테스트할 수 있다. 규칙은 폴더가 아니라 이 두 파일에 붙는다.
 - 비밀값은 `.env`, 클라이언트 노출값은 `EXPO_PUBLIC_` 접두사.
 - 하루의 경계는 **기기 로컬 자정**. 서버는 사용자의 "오늘"을 모르므로 클라이언트가 로컬 날짜를 계산해 전달한다.
 - UI 문구는 영어, **소문자 캐주얼 톤**.
@@ -48,37 +48,40 @@ Task 1~4는 위와 무관하게 진행할 수 있다.
 
 ```
 src/
-  app/
-    _layout.tsx              루트 레이아웃. Query · Auth 프로바이더
-    (auth)/login.tsx         로그인 화면
-    (app)/_layout.tsx        탭 레이아웃
-    (app)/index.tsx          나무 화면
-  domain/
-    date.ts                  로컬 날짜 계산. 순수 함수
-    date.test.ts
-    bunch.ts                 송이 열흘 규칙. 순수 함수
-    bunch.test.ts
-  lib/
-    supabase.ts              Supabase 클라이언트 생성. 유일한 접근점
-    query.ts                 TanStack Query 클라이언트
-  features/
-    auth/use-session.ts      세션 훅
-    auth/sign-in.ts          OAuth 로그인 함수
-  screens/
+  app/                    expo-router 라우트 전용. 여기 있는 파일은 전부 라우트다
+    _layout.tsx           루트 레이아웃. Query · Auth 프로바이더
+    (auth)/login.tsx
+    (app)/_layout.tsx
+    (app)/index.tsx       나무 화면
+  screens/                라우트가 렌더하는 화면 본체
     login-screen.tsx
     tree-screen.tsx
+  hooks/                  재사용 훅
+    use-session.ts        세션
+    use-goals.ts          목표 조회
+  utils/                  독립 헬퍼 + 콜로케이트 테스트
+    date.ts               로컬 날짜 계산. 순수
+    date.test.ts
+    bunch.ts              송이 열흘 규칙. 순수
+    bunch.test.ts
+    supabase.ts           Supabase 클라이언트. 유일한 접근점
+    query.ts              TanStack Query 클라이언트
+    sign-in.ts            OAuth 로그인
   i18n/
-    index.ts                 언어 감지와 t()
+    index.ts              언어 감지와 t()
     en.ts
     ko.ts
-  theme.ts                   색 토큰
+  theme.ts                색 토큰
 supabase/
   migrations/
-    0001_schema.sql          테이블 · 제약 · 인덱스
-    0002_rls.sql             RLS 정책 · 트리거
+    0001_schema.sql       테이블 · 제약 · 인덱스
+    0002_rls.sql          RLS 정책 · 트리거
 ```
 
-**책임 분리** — `domain/`은 규칙만 알고 저장소를 모른다. `lib/`는 저장소만 알고 규칙을 모른다. `features/`가 둘을 잇는다. 이 경계 덕분에 `domain/`이 에뮬레이터 없이 테스트된다.
+**책임 분리** — Expo 공식 구조를 따른다. `app/`은 라우트만 두고 화면 본체는 `screens/`가,
+재사용 훅은 `hooks/`가, 독립 헬퍼는 `utils/`가 맡는다. 테스트는 대상 파일 옆에 둔다.
+`utils/date.ts`와 `utils/bunch.ts`만은 저장소를 모르는 순수 함수로 유지한다 —
+그래야 도메인 규칙이 에뮬레이터 없이 테스트된다.
 
 ---
 
@@ -117,7 +120,7 @@ Expected: QR 코드가 뜨고, Expo Go로 스캔하면 템플릿 화면이 보�
 
 ```bash
 rm -rf app components constants hooks scripts app-example
-mkdir -p src/app src/domain src/lib src/features src/screens src/i18n
+mkdir -p src/app src/utils src/hooks src/screens src/i18n
 ```
 
 `src/app/_layout.tsx` 를 만든다:
@@ -206,7 +209,7 @@ module.exports = {
 
 - [ ] **Step 7: 테스트 러너가 도는지 확인하는 임시 테스트**
 
-`src/domain/smoke.test.ts`:
+`src/utils/smoke.test.ts`:
 
 ```ts
 test('테스트 러너가 동작한다', () => {
@@ -222,7 +225,7 @@ Expected: PASS · 1 passed
 - [ ] **Step 9: 임시 테스트 삭제하고 앱 재확인**
 
 ```bash
-rm src/domain/smoke.test.ts
+rm src/utils/smoke.test.ts
 npx expo start
 ```
 
@@ -246,8 +249,8 @@ git commit -m "chore(setup): #<이슈번호> Expo 스캐폴딩과 테스트 러�
 ## Task 2: 로컬 날짜 계산
 
 **Files:**
-- Create: `src/domain/date.ts`
-- Test: `src/domain/date.test.ts`
+- Create: `src/utils/date.ts`
+- Test: `src/utils/date.test.ts`
 
 **Interfaces:**
 - Consumes: 없음
@@ -261,7 +264,7 @@ git commit -m "chore(setup): #<이슈번호> Expo 스캐폴딩과 테스트 러�
 
 - [ ] **Step 1: 실패하는 테스트 작성**
 
-`src/domain/date.test.ts`:
+`src/utils/date.test.ts`:
 
 ```ts
 import { localToday, addDays, diffDays } from './date';
@@ -320,7 +323,7 @@ Expected: FAIL — `Cannot find module './date'`
 
 - [ ] **Step 3: 최소 구현**
 
-`src/domain/date.ts`:
+`src/utils/date.ts`:
 
 ```ts
 export type IsoDate = string;
@@ -356,7 +359,7 @@ Expected: PASS · 10 passed
 - [ ] **Step 5: 커밋**
 
 ```bash
-git add src/domain/date.ts src/domain/date.test.ts
+git add src/utils/date.ts src/utils/date.test.ts
 git commit -m "feat(domain): #<이슈번호> 로컬 날짜 계산 함수 추가
 
 - **구현**
@@ -369,8 +372,8 @@ git commit -m "feat(domain): #<이슈번호> 로컬 날짜 계산 함수 추가
 ## Task 3: 송이 열흘 규칙
 
 **Files:**
-- Create: `src/domain/bunch.ts`
-- Test: `src/domain/bunch.test.ts`
+- Create: `src/utils/bunch.ts`
+- Test: `src/utils/bunch.test.ts`
 
 **Interfaces:**
 - Consumes: `IsoDate`, `addDays`, `diffDays` (Task 2)
@@ -387,7 +390,7 @@ git commit -m "feat(domain): #<이슈번호> 로컬 날짜 계산 함수 추가
 
 - [ ] **Step 1: 실패하는 테스트 작성**
 
-`src/domain/bunch.test.ts`:
+`src/utils/bunch.test.ts`:
 
 ```ts
 import {
@@ -521,7 +524,7 @@ Expected: FAIL — `Cannot find module './bunch'`
 
 - [ ] **Step 3: 최소 구현**
 
-`src/domain/bunch.ts`:
+`src/utils/bunch.ts`:
 
 ```ts
 import { addDays, diffDays, type IsoDate } from './date';
@@ -589,7 +592,7 @@ Expected: PASS · 34 passed (date 10 + bunch 24)
 - [ ] **Step 6: 커밋**
 
 ```bash
-git add src/domain/bunch.ts src/domain/bunch.test.ts
+git add src/utils/bunch.ts src/utils/bunch.test.ts
 git commit -m "feat(domain): #<이슈번호> 송이 열흘 규칙 추가
 
 - **구현**
@@ -958,7 +961,7 @@ git commit -m "feat(db): #<이슈번호> goals/bunches/grapes 스키마와 RLS �
 ## Task 6: Supabase 클라이언트와 Query 설정
 
 **Files:**
-- Create: `src/lib/supabase.ts`, `src/lib/query.ts`, `.env.example`
+- Create: `src/utils/supabase.ts`, `src/utils/query.ts`, `.env.example`
 - Modify: `src/app/_layout.tsx`
 
 **Interfaces:**
@@ -988,7 +991,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 
 - [ ] **Step 3: Supabase 클라이언트**
 
-`src/lib/supabase.ts`:
+`src/utils/supabase.ts`:
 
 ```ts
 import 'react-native-url-polyfill/auto';
@@ -1015,7 +1018,7 @@ export const supabase = createClient(url, anonKey, {
 
 - [ ] **Step 4: Query 클라이언트**
 
-`src/lib/query.ts`:
+`src/utils/query.ts`:
 
 ```ts
 import { QueryClient } from '@tanstack/react-query';
@@ -1037,7 +1040,7 @@ export const queryClient = new QueryClient({
 ```tsx
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
-import { queryClient } from '@/lib/query';
+import { queryClient } from '@/utils/query';
 
 export default function RootLayout() {
   return (
@@ -1056,11 +1059,11 @@ Expected: `POKII` 화면이 그대로 뜬다. 환경변수가 없으면 위에�
 - [ ] **Step 7: 커밋**
 
 ```bash
-git add src/lib .env.example src/app/_layout.tsx
+git add src/utils .env.example src/app/_layout.tsx
 git commit -m "feat(setup): #<이슈번호> Supabase 클라이언트와 TanStack Query 설정
 
 - **구현**
-  - src/lib/supabase.ts를 유일한 접근점으로 두고 AsyncStorage에 세션 보관
+  - src/utils/supabase.ts를 유일한 접근점으로 두고 AsyncStorage에 세션 보관
   - 환경변수 누락 시 즉시 명확한 오류를 던지도록 처리
   - QueryClientProvider를 루트 레이아웃에 연결"
 ```
@@ -1070,7 +1073,7 @@ git commit -m "feat(setup): #<이슈번호> Supabase 클라이언트와 TanStack
 ## Task 7: Google · Kakao 로그인
 
 **Files:**
-- Create: `src/features/auth/sign-in.ts`, `src/features/auth/use-session.ts`
+- Create: `src/utils/sign-in.ts`, `src/hooks/use-session.ts`
 - Create: `src/screens/login-screen.tsx`, `src/app/(auth)/login.tsx`
 - Modify: `src/app/_layout.tsx`
 
@@ -1090,12 +1093,12 @@ npx expo install expo-auth-session expo-web-browser expo-crypto
 
 - [ ] **Step 2: 로그인 함수**
 
-`src/features/auth/sign-in.ts`:
+`src/utils/sign-in.ts`:
 
 ```ts
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/utils/supabase';
 
 export type OAuthProvider = 'google' | 'kakao';
 
@@ -1138,12 +1141,12 @@ export async function signOut(): Promise<void> {
 
 - [ ] **Step 3: 세션 훅**
 
-`src/features/auth/use-session.ts`:
+`src/hooks/use-session.ts`:
 
 ```ts
 import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/utils/supabase';
 
 export function useSession(): { session: Session | null; loading: boolean } {
   const [session, setSession] = useState<Session | null>(null);
@@ -1173,7 +1176,7 @@ export function useSession(): { session: Session | null; loading: boolean } {
 ```tsx
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
-import { signInWith, type OAuthProvider } from '@/features/auth/sign-in';
+import { signInWith, type OAuthProvider } from '@/utils/sign-in';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
 
@@ -1240,8 +1243,8 @@ export { default } from '@/screens/login-screen';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
-import { useSession } from '@/features/auth/use-session';
-import { queryClient } from '@/lib/query';
+import { useSession } from '@/hooks/use-session';
+import { queryClient } from '@/utils/query';
 
 function Routes() {
   const { session, loading } = useSession();
@@ -1301,7 +1304,7 @@ Expected:
 - [ ] **Step 8: 커밋**
 
 ```bash
-git add src/features/auth src/screens/login-screen.tsx "src/app/(auth)" src/app/_layout.tsx
+git add src/utils/sign-in.ts src/hooks/use-session.ts src/screens/login-screen.tsx "src/app/(auth)" src/app/_layout.tsx
 git commit -m "feat(auth): #<이슈번호> Google/Kakao OAuth 로그인 추가
 
 - **구현**
@@ -1317,7 +1320,7 @@ git commit -m "feat(auth): #<이슈번호> Google/Kakao OAuth 로그인 추가
 
 **Files:**
 - Create: `src/screens/tree-screen.tsx`, `src/app/(app)/_layout.tsx`, `src/app/(app)/index.tsx`
-- Create: `src/features/goals/use-goals.ts`
+- Create: `src/hooks/use-goals.ts`
 
 **Interfaces:**
 - Consumes: `supabase` (Task 6), `useSession` (Task 7), `t`·`theme` (Task 4)
@@ -1328,11 +1331,11 @@ git commit -m "feat(auth): #<이슈번호> Google/Kakao OAuth 로그인 추가
 
 - [ ] **Step 1: 목표 조회 훅**
 
-`src/features/goals/use-goals.ts`:
+`src/hooks/use-goals.ts`:
 
 ```ts
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/utils/supabase';
 
 export type Goal = {
   id: string;
@@ -1365,7 +1368,7 @@ export function useGoals(): UseQueryResult<Goal[]> {
 
 ```tsx
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SLOTS, useGoals } from '@/features/goals/use-goals';
+import { SLOTS, useGoals } from '@/hooks/use-goals';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
 
@@ -1479,7 +1482,7 @@ Expected: 타입 오류 0개, 테스트 전부 통과
 - [ ] **Step 6: 커밋**
 
 ```bash
-git add src/features/goals src/screens/tree-screen.tsx "src/app/(app)"
+git add src/hooks/use-goals.ts src/screens/tree-screen.tsx "src/app/(app)"
 git commit -m "feat(tree): #<이슈번호> 빈 나무 화면 추가
 
 - **구현**
