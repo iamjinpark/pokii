@@ -899,6 +899,14 @@ create policy grapes_delete on grapes for delete using (user_id = auth.uid());
 create policy grapes_insert on grapes for insert with check (
   exists (select 1 from goals g where g.id = goal_id and g.user_id = auth.uid())
 );
+
+-- Data API 노출.
+-- 프로젝트 생성 시 "Automatically expose new tables"를 껐으므로 명시적으로 권한을 준다.
+-- 이 GRANT가 없으면 테이블은 만들어져도 앱이 읽지 못한다 (PGRST205).
+-- 로그인하지 않은 요청(anon)에는 주지 않는다 — RLS로 0행을 받는 것보다
+-- 권한 오류로 즉시 막히는 편이 원인이 분명하다.
+grant select, insert, update, delete on goals, bunches, grapes to authenticated;
+grant usage on schema public to authenticated;
 ```
 
 - [ ] **Step 4: 마이그레이션 적용**
