@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "POKII",
+    "slug": "pokii",
+    "scheme": "pokii",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "android": {
+      "package": "com.pokii.app",
+      "adaptiveIcon": { "backgroundColor": "#0B7A3B" }
+    },
+    "ios": { "bundleIdentifier": "com.pokii.app", "supportsTablet": false },
+    "plugins": ["expo-router"],
+    "experiments": { "typedRoutes": true }
+  }
+}
