@@ -9,10 +9,20 @@
     "newArchEnabled": true,
     "android": {
       "package": "com.pokii.app",
-      "adaptiveIcon": { "backgroundColor": "#0B7A3B" }
+      "adaptiveIcon": {
+        "backgroundColor": "#0B7A3B"
+      }
     },
-    "ios": { "bundleIdentifier": "com.pokii.app", "supportsTablet": false },
-    "plugins": ["expo-router"],
-    "experiments": { "typedRoutes": true }
+    "ios": {
+      "bundleIdentifier": "com.pokii.app",
+      "supportsTablet": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-localization"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }
