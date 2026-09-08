@@ -1,0 +1,45 @@
+# dependencies
+node_modules/
+
+# expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+ios/
+android/
+
+# metro
+.metro-health-check*
+
+# env
+.env
+.env*.local
+
+# eas
+credentials.json
+
+# os
+.DS_Store
+Thumbs.db
+
+# logs
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# editor
+.vscode/
+.idea/
+
+# brainstorm (visual companion)
+.superpowers/
