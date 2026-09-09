@@ -44,6 +44,7 @@ function Routes() {
       <Stack.Protected guard={session === null}>
         <Stack.Screen name="(auth)/login" />
       </Stack.Protected>
+      <Stack.Screen name="auth-callback" />
     </Stack>
   );
 }
