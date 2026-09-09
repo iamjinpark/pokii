@@ -18,6 +18,7 @@ async function fetchGoals(): Promise<Goal[]> {
     .is('archived_at', null)
     .order('position');
   if (error) throw error;
+  // position의 1|2|3은 DB check 제약(0001_schema.sql:6)이 보장한다.
   return data as Goal[];
 }
 
