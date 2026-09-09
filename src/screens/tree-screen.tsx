@@ -2,6 +2,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { SLOTS, useGoals } from '@/hooks/use-goals';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
+import { signOut } from '@/utils/sign-in';
 
 export default function TreeScreen() {
   const { data: goals, isLoading, isError, refetch } = useGoals();
@@ -47,6 +48,10 @@ export default function TreeScreen() {
       <View style={styles.footer}>
         <Text style={styles.greeting}>{t('tree.greeting')}</Text>
         <Text style={styles.body}>{allEmpty ? t('tree.empty') : t('tree.collect')}</Text>
+        {/* 설정 화면(계획 2)이 나오기 전까지 provider를 바꿔가며 테스트하기 위한 임시 버튼. */}
+        <Pressable onPress={() => signOut()} style={styles.devSignOut}>
+          <Text style={styles.devSignOutLabel}>로그아웃 (임시)</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -68,6 +73,8 @@ const styles = StyleSheet.create({
   footer: { paddingBottom: 20, gap: 4 },
   greeting: { fontSize: 20, fontWeight: '800', color: theme.ink },
   body: { fontSize: 15, fontWeight: '600', color: theme.ink },
+  devSignOut: { alignSelf: 'flex-start', marginTop: 10, paddingVertical: 6 },
+  devSignOutLabel: { fontSize: 13, fontWeight: '600', color: theme.vine, textDecorationLine: 'underline' },
   retry: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.ink },
   retryLabel: { color: '#fff', fontWeight: '700' },
 });
