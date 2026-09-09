@@ -14,4 +14,9 @@
 - 임시 로그아웃 버튼 제거 — `tree-screen.tsx`의 `devSignOut`은 설정 화면이 없어서 둔 개발용 버튼이다.
   설정 화면(스펙 586줄)을 만들 때 그쪽으로 옮기고 나무 화면에서 제거할 것
 
+- 세션 토큰 암호화 — `AsyncStorage`는 평문이라 루팅된 기기에서 토큰을 읽을 수 있다.
+  Supabase 공식 `LargeSecureStore` 패턴(AES 키는 `expo-secure-store`, 암호문은 `AsyncStorage`)으로 해결.
+  `expo-secure-store`는 값당 2048바이트 제한이 있어 세션을 통째로 넣지 못하므로 이 우회가 필요하다.
+  결제 기능이 붙어 민감도가 올라가는 시점에 적용할 것
+
 ## 제외
