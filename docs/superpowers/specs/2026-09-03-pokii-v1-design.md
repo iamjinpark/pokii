@@ -16,7 +16,7 @@ UI를 v1 전체로 확장하지 않은 이유는 React Native 경험이 없는 �
 | 영역 | 선택 |
 |---|---|
 | 앱 | Expo (React Native) + expo-router + TypeScript |
-| 폴더 구조 | Expo 공식 권장 (`src/` 하위 타입 기반) + `domain/`·`api/` 추가 |
+| 폴더 구조 | Expo 공식 구조 (`src/app` 라우트 전용, `screens/` · `hooks/` · `utils/`, 테스트 콜로케이트) |
 | 서버 상태 | TanStack Query |
 | UI 상태 | React 로컬 상태. 전역 상태 라이브러리 없음 |
 | 백엔드 | Supabase (Postgres + Auth + RLS) |
@@ -305,25 +305,27 @@ Supabase CLI로 관리하고 `supabase/migrations/*.sql`을 저장소에 커밋�
 
 ```
 src/
-  app/                  expo-router — 라우팅과 화면 조립만
+  app/                  expo-router 라우트 전용
     (auth)/login.tsx
     (app)/index.tsx     나무
     (app)/goal/[id].tsx 송이 상세
     _layout.tsx
-  screens/              화면 단위 컴포넌트
+  screens/              라우트가 렌더하는 화면 본체
   components/           포도알, 포도송이, 공통 UI
-  domain/               순수 함수 — Supabase도 RN도 모름
-  api/                  Supabase 접근 + Query 훅
-  hooks/
-  lib/supabase.ts       클라이언트 생성
+  hooks/                재사용 훅
+  utils/                독립 헬퍼 + 콜로케이트 테스트
+    date.ts             순수 — 저장소를 모름
+    bunch.ts            순수 — 저장소를 모름
+    supabase.ts         Supabase 접근의 유일한 경로
+  i18n/
   theme.ts
 ```
 
 파일명은 kebab-case를 쓴다 (2026년 1월부터 Expo 공식 권장).
 
-### 6.1 `domain/`을 순수하게 유지하는 이유
+### 6.1 날짜·송이 규칙을 순수하게 유지하는 이유
 
-10일 경계, 유예일, 소급 판정, 칸 상태 계산은 전부 여기 들어간다.
+10일 경계, 유예일, 소급 판정, 칸 상태 계산은 전부 `utils/date.ts`와 `utils/bunch.ts`에 들어간다.
 Supabase도 React Native도 참조하지 않으므로 **에뮬레이터 없이, 로그인 없이
 테스트할 수 있다.** 규칙이 컴포넌트 안에 섞이면 이게 불가능해진다.
 
@@ -355,7 +357,7 @@ canFillDate({ startedOn: '2026-09-01', today: '2026-09-12', target: '2026-09-10'
 ### 6.4 오프라인
 
 v1에서 지원하지 않는다. 네트워크가 없으면 안내만 표시한다.
-모든 쓰기가 `api/`를 지나가므로 나중에 큐를 붙일 자리는 열려 있다.
+모든 쓰기가 `utils/supabase.ts`를 지나가므로 나중에 큐를 붙일 자리는 열려 있다.
 
 ---
 
