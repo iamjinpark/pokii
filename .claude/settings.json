@@ -1,5 +1,22 @@
 {
   "enabledPlugins": {
     "expo@claude-plugins-official": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch:*)",
+      "Bash(npm ci)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx jest:*)",
+      "Bash(npx expo lint:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh issue view:*)"
+    ]
   }
 }
