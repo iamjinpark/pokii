@@ -1,7 +1,8 @@
-// supabase 클라이언트는 AsyncStorage 네이티브 모듈을 요구한다. 순수 함수 테스트에는 필요 없다.
-jest.mock('@/utils/supabase', () => ({ supabase: {} }));
-
 import { tokensFrom } from './sign-in';
+
+// supabase 클라이언트는 AsyncStorage 네이티브 모듈을 요구한다. 순수 함수 테스트에는 필요 없다.
+// jest.mock은 babel이 import 위로 끌어올리므로 위치는 무관하다.
+jest.mock('@/utils/supabase', () => ({ supabase: {} }));
 
 describe('tokensFrom', () => {
   it('프래그먼트에서 두 토큰을 꺼낸다', () => {
