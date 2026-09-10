@@ -19,5 +19,20 @@
       "Bash(gh pr diff:*)",
       "Bash(gh issue view:*)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(node -e 'const j=JSON.parse(require(\"fs\").readFileSync(0,\"utf8\"));console.log((j.tool_input&&j.tool_input.file_path)||(j.tool_response&&j.tool_response.filePath)||\"\")' 2>/dev/null); case \"$f\" in *.ts|*.tsx|\"\") npx tsc --noEmit >&2 || exit 2;; esac",
+            "timeout": 60,
+            "statusMessage": "타입체크 중..."
+          }
+        ]
+      }
+    ]
   }
 }
