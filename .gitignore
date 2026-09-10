@@ -48,3 +48,5 @@ yarn-error.*
 
 # brainstorm (visual companion)
 .superpowers/
+
+.screenshots/
