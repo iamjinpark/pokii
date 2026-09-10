@@ -87,7 +87,12 @@ try {
     die(`뷰포트 폭이 적용되지 않았다: 요청 ${width}px, 실제 ${actual}px`);
   }
 
+  // networkidle2는 조회가 끝났다는 뜻이 아니다. 로딩 스피너가 도는 화면을 찍고도
+  // 성공으로 보고할 수 있다. 두 프레임을 비교해 화면이 아직 움직이면 알린다.
+  const before = await page.screenshot();
+  await new Promise((r) => setTimeout(r, 600));
   await page.screenshot({ path: out });
+  const settled = before.equals(readFileSync(out));
 
   // 앱이 autoRefreshToken으로 갱신한 세션은 임시 프로필과 함께 버려진다. 파일에
   // 되써서 다음 실행이 살아있는 토큰을 쓰게 한다. 세션이 비었거나 형식이 다르면
@@ -112,6 +117,12 @@ try {
   const landed = await page.evaluate(() => location.pathname);
   const auth = inject ? (renewed ? "세션 주입됨 · 갱신 저장" : "세션 주입됨") : "세션 없음";
   console.log(`${out}\n  ${url} · ${width}x${height} (실제 폭 ${actual}px) · ${auth}`);
+  if (!settled) {
+    console.log(
+      "  경고: 화면이 아직 움직인다. 로딩 스피너거나 애니메이션일 수 있다.\n" +
+        "  이 캡처를 '완성된 화면'으로 믿지 마라.",
+    );
+  }
   if (landed !== route) {
     die(
       `요청한 경로가 아니다: 요청 ${route}, 도착 ${landed}\n` +
