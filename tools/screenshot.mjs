@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import puppeteer from "puppeteer-core";
 
@@ -89,10 +89,28 @@ try {
 
   await page.screenshot({ path: out });
 
+  // 앱이 autoRefreshToken으로 갱신한 세션은 임시 프로필과 함께 버려진다. 파일에
+  // 되써서 다음 실행이 살아있는 토큰을 쓰게 한다. 세션이 비었거나 형식이 다르면
+  // 덮어쓰지 않는다 (로그아웃·만료 시 멀쩡한 토큰을 잃지 않도록).
+  let renewed = false;
+  if (inject) {
+    const after = await page.evaluate((k) => window.localStorage.getItem(k), inject.key);
+    if (after && after !== inject.value) {
+      try {
+        if (JSON.parse(after)?.access_token) {
+          writeFileSync(sessionPath, after);
+          renewed = true;
+        }
+      } catch {
+        /* 파싱 불가면 그대로 둔다 */
+      }
+    }
+  }
+
   // Stack.Protected 가드는 세션이 없으면 로그인으로 돌려보낸다. 그걸 모른 채
   // "요청한 화면을 찍었다"고 믿으면 엉뚱한 화면을 검증하게 된다.
   const landed = await page.evaluate(() => location.pathname);
-  const auth = inject ? "세션 주입됨" : "세션 없음";
+  const auth = inject ? (renewed ? "세션 주입됨 · 갱신 저장" : "세션 주입됨") : "세션 없음";
   console.log(`${out}\n  ${url} · ${width}x${height} (실제 폭 ${actual}px) · ${auth}`);
   if (landed !== route) {
     die(
