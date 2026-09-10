@@ -27,7 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r \".tool_input.file_path // .tool_response.filePath // empty\" | { read -r f; case \"$f\" in *.ts|*.tsx) out=$(npx tsc --noEmit 2>&1) || jq -n --arg r \"$out\" \"{decision:\\\"block\\\",reason:\\$r}\";; esac; }",
+            "command": "f=$(node -e 'const j=JSON.parse(require(\"fs\").readFileSync(0,\"utf8\"));console.log((j.tool_input&&j.tool_input.file_path)||(j.tool_response&&j.tool_response.filePath)||\"\")' 2>/dev/null); case \"$f\" in *.ts|*.tsx|\"\") npx tsc --noEmit >&2 || exit 2;; esac",
             "timeout": 60,
             "statusMessage": "타입체크 중..."
           }
