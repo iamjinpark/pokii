@@ -19,5 +19,20 @@
       "Bash(gh pr diff:*)",
       "Bash(gh issue view:*)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r \".tool_input.file_path // .tool_response.filePath // empty\" | { read -r f; case \"$f\" in *.ts|*.tsx) out=$(npx tsc --noEmit 2>&1) || jq -n --arg r \"$out\" \"{decision:\\\"block\\\",reason:\\$r}\";; esac; }",
+            "timeout": 60,
+            "statusMessage": "타입체크 중..."
+          }
+        ]
+      }
+    ]
   }
 }
