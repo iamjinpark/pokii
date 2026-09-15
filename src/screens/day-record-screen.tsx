@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -44,6 +44,12 @@ export default function DayRecordScreen() {
   const [pickedMood, setPickedMood] = useState<Mood | null>(null);
   const [typedNote, setTypedNote] = useState<string | null>(null);
 
+  // 주소로 직접 들어오면 돌아갈 히스토리가 없다. 그때는 송이 상세로 간다.
+  const close = useCallback(() => {
+    if (router.canGoBack()) router.back();
+    else router.replace({ pathname: '/goal/[id]', params: { id } });
+  }, [router, id]);
+
   const existing = bunch?.grapes.find((g) => g.grapeDate === date);
   const mood = pickedMood ?? existing?.mood ?? null;
   const note = typedNote ?? existing?.note ?? '';
@@ -58,8 +64,8 @@ export default function DayRecordScreen() {
   useEffect(() => {
     // 놓친 날이나 미래 날짜는 탭해도 이 화면이 열리지 않는다. 딥링크로 들어온 경우만
     // 여기 닿으므로 조용히 돌려보낸다.
-    if (!openable) router.back();
-  }, [openable, router]);
+    if (!openable) close();
+  }, [openable, close]);
 
   if (isLoading) {
     return (
@@ -93,19 +99,19 @@ export default function DayRecordScreen() {
       note: note.trim() || null,
       editing: existing !== undefined,
     });
-    router.back();
+    close();
   };
 
   const remove = () => {
     removeGrape.mutate(date);
-    router.back();
+    close();
   };
 
   return (
     <View style={styles.root}>
       <View style={styles.header}>
         <Text style={styles.title}>{t('day.title')}</Text>
-        <Pressable onPress={() => router.back()} style={styles.close} accessibilityLabel="닫기">
+        <Pressable onPress={close} style={styles.close} accessibilityLabel="닫기">
           <Text style={styles.closeLabel}>✕</Text>
         </Pressable>
       </View>
