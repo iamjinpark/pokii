@@ -19,3 +19,12 @@ export function addDays(date: IsoDate, n: number): IsoDate {
 export function diffDays(from: IsoDate, to: IsoDate): number {
   return Math.round((toUtcMillis(to) - toUtcMillis(from)) / 86400000);
 }
+
+/**
+ * 다음 로컬 자정까지 남은 밀리초. 경계에 정확히 걸려 날짜가 덜 넘어간 상태로 깨지 않도록
+ * 1초를 더한다. 로컬 생성자를 쓰므로 서머타임이 있는 지역에서도 어긋나지 않는다.
+ */
+export function msUntilMidnight(now: Date = new Date()): number {
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 1, 0);
+  return next.getTime() - now.getTime();
+}

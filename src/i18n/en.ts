@@ -7,6 +7,8 @@ export const en = {
   'tree.done': 'all done for today',
   'tree.full.title': 'your tree is full!',
   'tree.full.body': 'finish a bunch to plant a new one',
+  'bunch.yesterdayOpen': 'yesterday is still open',
+  'bunch.lastDay': 'last day to catch up',
   'common.retry': 'retry',
   'common.error.network': "couldn't reach your tree.",
 } as const;

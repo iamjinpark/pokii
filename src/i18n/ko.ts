@@ -9,6 +9,8 @@ export const ko: Record<TranslationKey, string> = {
   'tree.done': '오늘은 다 했어요',
   'tree.full.title': '나무가 가득 찼어요',
   'tree.full.body': '한 송이를 마쳐야 새로 심을 수 있어요',
+  'bunch.yesterdayOpen': '어제 칸이 아직 열려 있어요',
+  'bunch.lastDay': '보충할 수 있는 마지막 날이에요',
   'common.retry': '다시 시도',
   'common.error.network': '나무에 닿지 못했어요.',
 };

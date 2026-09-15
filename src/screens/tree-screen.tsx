@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SLOTS, useGoals } from '@/hooks/use-goals';
 import { t } from '@/i18n';
@@ -6,6 +7,7 @@ import { signOut } from '@/utils/sign-in';
 
 export default function TreeScreen() {
   const { data: goals, isLoading, isError, refetch } = useGoals();
+  const router = useRouter();
 
   if (isLoading) {
     return (
@@ -26,23 +28,30 @@ export default function TreeScreen() {
     );
   }
 
-  const filled = new Set((goals ?? []).map((g) => g.position));
-  const allEmpty = filled.size === 0;
+  const byPosition = new Map((goals ?? []).map((g) => [g.position as number, g]));
+  const allEmpty = byPosition.size === 0;
 
   return (
     <View style={styles.root}>
       <View style={styles.canopy}>
-        {SLOTS.map((slot) => (
-          <View key={slot} style={[styles.slotRow, slot === 1 && styles.slotRowCenter]}>
-            {filled.has(slot) ? (
-              <View style={styles.taken} />
-            ) : (
-              <Pressable style={styles.empty} accessibilityLabel={`빈 가지 ${slot}`}>
-                <Text style={styles.plus}>+</Text>
-              </Pressable>
-            )}
-          </View>
-        ))}
+        {SLOTS.map((slot) => {
+          const goal = byPosition.get(slot);
+          return (
+            <View key={slot} style={[styles.slotRow, slot === 1 && styles.slotRowCenter]}>
+              {goal ? (
+                <Pressable
+                  style={styles.taken}
+                  accessibilityLabel={`${goal.tag} 송이`}
+                  onPress={() => router.push({ pathname: '/goal/[id]', params: { id: goal.id } })}
+                />
+              ) : (
+                <Pressable style={styles.empty} accessibilityLabel={`빈 가지 ${slot}`}>
+                  <Text style={styles.plus}>+</Text>
+                </Pressable>
+              )}
+            </View>
+          );
+        })}
       </View>
 
       <View style={styles.footer}>
