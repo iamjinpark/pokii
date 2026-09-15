@@ -1,27 +1,50 @@
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import { Alert } from 'react-native';
 import type { CurrentBunch } from '@/hooks/use-current-bunch';
+import { t } from '@/i18n';
 import type { Mood } from '@/theme';
 import type { IsoDate } from '@/utils/date';
 import { supabase } from '@/utils/supabase';
 
-type SaveArgs = { bunchId: string; date: IsoDate; mood: Mood; note: string | null };
+const UNIQUE_VIOLATION = '23505';
+
+type SaveArgs = {
+  bunchId: string;
+  date: IsoDate;
+  mood: Mood;
+  note: string | null;
+  /** 이 송이에 이미 그 알이 있으면 수정, 없으면 채우기. */
+  editing: boolean;
+};
 
 /**
- * 하루 하나라는 제약은 unique (goal_id, grape_date)가 지킨다. upsert로 보내면 채우기와
- * 수정이 한 경로가 되고, 이미 그 날짜가 채워져 있어도 에러가 아니라 원하던 상태로 수렴한다
- * (스펙 6.3).
+ * 채우기는 insert다. upsert로 두면 안 된다 — 완성한 날 "한 송이 더"를 누르면 새 송이의
+ * 1일차가 이전 송이 10일차와 같은 날짜가 되는데(스펙 3.5), 그때 upsert가 기존 알의
+ * bunch_id를 새 송이로 옮겨 완성된 송이의 기록을 조용히 훼손한다.
+ *
+ * 유니크 위반은 에러로 다루지 않는다. 그날은 이미 소진된 것이므로 조용히 성공으로
+ * 처리하고 화면만 맞춘다 (스펙 6.3).
  */
-async function saveGrape(goalId: string, args: SaveArgs): Promise<void> {
-  const { error } = await supabase.from('grapes').upsert(
-    {
-      bunch_id: args.bunchId,
-      goal_id: goalId,
-      grape_date: args.date,
-      mood: args.mood,
-      note: args.note,
-    },
-    { onConflict: 'goal_id,grape_date' },
-  );
+async function fillGrape(goalId: string, args: SaveArgs): Promise<void> {
+  const { error } = await supabase.from('grapes').insert({
+    bunch_id: args.bunchId,
+    goal_id: goalId,
+    grape_date: args.date,
+    mood: args.mood,
+    note: args.note,
+  });
+  if (error && error.code === UNIQUE_VIOLATION) return;
+  if (error) throw error;
+}
+
+/** bunch_id까지 조건에 넣어 다른 송이의 알을 건드릴 수 없게 한다. */
+async function editGrape(goalId: string, args: SaveArgs): Promise<void> {
+  const { error } = await supabase
+    .from('grapes')
+    .update({ mood: args.mood, note: args.note })
+    .eq('goal_id', goalId)
+    .eq('grape_date', args.date)
+    .eq('bunch_id', args.bunchId);
   if (error) throw error;
 }
 
@@ -37,6 +60,9 @@ async function removeGrape(goalId: string, date: IsoDate): Promise<void> {
 /**
  * 하루에 한 번뿐인 핵심 동작이라 서버 응답을 기다리지 않는다. 여기서 지연이 보이면
  * 앱 전체가 굼떠 보인다 (스펙 6.3). 실패하면 이전 캐시로 되돌린다.
+ *
+ * 알림과 롤백은 mutation 정의에 둔다. 저장 직후 화면이 닫히므로 mutate에 넘긴
+ * 콜백은 observer가 사라져 호출되지 않는다.
  */
 function useGrapeMutation<TArgs>(
   goalId: string,
@@ -56,6 +82,7 @@ function useGrapeMutation<TArgs>(
     },
     onError: (_error, _args, context) => {
       if (context) queryClient.setQueryData(key, context.previous);
+      Alert.alert(t('common.error.network'));
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: key });
@@ -66,7 +93,7 @@ function useGrapeMutation<TArgs>(
 export function useSaveGrape(goalId: string): UseMutationResult<void, Error, SaveArgs> {
   return useGrapeMutation(
     goalId,
-    (args) => saveGrape(goalId, args),
+    (args) => (args.editing ? editGrape(goalId, args) : fillGrape(goalId, args)),
     (bunch, args) => ({
       ...bunch,
       grapes: [

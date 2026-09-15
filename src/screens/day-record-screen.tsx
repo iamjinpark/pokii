@@ -2,7 +2,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -36,7 +35,7 @@ export default function DayRecordScreen() {
   const { id, date } = useLocalSearchParams<{ id: string; date: IsoDate }>();
   const router = useRouter();
   const today = useToday();
-  const { data: bunch, isLoading } = useCurrentBunch(id);
+  const { data: bunch, isLoading, isError, refetch } = useCurrentBunch(id);
   const saveGrape = useSaveGrape(id);
   const removeGrape = useRemoveGrape(id);
 
@@ -62,7 +61,7 @@ export default function DayRecordScreen() {
     if (!openable) router.back();
   }, [openable, router]);
 
-  if (isLoading || !bunch) {
+  if (isLoading) {
     return (
       <View style={styles.center}>
         <ActivityIndicator />
@@ -70,19 +69,35 @@ export default function DayRecordScreen() {
     );
   }
 
-  const fail = () => Alert.alert(t('common.error.network'));
+  // 딥링크나 새로고침으로 바로 들어오면 캐시가 없다. 조회가 실패하면 스피너로 방치하지
+  // 않고 상세 화면과 같은 재시도 경로를 준다.
+  if (isError || !bunch) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.body}>{t('common.error.network')}</Text>
+        <Pressable onPress={() => refetch()} style={styles.retry}>
+          <Text style={styles.retryLabel}>{t('common.retry')}</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
+  // 실패 알림과 롤백은 mutation 정의에 있다. 여기서 mutate에 콜백을 넘기면 바로 아래
+  // router.back()으로 화면이 사라져 호출되지 않는다.
   const save = () => {
     if (!mood) return;
-    saveGrape.mutate(
-      { bunchId: bunch.id, date, mood, note: note.trim() || null },
-      { onError: fail },
-    );
+    saveGrape.mutate({
+      bunchId: bunch.id,
+      date,
+      mood,
+      note: note.trim() || null,
+      editing: existing !== undefined,
+    });
     router.back();
   };
 
   const remove = () => {
-    removeGrape.mutate(date, { onError: fail });
+    removeGrape.mutate(date);
     router.back();
   };
 
@@ -148,7 +163,13 @@ export default function DayRecordScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.sky, padding: 20 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.sky },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.sky,
+    gap: 12,
+  },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontSize: 20, fontWeight: '800', color: theme.ink },
   close: { paddingVertical: 6, paddingHorizontal: 10 },
@@ -182,4 +203,7 @@ const styles = StyleSheet.create({
   saveLabel: { color: '#fff', fontSize: 15, fontWeight: '700' },
   remove: { paddingVertical: 8 },
   removeLabel: { fontSize: 14, fontWeight: '700', color: theme.amber },
+  body: { fontSize: 15, fontWeight: '600', color: theme.ink },
+  retry: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.ink },
+  retryLabel: { color: '#fff', fontWeight: '700' },
 });
