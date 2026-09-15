@@ -71,6 +71,19 @@ const browser = await puppeteer.launch({ executablePath: chrome, headless: true 
 try {
   const page = await browser.newPage();
   await page.setViewport({ width, height, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+
+  // Supabase refresh token은 1회용이라 쓸 때마다 회전한다. 도구와 브라우저가 같은 세션을
+  // 나눠 쓰면 서로의 토큰을 무효화한다. 그러면 앱이 로그인 화면으로 떨어지는데, 그걸
+  // 모른 채 캡처하면 "화면이 깨졌다"로 오진한다. 갱신 실패를 잡아 사유를 말하게 한다.
+  let refreshFailure = null;
+  page.on("response", async (res) => {
+    if (refreshFailure || !res.url().includes("/auth/v1/token")) return;
+    if (res.status() < 400) return;
+    const body = await res.text().catch(() => "");
+    refreshFailure = body.includes("refresh_token_already_used")
+      ? "refresh token이 이미 사용됐다 (다른 곳에서 같은 세션을 갱신했다)"
+      : `토큰 갱신이 HTTP ${res.status()}로 실패했다: ${body.slice(0, 120)}`;
+  });
   if (inject) {
     await page.evaluateOnNewDocument(
       (k, v) => window.localStorage.setItem(k, v),
@@ -114,6 +127,15 @@ try {
 
   // Stack.Protected 가드는 세션이 없으면 로그인으로 돌려보낸다. 그걸 모른 채
   // "요청한 화면을 찍었다"고 믿으면 엉뚱한 화면을 검증하게 된다.
+  if (refreshFailure) {
+    die(
+      `${refreshFailure}\n` +
+        `  ${sessionPath}의 세션이 죽었다. 이 도구는 전용 세션을 써야 한다.\n` +
+        `  시크릿 창에서 같은 계정으로 다시 로그인한 뒤 그 세션만 넣어라.\n` +
+        `  절차: README.md "스크린샷 검증" (이미지는 저장했다)`,
+    );
+  }
+
   const landed = await page.evaluate(() => location.pathname);
   const auth = inject ? (renewed ? "세션 주입됨 · 갱신 저장" : "세션 주입됨") : "세션 없음";
   console.log(`${out}\n  ${url} · ${width}x${height} (실제 폭 ${actual}px) · ${auth}`);
