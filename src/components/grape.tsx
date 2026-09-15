@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -51,6 +52,12 @@ export function Grape({ day, state, mood = null }: Props) {
       -1,
       true,
     );
+    // 자정을 넘겨 다시 그려지거나 알이 채워지면 '오늘'이 아니게 된다. 멈추지 않으면
+    // 그 알이 계속 떠다니고 들린 채로 남는다.
+    return () => {
+      cancelAnimation(pulse);
+      pulse.value = 0;
+    };
   }, [floating, pulse]);
 
   const lift = useAnimatedStyle(() => ({
