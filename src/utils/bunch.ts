@@ -1,3 +1,4 @@
+import type { TranslationKey } from '@/i18n';
 import { addDays, diffDays, type IsoDate } from './date';
 
 export const BUNCH_SIZE = 10;
@@ -45,4 +46,27 @@ export function containerFor(filledCount: number): Container {
   if (filledCount >= BUNCH_SIZE) return 'basket';
   if (filledCount >= 3) return 'crate';
   return 'colander';
+}
+
+/** 2026-10-21 -> Start.261021 */
+export function startLabel(startedOn: IsoDate): string {
+  return `Start.${startedOn.slice(2).replaceAll('-', '')}`;
+}
+
+/**
+ * 송이 상세 하단에 뜨는 문구 하나 (스펙 7.4). 없으면 null.
+ * 유예일에는 오늘 칸이 없고 10일차가 '어제'로 잡히므로 어제 판정 안에서 갈라진다.
+ */
+export function footerKey(args: {
+  startedOn: IsoDate;
+  today: IsoDate;
+  filled: ReadonlySet<IsoDate>;
+}): TranslationKey | null {
+  const { startedOn, today, filled } = args;
+  const states = bunchDates(startedOn).map((date) => grapeStateFor({ date, today, filled }));
+  if (states.includes('yesterday')) {
+    return diffDays(startedOn, today) === GRACE_OFFSET ? 'bunch.lastDay' : 'bunch.yesterdayOpen';
+  }
+  if (filled.has(today)) return 'tree.done';
+  return null;
 }

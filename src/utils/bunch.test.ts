@@ -1,5 +1,6 @@
 import {
   BUNCH_SIZE, bunchDates, isBunchOpen, grapeStateFor, canFill, containerFor,
+  startLabel, footerKey,
 } from './bunch';
 
 const START = '2026-09-01';
@@ -118,5 +119,63 @@ describe('containerFor', () => {
 
   test('0알이면 소쿠리다', () => {
     expect(containerFor(0)).toBe('colander');
+  });
+});
+
+describe('startLabel', () => {
+  it('YYMMDD로 줄인다', () => {
+    expect(startLabel('2026-10-21')).toBe('Start.261021');
+  });
+});
+
+describe('footerKey', () => {
+  const startedOn = '2026-09-01';
+  const set = (...dates: string[]) => new Set(dates);
+
+  it('어제 칸이 비어 있으면 보충 안내', () => {
+    expect(footerKey({ startedOn, today: '2026-09-05', filled: set('2026-09-01') })).toBe(
+      'bunch.yesterdayOpen',
+    );
+  });
+
+  it('유예일에는 마지막 날 안내로 갈라진다', () => {
+    // started_on + 10. 오늘 칸은 없고 10일차(09-10)가 어제로 잡힌다.
+    expect(footerKey({ startedOn, today: '2026-09-11', filled: set() })).toBe('bunch.lastDay');
+  });
+
+  it('유예일이어도 10일차가 채워져 있으면 문구가 없다', () => {
+    expect(footerKey({ startedOn, today: '2026-09-11', filled: set('2026-09-10') })).toBeNull();
+  });
+
+  it('오늘을 채웠고 어제가 비어 있으면 어제 안내가 우선한다', () => {
+    expect(footerKey({ startedOn, today: '2026-09-05', filled: set('2026-09-05') })).toBe(
+      'bunch.yesterdayOpen',
+    );
+  });
+
+  it('오늘만 채우고 어제도 채워져 있으면 완료 문구', () => {
+    expect(
+      footerKey({ startedOn, today: '2026-09-05', filled: set('2026-09-04', '2026-09-05') }),
+    ).toBe('tree.done');
+  });
+
+  it('첫날 아직 안 채웠으면 문구가 없다', () => {
+    expect(footerKey({ startedOn, today: '2026-09-01', filled: set() })).toBeNull();
+  });
+
+  it('송이가 끝나 보충 기한도 지나면 문구가 없다', () => {
+    expect(footerKey({ startedOn, today: '2026-09-12', filled: set() })).toBeNull();
+  });
+});
+
+describe('유예일 칸 상태', () => {
+  it('오늘 칸이 없고 10일차만 어제로 잡힌다', () => {
+    const startedOn = '2026-09-01';
+    const states = bunchDates(startedOn).map((date) =>
+      grapeStateFor({ date, today: '2026-09-11', filled: new Set<string>() }),
+    );
+    expect(states).not.toContain('today');
+    expect(states[BUNCH_SIZE - 1]).toBe('yesterday');
+    expect(states.slice(0, BUNCH_SIZE - 1)).toEqual(Array(BUNCH_SIZE - 1).fill('missed'));
   });
 });
