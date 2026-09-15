@@ -2,15 +2,17 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Grape } from '@/components/grape';
 import { useCurrentBunch } from '@/hooks/use-current-bunch';
+import { useToday } from '@/hooks/use-today';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
 import { bunchDates, footerKey, grapeStateFor, startLabel } from '@/utils/bunch';
-import { localToday } from '@/utils/date';
 
 export default function BunchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { data: bunch, isLoading, isError, refetch } = useCurrentBunch(id);
+  // 훅이라 이른 return보다 위에 있어야 한다.
+  const today = useToday();
 
   if (isLoading) {
     return (
@@ -31,7 +33,6 @@ export default function BunchDetailScreen() {
     );
   }
 
-  const today = localToday();
   const dates = bunchDates(bunch.startedOn);
   const filled = new Set(bunch.grapes.map((g) => g.grapeDate));
   const moodOf = new Map(bunch.grapes.map((g) => [g.grapeDate, g.mood]));
