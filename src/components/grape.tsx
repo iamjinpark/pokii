@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -39,9 +39,9 @@ function berryStyle(state: GrapeState, mood: Mood | null): ViewStyle {
   return { backgroundColor: theme.empty };
 }
 
-type Props = { day: number; state: GrapeState; mood?: Mood | null };
+type Props = { day: number; state: GrapeState; mood?: Mood | null; onPress?: () => void };
 
-export function Grape({ day, state, mood = null }: Props) {
+export function Grape({ day, state, mood = null, onPress }: Props) {
   const floating = state === 'today';
   const pulse = useSharedValue(0);
 
@@ -68,14 +68,20 @@ export function Grape({ day, state, mood = null }: Props) {
     transform: [{ scale: 1.15 + 0.15 * pulse.value }],
   }));
 
+  // 놓친 날과 미래 날짜는 탭해도 아무 일이 없다 (스펙 7.4). onPress가 없으면 누를 수
+  // 없는 상태라는 뜻이라 Pressable로 감싸지 않는다.
+  const Wrapper = onPress ? Pressable : View;
+
   return (
-    <Animated.View
-      style={[styles.wrap, lift]}
-      accessible
-      accessibilityLabel={`${day}일차 ${STATE_LABEL[state]}`}
-    >
+    <Animated.View style={[styles.wrap, lift]}>
       {floating ? <Animated.View style={[styles.halo, halo]} /> : null}
-      <View style={[styles.berry, berryStyle(state, mood), floating && styles.lifted]} />
+      <Wrapper
+        onPress={onPress}
+        accessible
+        accessibilityRole={onPress ? 'button' : undefined}
+        accessibilityLabel={`${day}일차 ${STATE_LABEL[state]}`}
+        style={[styles.berry, berryStyle(state, mood), floating && styles.lifted]}
+      />
     </Animated.View>
   );
 }

@@ -5,7 +5,16 @@ import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useToday } from '@/hooks/use-today';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
-import { bunchDates, footerKey, grapeStateFor, startLabel } from '@/utils/bunch';
+import {
+  bunchDates,
+  footerKey,
+  grapeStateFor,
+  startLabel,
+  type GrapeState,
+} from '@/utils/bunch';
+
+/** 탭하면 하루 기록 화면이 열리는 상태 (스펙 7.4). 놓침·미래는 아무 일도 일어나지 않는다. */
+const OPENABLE = new Set<GrapeState>(['filled', 'today', 'yesterday']);
 
 export default function BunchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -54,7 +63,17 @@ export default function BunchDetailScreen() {
 
       <View style={styles.stem}>
         {dates.map((date, i) => (
-          <Grape key={date} day={i + 1} state={states[i]} mood={moodOf.get(date) ?? null} />
+          <Grape
+            key={date}
+            day={i + 1}
+            state={states[i]}
+            mood={moodOf.get(date) ?? null}
+            onPress={
+              OPENABLE.has(states[i])
+                ? () => router.push({ pathname: '/goal/[id]/[date]', params: { id, date } })
+                : undefined
+            }
+          />
         ))}
       </View>
 
