@@ -1,6 +1,6 @@
 import {
   BUNCH_SIZE, bunchDates, isBunchOpen, grapeStateFor, canFill, containerFor,
-  startLabel, footerKey,
+  startLabel, footerKey, isBunchEnded,
 } from './bunch';
 
 const START = '2026-09-01';
@@ -177,5 +177,29 @@ describe('유예일 칸 상태', () => {
     expect(states).not.toContain('today');
     expect(states[BUNCH_SIZE - 1]).toBe('yesterday');
     expect(states.slice(0, BUNCH_SIZE - 1)).toEqual(Array(BUNCH_SIZE - 1).fill('missed'));
+  });
+});
+
+describe('isBunchEnded', () => {
+  const START = '2026-09-01';
+
+  it('10알을 채우면 유예일 전이라도 끝난 것이다', () => {
+    expect(isBunchEnded({ startedOn: START, filled: 10, today: '2026-09-05' })).toBe(true);
+  });
+
+  it('진행 중이고 덜 찼으면 끝나지 않았다', () => {
+    expect(isBunchEnded({ startedOn: START, filled: 5, today: '2026-09-05' })).toBe(false);
+  });
+
+  it('유예일 당일은 아직 끝나지 않았다 — 10일차를 보충할 수 있다', () => {
+    expect(isBunchEnded({ startedOn: START, filled: 5, today: '2026-09-11' })).toBe(false);
+  });
+
+  it('유예일 다음날부터 끝난 것이다', () => {
+    expect(isBunchEnded({ startedOn: START, filled: 5, today: '2026-09-12' })).toBe(true);
+  });
+
+  it('한 알도 없이 기한이 지나도 끝난 것이다', () => {
+    expect(isBunchEnded({ startedOn: START, filled: 0, today: '2026-09-12' })).toBe(true);
   });
 });
