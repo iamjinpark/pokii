@@ -45,7 +45,11 @@ export default function TreeScreen() {
                   onPress={() => router.push({ pathname: '/goal/[id]', params: { id: goal.id } })}
                 />
               ) : (
-                <Pressable style={styles.empty} accessibilityLabel={`빈 가지 ${slot}`}>
+                <Pressable
+                  style={styles.empty}
+                  accessibilityLabel={`빈 가지 ${slot}`}
+                  onPress={() => router.push('/goal/new')}
+                >
                   <Text style={styles.plus}>+</Text>
                 </Pressable>
               )}

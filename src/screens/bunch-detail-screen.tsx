@@ -20,6 +20,8 @@ export default function BunchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { data: bunch, isLoading, isError, refetch } = useCurrentBunch(id);
+  // 주소로 직접 들어오면 돌아갈 히스토리가 없다.
+  const back = () => (router.canGoBack() ? router.back() : router.replace('/'));
   // 훅이라 이른 return보다 위에 있어야 한다.
   const today = useToday();
 
@@ -51,7 +53,7 @@ export default function BunchDetailScreen() {
 
   return (
     <View style={styles.root}>
-      <Pressable onPress={() => router.back()} style={styles.back} accessibilityLabel="뒤로">
+      <Pressable onPress={back} style={styles.back} accessibilityLabel="뒤로">
         <Text style={styles.backLabel}>←</Text>
       </Pressable>
 
