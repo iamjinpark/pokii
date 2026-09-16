@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Container } from '@/components/container';
 import { useFinishGoal, useStartNextBunch } from '@/hooks/use-close-bunch';
@@ -6,7 +7,12 @@ import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useToday } from '@/hooks/use-today';
 import { t, type TranslationKey } from '@/i18n';
 import { theme } from '@/theme';
-import { BUNCH_SIZE, containerFor, type Container as Grade } from '@/utils/bunch';
+import {
+  BUNCH_SIZE,
+  containerFor,
+  isBunchEnded,
+  type Container as Grade,
+} from '@/utils/bunch';
 
 /** 3알 미만이면 숫자 대신 격려 문구를 보여준다 (설계 7.6). */
 const SHOW_COUNT_FROM = 3;
@@ -28,8 +34,19 @@ export default function ResultScreen() {
   const router = useRouter();
   const today = useToday();
   const { data: bunch, isLoading, isError, refetch } = useCurrentBunch(id);
-  const finish = useFinishGoal(id);
-  const oneMore = useStartNextBunch(id, today);
+  const args = { goalId: id, bunchId: bunch?.id ?? '', today };
+  const finish = useFinishGoal(args);
+  const oneMore = useStartNextBunch(args);
+
+  // 끝나지 않은 송이에서는 고를 것이 없다. 주소로 직접 들어오거나, 다른 기기에서 새 송이가
+  // 시작된 뒤 이 화면을 들고 있으면 닿는다. 서버도 거부하지만 화면에서 먼저 돌려보낸다.
+  const ended =
+    bunch === undefined ||
+    bunch === null ||
+    isBunchEnded({ startedOn: bunch.startedOn, filled: bunch.grapes.length, today });
+  useEffect(() => {
+    if (!ended) router.replace('/');
+  }, [ended, router]);
 
   const back = () => (router.canGoBack() ? router.back() : router.replace('/'));
   const toTree = () => router.replace('/');

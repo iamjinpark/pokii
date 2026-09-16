@@ -86,6 +86,9 @@ function useGrapeMutation<TArgs>(
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: key });
+      // 나무는 채운 개수로 끝난 송이를 판정한다. 여기를 비우지 않으면 열 번째 알을
+      // 채우고 나무로 돌아가도 9알로 남아 결과 화면 대신 상세로 간다.
+      void queryClient.invalidateQueries({ queryKey: ['goals'] });
     },
   });
 }

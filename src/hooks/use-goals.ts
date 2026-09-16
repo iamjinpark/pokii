@@ -1,5 +1,4 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import { BUNCH_SIZE, isBunchOpen } from '@/utils/bunch';
 import type { IsoDate } from '@/utils/date';
 import { supabase } from '@/utils/supabase';
 
@@ -14,14 +13,6 @@ export type Goal = {
 
 /** 나무의 자리 순서. 첫 목표가 가운데(1)에 온다. */
 export const SLOTS = [2, 1, 3] as const;
-
-/**
- * 끝난 송이는 둘 중 하나다 (설계 3.3, 3.5).
- * 10알을 다 채웠거나, 유예일(started_on + 10)이 지났거나.
- */
-export function isBunchEnded(goal: Goal, today: IsoDate): boolean {
-  return goal.bunch.filled >= BUNCH_SIZE || !isBunchOpen(goal.bunch.startedOn, today);
-}
 
 type Row = {
   id: string;
