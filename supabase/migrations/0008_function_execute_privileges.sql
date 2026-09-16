@@ -12,8 +12,22 @@
 revoke execute on function set_user_id() from public;
 revoke execute on function rls_auto_enable() from public;
 
--- 0004가 테이블에 한 것과 같은 이유로 원인도 막는다. 이후 public에 만드는 함수는
--- 기본으로 노출되지 않고, 필요한 역할에 명시적으로 grant해야 한다
--- (create_goal이 이미 그 방식이다: anon에서 회수하고 authenticated에만 부여).
+-- postgres가 만드는 함수의 기본 노출도 줄인다. 다만 이것만으로 '기본 거부'가 되지는
+-- 않는다 — 확인한 한계는 다음과 같다.
+--
+--  1. 기본 권한은 객체를 '만든 역할' 기준으로 적용된다. Management API나 대시보드
+--     SQL 에디터로 만든 함수는 다른 역할이 생성한 뒤 소유자만 postgres로 바뀌므로
+--     이 항목이 적용되지 않는다. 실제로 그 경로로 만든 함수는 proacl이 비어 있었고
+--     anon이 호출에 성공했다.
+--  2. 플랫폼에는 supabase_admin이 설정한 별도 기본 권한 항목이 있어
+--     (anon/authenticated/service_role에 EXECUTE) 우리가 손댈 수 없다.
+--
+-- 근본 스위치는 config.toml의 auto_expose_new_tables = false 인데, 적용하려면
+-- `supabase config push`가 필요하고 지금 config.toml은 원격과 19곳이 달라
+-- 그대로 밀면 이메일 가입이 되살아나고 OAuth 설정이 날아간다. 인증 설정을 먼저
+-- 원격과 맞춘 뒤에 다룰 일이다.
+--
+-- 그때까지는 함수마다 명시적으로 권한을 다룬다 (create_goal이 그 방식이다:
+-- public/anon에서 회수하고 authenticated에만 부여).
 alter default privileges for role postgres in schema public
   revoke execute on functions from public;
