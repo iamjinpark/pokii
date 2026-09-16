@@ -11,6 +11,7 @@ export const en = {
   'bunch.lastDay': 'last day to catch up',
   'day.title': 'how was your day?',
   'day.note.placeholder': 'A little note...',
+  'day.saved': "nice, that's today!",
   'day.save': 'save',
   'day.remove': 'remove this pokii',
   'day.mood.excited': 'excited',

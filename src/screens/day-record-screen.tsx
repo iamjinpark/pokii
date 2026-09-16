@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -8,6 +8,13 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
 import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useRemoveGrape, useSaveGrape } from '@/hooks/use-grape-mutations';
 import { useToday } from '@/hooks/use-today';
@@ -17,6 +24,11 @@ import { canFill } from '@/utils/bunch';
 import type { IsoDate } from '@/utils/date';
 
 const NOTE_MAX = 100;
+
+/** 색칠 + 축하까지. 목표가 셋이면 하루 세 번 보는 연출이라 짧게 유지한다 (스펙 8.5.2). */
+const PAINT_MS = 600;
+const CHEER_MS = 180;
+const CLOSE_MS = 1050;
 
 const MOOD_KEY: Record<Mood, TranslationKey> = {
   excited: 'day.mood.excited',
@@ -43,12 +55,30 @@ export default function DayRecordScreen() {
   // 나머지는 기존 알에서 읽는다.
   const [pickedMood, setPickedMood] = useState<Mood | null>(null);
   const [typedNote, setTypedNote] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
 
+  // 색연필로 칠하듯 아래에서 위로 색이 차오른다 (스펙 8.5.2).
+  const paint = useSharedValue(1);
+  const cheer = useSharedValue(0);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   // 주소로 직접 들어오면 돌아갈 히스토리가 없다. 그때는 송이 상세로 간다.
   const close = useCallback(() => {
+    clearTimeout(timer.current);
     if (router.canGoBack()) router.back();
     else router.replace({ pathname: '/goal/[id]', params: { id } });
   }, [router, id]);
+  useEffect(() => {
+    if (!playing) return;
+    paint.value = 0;
+    paint.value = withTiming(1, { duration: PAINT_MS, easing: Easing.out(Easing.quad) });
+    // 칠한 뒤에 축하가 온다. 스펙의 순서가 '채워짐 -> 짧은 축하'다.
+    cheer.value = withDelay(PAINT_MS, withTiming(1, { duration: CHEER_MS }));
+    timer.current = setTimeout(close, CLOSE_MS);
+    return () => clearTimeout(timer.current);
+  }, [playing, paint, cheer, close]);
+
+  const paintStyle = useAnimatedStyle(() => ({ height: `${paint.value * 100}%` }));
+  const cheerStyle = useAnimatedStyle(() => ({ opacity: cheer.value }));
 
   const existing = bunch?.grapes.find((g) => g.grapeDate === date);
   const mood = pickedMood ?? existing?.mood ?? null;
@@ -88,10 +118,11 @@ export default function DayRecordScreen() {
     );
   }
 
-  // 실패 알림과 롤백은 mutation 정의에 있다. 여기서 mutate에 콜백을 넘기면 바로 아래
+  // 실패 알림과 롤백은 mutation 정의에 있다. 여기서 mutate에 콜백을 넘기면 아래
   // router.back()으로 화면이 사라져 호출되지 않는다.
   const save = () => {
-    if (!mood) return;
+    if (!mood || playing) return;
+    // 저장은 연출을 기다리지 않는다. 건너뛰거나 도중에 나가도 결과가 어긋나지 않는다.
     saveGrape.mutate({
       bunchId: bunch.id,
       date,
@@ -99,7 +130,7 @@ export default function DayRecordScreen() {
       note: note.trim() || null,
       editing: existing !== undefined,
     });
-    close();
+    setPlaying(true);
   };
 
   const remove = () => {
@@ -118,9 +149,15 @@ export default function DayRecordScreen() {
 
       <View style={styles.preview}>
         <View
-          style={[styles.berry, { backgroundColor: mood ? theme.mood[mood] : theme.empty }]}
+          style={styles.berry}
           accessibilityLabel={mood ? `미리보기 ${t(MOOD_KEY[mood])}` : '미리보기 비어 있음'}
-        />
+        >
+          {mood ? (
+            <Animated.View
+              style={[styles.paint, { backgroundColor: theme.mood[mood] }, paintStyle]}
+            />
+          ) : null}
+        </View>
         <Text style={styles.moodName}>{mood ? t(MOOD_KEY[mood]) : ' '}</Text>
       </View>
 
@@ -146,6 +183,10 @@ export default function DayRecordScreen() {
         multiline
       />
 
+      <Animated.Text style={[styles.cheer, cheerStyle]}>
+        {playing ? t('day.saved') : ' '}
+      </Animated.Text>
+
       <View style={styles.actions}>
         <Pressable
           onPress={save}
@@ -157,12 +198,20 @@ export default function DayRecordScreen() {
           <Text style={styles.saveLabel}>{t('day.save')}</Text>
         </Pressable>
 
-        {existing ? (
+        {existing && !playing ? (
           <Pressable onPress={remove} style={styles.remove} accessibilityLabel={t('day.remove')}>
             <Text style={styles.removeLabel}>{t('day.remove')}</Text>
           </Pressable>
         ) : null}
       </View>
+
+      {playing ? (
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={close}
+          accessibilityLabel="연출 건너뛰기"
+        />
+      ) : null}
     </View>
   );
 }
@@ -181,7 +230,23 @@ const styles = StyleSheet.create({
   close: { paddingVertical: 6, paddingHorizontal: 10 },
   closeLabel: { fontSize: 20, fontWeight: '800', color: theme.ink },
   preview: { alignItems: 'center', gap: 10, marginTop: 36 },
-  berry: { width: 84, height: 84, borderRadius: 42 },
+  berry: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: theme.empty,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+  },
+  paint: { width: '100%' },
+  cheer: {
+    marginTop: 20,
+    textAlign: 'center',
+    fontSize: 15,
+    fontWeight: '700',
+    color: theme.vine,
+    minHeight: 20,
+  },
   moodName: { fontSize: 15, fontWeight: '700', color: theme.ink, minHeight: 20 },
   moods: { flexDirection: 'row', justifyContent: 'center', gap: 14, marginTop: 32 },
   swatch: { width: 40, height: 40, borderRadius: 20 },

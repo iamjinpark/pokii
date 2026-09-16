@@ -1,4 +1,4 @@
-import { canCreateGoal, suggestTag, TAG_MAX } from './goal';
+import { canCreateGoal, charCount, suggestTag, TAG_MAX } from './goal';
 
 describe('suggestTag', () => {
   it('첫 단어를 쓴다', () => {
@@ -42,5 +42,25 @@ describe('canCreateGoal', () => {
 
   it('경계값은 통과한다', () => {
     expect(canCreateGoal('a'.repeat(60), 'a'.repeat(8))).toBe(true);
+  });
+});
+
+describe('코드포인트 기준', () => {
+  it('이모지를 반으로 자르지 않는다', () => {
+    // UTF-16 단위로 자르면 네 번째 이모지의 앞쪽 서러게이트만 남아 깨진다.
+    const tag = suggestTag('a😀😀😀😀');
+    expect(tag).toBe('a😀😀😀😀');
+    expect([...tag]).toHaveLength(5);
+    expect(tag).not.toMatch(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/);
+  });
+
+  it('이모지 아홉 개면 여덟 개로 자른다', () => {
+    expect([...suggestTag('😀'.repeat(9))]).toHaveLength(TAG_MAX);
+  });
+
+  it('길이도 코드포인트로 센다 — Postgres char_length와 같은 기준', () => {
+    expect(charCount('😀😀😀')).toBe(3);
+    expect(canCreateGoal('목표', '😀'.repeat(8))).toBe(true);
+    expect(canCreateGoal('목표', '😀'.repeat(9))).toBe(false);
   });
 });
