@@ -13,6 +13,7 @@ export const ko: Record<TranslationKey, string> = {
   'bunch.lastDay': '보충할 수 있는 마지막 날이에요',
   'day.title': '오늘 하루 어땠나요?',
   'day.note.placeholder': '짧은 메모...',
+  'day.saved': '좋아요, 오늘 것 완료!',
   'day.save': '저장',
   'day.remove': '이 포도알 지우기',
   'day.mood.excited': '신남',

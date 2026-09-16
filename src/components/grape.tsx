@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
+  withSequence,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -60,8 +61,25 @@ export function Grape({ day, state, mood = null, onPress }: Props) {
     };
   }, [floating, pulse]);
 
+  // 저장한 알이 제 칸에 들어앉는 연출 (스펙 8.5.2의 마지막 박자). 이 화면은 기록 화면
+  // 아래에 계속 떠 있으므로, 저장이 반영되는 순간 상태가 filled로 바뀌는 것을 잡는다.
+  const landing = useSharedValue(0);
+  const wasFilled = useRef(state === 'filled');
+  useEffect(() => {
+    const justFilled = state === 'filled' && !wasFilled.current;
+    wasFilled.current = state === 'filled';
+    if (!justFilled) return;
+    landing.value = withSequence(
+      withTiming(1, { duration: 140, easing: Easing.out(Easing.quad) }),
+      withTiming(0, { duration: 140, easing: Easing.in(Easing.quad) }),
+    );
+  }, [state, landing]);
+
   const lift = useAnimatedStyle(() => ({
-    transform: [{ translateY: -5 * pulse.value }, { scale: 1 + 0.04 * pulse.value }],
+    transform: [
+      { translateY: -5 * pulse.value },
+      { scale: 1 + 0.04 * pulse.value + 0.22 * landing.value },
+    ],
   }));
   const halo = useAnimatedStyle(() => ({
     opacity: 0.2 + 0.3 * pulse.value,
@@ -73,7 +91,7 @@ export function Grape({ day, state, mood = null, onPress }: Props) {
   const Wrapper = onPress ? Pressable : View;
 
   return (
-    <Animated.View style={[styles.wrap, lift]}>
+    <Animated.View style={[styles.wrap, floating && styles.above, lift]}>
       {floating ? <Animated.View style={[styles.halo, halo]} /> : null}
       <Wrapper
         onPress={onPress}
@@ -88,6 +106,8 @@ export function Grape({ day, state, mood = null, onPress }: Props) {
 
 const styles = StyleSheet.create({
   wrap: { width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center' },
+  /** 오늘 알의 후광이 다음 알에 덮이지 않게 한다 (스펙 8.5.2). */
+  above: { zIndex: 1 },
   halo: {
     position: 'absolute',
     width: SIZE,
