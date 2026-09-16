@@ -21,6 +21,9 @@ max_rows = 1000
 # without explicit GRANTs, matching the cloud default. Set to `false` to require explicit GRANTs
 # instead. Left unset, a fresh project falls back to `true`.
 # auto_expose_new_tables = true
+# 주의: false로 바꾸려면 `supabase config push`가 필요한데, 이 파일은 원격 프로젝트와
+# 여러 곳이 다르다(이메일 가입 여부, OAuth provider, 리다이렉트 URL 등). 그대로 밀면
+# 인증 설정이 덮여 로그인이 깨진다. `supabase config diff`로 먼저 맞출 것.
 
 [api.tls]
 # Enable HTTPS endpoints locally using a self-signed certificate.
