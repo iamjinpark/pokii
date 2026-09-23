@@ -24,3 +24,18 @@ describe('translate', () => {
     expect(translate('ko', 'tree.empty')).toBe('나무가 기다리고 있어요');
   });
 });
+
+describe('값 끼우기', () => {
+  test('{이름} 자리를 값으로 바꾼다', () => {
+    expect(translate('ko', 'goal.delete.confirm', { bunches: 1, grapes: 4 })).toContain('1');
+    expect(translate('ko', 'goal.delete.confirm', { bunches: 1, grapes: 4 })).toContain('4');
+  });
+
+  test('값을 안 주면 자리표시자가 그대로 남는다', () => {
+    expect(translate('ko', 'goal.delete.confirm')).toContain('{bunches}');
+  });
+
+  test('없는 이름은 건드리지 않는다', () => {
+    expect(translate('en', 'goal.delete.confirm', { bunches: 2 })).toContain('{grapes}');
+  });
+});
