@@ -1,7 +1,9 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Grape } from '@/components/grape';
 import { useCurrentBunch } from '@/hooks/use-current-bunch';
+import { useDeleteGoal, useGoalFootprint } from '@/hooks/use-goal-mutations';
 import { useToday } from '@/hooks/use-today';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
@@ -20,6 +22,10 @@ export default function BunchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { data: bunch, isLoading, isError, refetch } = useCurrentBunch(id);
+  // 메뉴와 삭제 확인은 이 화면 안에서 연다. Alert은 웹에서 뜨지 않는다.
+  const [menu, setMenu] = useState<'closed' | 'open' | 'confirm'>('closed');
+  const footprint = useGoalFootprint(id, menu === 'confirm');
+  const remove = useDeleteGoal(id);
   // 주소로 직접 들어오면 돌아갈 히스토리가 없다.
   const back = () => (router.canGoBack() ? router.back() : router.replace('/'));
   // 훅이라 이른 return보다 위에 있어야 한다.
@@ -59,9 +65,69 @@ export default function BunchDetailScreen() {
 
       <View style={styles.header}>
         <Text style={styles.meta}>{`No.${bunch.sequence}`}</Text>
-        <Text style={styles.meta}>{startLabel(bunch.startedOn)}</Text>
+        <View style={styles.headerRight}>
+          <Text style={styles.meta}>{startLabel(bunch.startedOn)}</Text>
+          <Pressable
+            onPress={() => setMenu(menu === 'closed' ? 'open' : 'closed')}
+            style={styles.menuButton}
+            accessibilityLabel={t('goal.menu')}
+          >
+            <Text style={styles.menuDots}>⋯</Text>
+          </Pressable>
+        </View>
       </View>
       <Text style={styles.title}>{bunch.title}</Text>
+
+      {menu === 'open' ? (
+        <View style={styles.menu}>
+          <Pressable
+            onPress={() => router.push({ pathname: '/goal/[id]/edit', params: { id } })}
+            style={styles.menuItem}
+            accessibilityLabel={t('goal.edit')}
+          >
+            <Text style={styles.menuLabel}>{t('goal.edit')}</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setMenu('confirm')}
+            style={styles.menuItem}
+            accessibilityLabel={t('goal.delete')}
+          >
+            <Text style={[styles.menuLabel, styles.danger]}>{t('goal.delete')}</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
+      {menu === 'confirm' ? (
+        <View style={styles.menu}>
+          <Text style={styles.confirmText}>
+            {footprint.data
+              ? t('goal.delete.confirm', {
+                  bunches: footprint.data.bunches,
+                  grapes: footprint.data.grapes,
+                })
+              : '…'}
+          </Text>
+          <View style={styles.confirmRow}>
+            <Pressable
+              onPress={() => setMenu('closed')}
+              style={styles.keep}
+              accessibilityLabel={t('goal.delete.no')}
+            >
+              <Text style={styles.menuLabel}>{t('goal.delete.no')}</Text>
+            </Pressable>
+            <Pressable
+              onPress={() =>
+                remove.mutate(undefined, { onSuccess: () => router.replace('/') })
+              }
+              disabled={!footprint.data || remove.isPending}
+              style={[styles.removeButton, (!footprint.data || remove.isPending) && styles.off]}
+              accessibilityLabel={t('goal.delete.yes')}
+            >
+              <Text style={styles.removeLabel}>{t('goal.delete.yes')}</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
 
       <View style={styles.stem}>
         {dates.map((date, i) => (
@@ -95,7 +161,30 @@ const styles = StyleSheet.create({
   },
   back: { alignSelf: 'flex-start', paddingVertical: 6, paddingRight: 12 },
   backLabel: { fontSize: 22, fontWeight: '800', color: theme.ink },
-  header: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  menuButton: { paddingHorizontal: 8, paddingVertical: 4 },
+  menuDots: { fontSize: 20, fontWeight: '800', color: theme.ink },
+  menu: { marginTop: 12, borderRadius: 14, backgroundColor: '#fff', padding: 12, gap: 10 },
+  menuItem: { paddingVertical: 8 },
+  menuLabel: { fontSize: 15, fontWeight: '700', color: theme.ink },
+  danger: { color: theme.amber },
+  confirmText: { fontSize: 14, fontWeight: '600', color: theme.ink, lineHeight: 20 },
+  confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
+  keep: { paddingVertical: 10, paddingHorizontal: 16 },
+  removeButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: theme.amber,
+  },
+  removeLabel: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  off: { opacity: 0.4 },
   meta: { fontSize: 13, fontWeight: '700', color: theme.ink, letterSpacing: 0.5 },
   title: { fontSize: 22, fontWeight: '800', color: theme.ink, marginTop: 6 },
   stem: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
