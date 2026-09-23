@@ -1,6 +1,8 @@
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SLOTS, useGoals } from '@/hooks/use-goals';
+import { isBunchEnded } from '@/utils/bunch';
+import { useToday } from '@/hooks/use-today';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
 import { signOut } from '@/utils/sign-in';
@@ -8,6 +10,7 @@ import { signOut } from '@/utils/sign-in';
 export default function TreeScreen() {
   const { data: goals, isLoading, isError, refetch } = useGoals();
   const router = useRouter();
+  const today = useToday();
 
   if (isLoading) {
     return (
@@ -41,8 +44,16 @@ export default function TreeScreen() {
               {goal ? (
                 <Pressable
                   style={styles.taken}
-                  accessibilityLabel={`${goal.tag} 송이`}
-                  onPress={() => router.push({ pathname: '/goal/[id]', params: { id: goal.id } })}
+                  accessibilityLabel={`${goal.tag} 송이${isBunchEnded({ ...goal.bunch, today }) ? ' 끝남' : ''}`}
+                  onPress={() =>
+                    // 끝난 송이는 결과 화면으로 간다. 거기서만 끝내기·한 송이 더를 고를 수
+                    // 있고, 그러지 않으면 그 가지가 영영 막힌다 (설계 7.1).
+                    router.push(
+                      isBunchEnded({ ...goal.bunch, today })
+                        ? { pathname: '/goal/[id]/done', params: { id: goal.id } }
+                        : { pathname: '/goal/[id]', params: { id: goal.id } },
+                    )
+                  }
                 />
               ) : (
                 <Pressable

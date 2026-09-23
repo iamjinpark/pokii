@@ -42,6 +42,18 @@ export function canFill(args: {
   return state === 'today' || state === 'yesterday';
 }
 
+/**
+ * 끝난 송이는 둘 중 하나다 (설계 3.3, 3.5).
+ * 10알을 다 채웠거나, 유예일(started_on + 10)이 지났거나.
+ */
+export function isBunchEnded(args: {
+  startedOn: IsoDate;
+  filled: number;
+  today: IsoDate;
+}): boolean {
+  return args.filled >= BUNCH_SIZE || !isBunchOpen(args.startedOn, args.today);
+}
+
 export function containerFor(filledCount: number): Container {
   if (filledCount >= BUNCH_SIZE) return 'basket';
   if (filledCount >= 3) return 'crate';
