@@ -1,7 +1,8 @@
 import { useNavigation, useRouter } from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
 import { useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text, TextInput } from '@/components/text';
 import { useCreateGoal } from '@/hooks/use-create-goal';
 import { useToday } from '@/hooks/use-today';
 import { t } from '@/i18n';

@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/text';
 import { SLOTS, useGoals } from '@/hooks/use-goals';
 import { isBunchEnded } from '@/utils/bunch';
 import { useToday } from '@/hooks/use-today';
