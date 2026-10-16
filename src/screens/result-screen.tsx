@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/text';
 import { Container } from '@/components/container';
 import { useFinishGoal, useStartNextBunch } from '@/hooks/use-close-bunch';
 import { useCurrentBunch } from '@/hooks/use-current-bunch';

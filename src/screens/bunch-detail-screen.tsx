@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/text';
 import { Grape } from '@/components/grape';
 import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useDeleteGoal, useGoalFootprint } from '@/hooks/use-goal-mutations';

@@ -22,7 +22,7 @@ const STATE_LABEL: Record<GrapeState, string> = {
   future: '미래',
 };
 
-/** 색이 있으면 채운 날, 회색이면 안 채운 날 (스펙 8.1). */
+/** 진한 보라면 채운 날, 연보라면 안 채운 날 (스펙 8.1). */
 function berryStyle(state: GrapeState, mood: Mood | null): ViewStyle {
   if (state === 'filled') {
     return { backgroundColor: mood ? theme.mood[mood] : theme.empty };
