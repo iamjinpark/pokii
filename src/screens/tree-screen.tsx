@@ -27,7 +27,7 @@ import { useSession } from '@/hooks/use-session';
 import { isBunchEnded, treeSignals } from '@/utils/bunch';
 import { useToday } from '@/hooks/use-today';
 import { noticeKeyFor } from '@/utils/bird';
-import { skyTimeFor } from '@/utils/sky';
+import { setDevSkyMinutes, skyAt, skyBackground, skyTimeFor } from '@/utils/sky';
 import { STAGE_H, STAGE_W, stageScale } from '@/utils/stage';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
@@ -125,14 +125,30 @@ function firstName(meta: Record<string, unknown> | undefined): string | null {
   return typeof raw === 'string' && raw.trim() ? raw.trim().split(/\s+/)[0] : null;
 }
 
+const DEV_BAR_W = 240;
+const barMinutes = (x: number) =>
+  Math.round(Math.min(1439, Math.max(0, (x / DEV_BAR_W) * 1440)) / 5) * 5;
+const hhmm = (m: number) =>
+  `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+
 export default function TreeScreen() {
   const { data: goals, isLoading, isError, refetch } = useGoals();
   const { session } = useSession();
   const router = useRouter();
   const today = useToday();
-  // ponytail: 렌더 시점 시각. 화면을 띄워둔 채 12·19시를 넘기면 다음 렌더(포커스·refetch)까지 하늘이 늦는다.
-  const time = skyTimeFor(new Date().getHours());
-  const sky = theme.skies[time];
+  // 개발 빌드에서 시각을 바꿔 보는 버튼의 값. null이면 지금 시각.
+  const [devMinutes, setDevMinutesState] = useState<number | null>(null);
+  // 고른 시각을 다른 화면도 쓰게 sky 모듈에도 적는다.
+  const setDevMinutes = (m: number | null) => {
+    setDevSkyMinutes(m);
+    setDevMinutesState(m);
+  };
+  // ponytail: 렌더 시점 시각. 화면을 띄워둔 채 시간이 흘러도 다음 렌더(포커스·refetch)까지 하늘이 그대로다.
+  const now = new Date();
+  const minutes = devMinutes ?? now.getHours() * 60 + now.getMinutes();
+  const time = skyTimeFor(Math.floor(minutes / 60));
+  const sky = skyAt(minutes);
+  const skyBg = skyBackground(sky, 0.5);
   // 화면을 열 때마다 구름 2종을 새로 고르고, 화면이 떠 있는 동안은 그대로 둔다.
   const [clouds] = useState(pickClouds);
 
@@ -152,7 +168,7 @@ export default function TreeScreen() {
 
   if (isLoading) {
     return (
-      <View style={[styles.center, { backgroundColor: sky.bg }]}>
+      <View style={[styles.center, skyBg]}>
         <ActivityIndicator />
       </View>
     );
@@ -160,7 +176,7 @@ export default function TreeScreen() {
 
   if (isError) {
     return (
-      <View style={[styles.center, { backgroundColor: sky.bg }]}>
+      <View style={[styles.center, skyBg]}>
         <Text style={[styles.body, { color: sky.text }]}>{t('common.error.network')}</Text>
         <Pressable onPress={() => refetch()} style={styles.retry}>
           <Text style={styles.retryLabel}>{t('common.retry')}</Text>
@@ -259,7 +275,7 @@ export default function TreeScreen() {
   );
 
   return (
-    <View style={[styles.root, { backgroundColor: sky.bg }]}>
+    <View style={[styles.root, skyBg]}>
       {scale > 0 ? (
         <>
           <View style={[styles.sky, { transform: [{ scale: skyScale }] }]}>
@@ -285,6 +301,28 @@ export default function TreeScreen() {
             {treeBody}
           </BirdScene>
         </>
+      ) : null}
+      {/* 개발 빌드 전용: 막대를 눌러 끌면 하늘 시각이 바뀌고, 글자를 누르면 지금으로 돌아간다. */}
+      {__DEV__ ? (
+        <View style={styles.devSky}>
+          <Pressable onPress={() => setDevMinutes(null)}>
+            <Text style={styles.devSkyLabel}>
+              {devMinutes === null ? '하늘: 지금' : `하늘: ${hhmm(devMinutes)} (지금으로)`}
+            </Text>
+          </Pressable>
+          <View
+            style={styles.devBar}
+            onStartShouldSetResponder={() => true}
+            onMoveShouldSetResponder={() => true}
+            onResponderGrant={(e) => setDevMinutes(barMinutes(e.nativeEvent.locationX))}
+            onResponderMove={(e) => setDevMinutes(barMinutes(e.nativeEvent.locationX))}
+          >
+            <View
+              pointerEvents="none"
+              style={[styles.devKnob, { left: ((devMinutes ?? minutes) / 1440) * DEV_BAR_W - 8 }]}
+            />
+          </View>
+        </View>
       ) : null}
     </View>
   );
@@ -334,4 +372,14 @@ const styles = StyleSheet.create({
   line: { fontSize: 26 },
   retry: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.ink },
   retryLabel: { color: '#fff', fontWeight: '700' },
+  devSky: {
+    position: 'absolute', top: 8, alignSelf: 'center', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  devSkyLabel: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  devBar: {
+    width: DEV_BAR_W, height: 24, justifyContent: 'center',
+    borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  devKnob: { position: 'absolute', width: 16, height: 16, borderRadius: 8, backgroundColor: '#fff' },
 });

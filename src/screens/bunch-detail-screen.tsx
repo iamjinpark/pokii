@@ -10,7 +10,7 @@ import { BERRIES, berryBox, BERRY_D, BUNCH_EXTENT, STEM_LEAF } from '@/component
 import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useDeleteGoal, useGoalFootprint } from '@/hooks/use-goal-mutations';
 import { useToday } from '@/hooks/use-today';
-import { skyTimeFor } from '@/utils/sky';
+import { skyBackground, skyNow } from '@/utils/sky';
 import { STAGE_W } from '@/utils/stage';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
@@ -85,13 +85,14 @@ export default function BunchDetailScreen() {
     height: win.height - top - HEADER_HEIGHT - bottom - TAB_BAR_HEIGHT,
   };
   // ponytail: 렌더 시점 시각. Tree와 같은 한계다.
-  const sky = theme.skies[skyTimeFor(new Date().getHours())];
+  const sky = skyNow();
+  const skyBg = skyBackground(sky, 1);
   // 송이 칸(제목 아래 ~ 안내 문구 위)의 크기. 재기 전(0)에는 송이를 그리지 않는다.
   const [slot, setSlot] = useState({ y: 0, width: 0, height: 0 });
 
   if (isLoading) {
     return (
-      <View style={[styles.center, { backgroundColor: sky.bg }]}>
+      <View style={[styles.center, skyBg]}>
         <ActivityIndicator />
       </View>
     );
@@ -99,7 +100,7 @@ export default function BunchDetailScreen() {
 
   if (isError || !bunch) {
     return (
-      <View style={[styles.center, { backgroundColor: sky.bg }]}>
+      <View style={[styles.center, skyBg]}>
         <Text style={[styles.body, { color: sky.text }]}>{t('common.error.network')}</Text>
         <Pressable onPress={() => refetch()} style={styles.retry}>
           <Text style={styles.retryLabel}>{t('common.retry')}</Text>
@@ -138,7 +139,7 @@ export default function BunchDetailScreen() {
       : { top: 0, height: crossY / CANOPY_EDGE_AT_CENTER };
 
   return (
-    <View style={[styles.root, { backgroundColor: sky.bg }]}>
+    <View style={[styles.root, skyBg]}>
       <Image
         source={require('../../assets/detail/canopy.svg')}
         contentFit="fill"

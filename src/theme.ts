@@ -9,12 +9,6 @@ export const theme = {
   empty: '#C6B6D8',
   /** 끝난 송이 후광. */
   glow: '#FFF3A6',
-  /** 시간대 하늘 (스펙 8.6). 시안 PNG에서 뽑았다. */
-  skies: {
-    morning: { bg: '#DCF4FF', text: '#353364' },
-    afternoon: { bg: '#F7FFE3', text: '#353364' },
-    night: { bg: '#1D2C40', text: '#F7FFE3' },
-  },
   mood: {
     excited: '#322E64',
     happy: '#4A3678',
