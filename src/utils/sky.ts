@@ -51,13 +51,12 @@ export type Sky = {
   dark: boolean;
 };
 
-/** 비 오는 하늘 (시안 main-rainy-*). 낮은 회색, 밤은 어두운 남색. */
-const RAIN_DAY = '#C4C4C4';
-const RAIN_NIGHT = '#26303F';
+/** 비·눈 오는 하늘: [낮, 밤]. 비는 시안 main-rainy-*의 회색·남색, 눈은 그보다 밝은 회청색. */
+const WET_SKY = { rain: ['#C4C4C4', '#26303F'], snow: ['#D6DCE4', '#2E3848'] } as const;
 
 /**
  * 하루 중 분(0–1439)의 하늘. 가운데 색이 어두우면 밝은 글자를 쓴다.
- * 비 오는 날은 그 시각 하늘을 회색·남색 쪽으로 눌러 시각 변화는 은은하게 남기고, 해·달빛 번짐은 끈다.
+ * 비·눈 오는 날은 그 시각 하늘을 회색·남색 쪽으로 눌러 시각 변화는 은은하게 남기고, 해·달빛 번짐은 끈다.
  */
 export function skyAt(minutes: number, weather: Weather = 'clear'): Sky {
   const h = (((minutes / 60) % 24) + 24) % 24;
@@ -69,9 +68,9 @@ export function skyAt(minutes: number, weather: Weather = 'clear'): Sky {
   const clear = a.map((c, j) => mix(c, b[j], s)) as Stops;
   const dark = luminance(clear[1]) < 0.5;
   const stops =
-    weather === 'rain' ? (clear.map((c) => mix(c, dark ? RAIN_NIGHT : RAIN_DAY, 0.8)) as Stops) : clear;
+    weather === 'clear' ? clear : (clear.map((c) => mix(c, WET_SKY[weather][dark ? 1 : 0], 0.8)) as Stops);
   // 오른쪽 위 모서리에서 번지는 빛. 낮엔 해 색(스펙 8.6), 밤엔 달빛.
-  const glow = { rgb: rgb(dark ? LIGHT : h < 12 ? '#FFC187' : '#FF9987'), alpha: weather === 'rain' ? 0 : dark ? 0.18 : 0.45 };
+  const glow = { rgb: rgb(dark ? LIGHT : h < 12 ? '#FFC187' : '#FF9987'), alpha: weather !== 'clear' ? 0 : dark ? 0.18 : 0.45 };
   return {
     stops,
     glow,

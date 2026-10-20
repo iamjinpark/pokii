@@ -29,7 +29,7 @@ import { useToday } from '@/hooks/use-today';
 import { noticeKeyFor } from '@/utils/bird';
 import { setDevSkyMinutes, skyAt, skyBackground, skyTimeFor } from '@/utils/sky';
 import { setDevWeather, type Weather, weatherNow } from '@/utils/weather';
-import { Rain } from '@/components/rain';
+import { Precipitation } from '@/components/precipitation';
 import { STAGE_H, STAGE_W, stageScale } from '@/utils/stage';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
@@ -127,9 +127,11 @@ function firstName(meta: Record<string, unknown> | undefined): string | null {
   return typeof raw === 'string' && raw.trim() ? raw.trim().split(/\s+/)[0] : null;
 }
 
-/** 비 오는 날 흐려진 해·달 (시안 main-rainy-*). */
-const RAIN_SUN = '#B2B2B2';
-const RAIN_MOON = '#4F5A66';
+/** 비·눈 오는 날 흐려진 해·달 (시안 main-rainy-*). */
+const WET_SUN = '#B2B2B2';
+const WET_MOON = '#4F5A66';
+const NEXT_WEATHER: Record<Weather, Weather> = { clear: 'rain', rain: 'snow', snow: 'clear' };
+const DEV_WEATHER_LABEL: Record<Weather, string> = { clear: '맑음', rain: '비 ☔', snow: '눈 ❄' };
 
 const DEV_BAR_W = 240;
 const barMinutes = (x: number) =>
@@ -155,13 +157,14 @@ export default function TreeScreen() {
   const time = skyTimeFor(Math.floor(minutes / 60));
   // 개발 빌드에서 고른 날씨. null이면 오늘 날짜의 포키 날씨.
   const [devWeather, setDevWeatherState] = useState<Weather | null>(null);
-  const toggleDevRain = () => {
-    const next = weatherNow(today) === 'rain' ? 'clear' : 'rain';
+  const cycleDevWeather = () => {
+    const next = NEXT_WEATHER[weatherNow(today)];
     setDevWeather(next);
     setDevWeatherState(next);
   };
   const weather = devWeather ?? weatherNow(today);
-  const rain = weather === 'rain';
+  // 비·눈 오는 날: 해·달이 흐려지고 구름·별이 숨는다.
+  const wet = weather !== 'clear';
   const sky = skyAt(minutes, weather);
   const skyBg = skyBackground(sky, 0.5);
   // 화면을 열 때마다 구름 2종을 새로 고르고, 화면이 떠 있는 동안은 그대로 둔다.
@@ -224,7 +227,7 @@ export default function TreeScreen() {
     <>
             <View style={[styles.ground, { transform: [{ scale }] }]}>
               {/* 구름은 덤불에 걸쳐 있어야 해서 하늘이 아니라 덤불과 같은 무대에, 덤불 뒤에 둔다. */}
-              {time === 'night' || rain ? null : (
+              {time === 'night' || wet ? null : (
                 <>
                   {clouds.map((c, i) => (
                     <DriftingCloud
@@ -300,14 +303,14 @@ export default function TreeScreen() {
                 <Image
                   source={require('../../assets/tree/moon.svg')}
                   style={styles.moon}
-                  tintColor={rain ? RAIN_MOON : undefined}
+                  tintColor={wet ? WET_MOON : undefined}
                 />
-                {rain ? null : STARS.map((p, i) => (
+                {wet ? null : STARS.map((p, i) => (
                   <Image key={i} source={require('../../assets/tree/star.svg')} style={[styles.star, p]} />
                 ))}
               </>
             ) : (
-              <Image source={SUN[time]} style={styles.sun} tintColor={rain ? RAIN_SUN : undefined} />
+              <Image source={SUN[time]} style={styles.sun} tintColor={wet ? WET_SUN : undefined} />
             )}
           </View>
 
@@ -320,7 +323,7 @@ export default function TreeScreen() {
           >
             {treeBody}
           </BirdScene>
-          {rain ? <Rain width={area.width} height={area.height} /> : null}
+          {wet ? <Precipitation key={weather} kind={weather} width={area.width} height={area.height} /> : null}
         </>
       ) : null}
       {/* 개발 빌드 전용: 막대를 눌러 끌면 하늘 시각이 바뀌고, 글자를 누르면 지금으로 돌아간다. */}
@@ -332,8 +335,8 @@ export default function TreeScreen() {
                 {devMinutes === null ? '하늘: 지금' : `하늘: ${hhmm(devMinutes)} (지금으로)`}
               </Text>
             </Pressable>
-            <Pressable onPress={toggleDevRain}>
-              <Text style={styles.devSkyLabel}>{rain ? '비 ☔' : '맑음'}</Text>
+            <Pressable onPress={cycleDevWeather}>
+              <Text style={styles.devSkyLabel}>{DEV_WEATHER_LABEL[weather]}</Text>
             </Pressable>
           </View>
           <View

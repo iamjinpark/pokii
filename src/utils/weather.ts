@@ -1,9 +1,9 @@
 import type { IsoDate } from '@/utils/date';
 
-export type Weather = 'clear' | 'rain';
+export type Weather = 'clear' | 'rain' | 'snow';
 
-/** 열흘에 하루꼴로 비 (스펙 7.1). */
-const RAIN_RATE = 0.1;
+/** 열흘에 하루꼴로 비나 눈 (스펙 7.1). */
+const WET_RATE = 0.1;
 
 /** 날짜 문자열을 0~1로 고르게 흩는다. FNV-1a에 murmur3 마무리를 얹어 이웃한 날짜끼리 값이 몰리지 않게 한다. */
 function unit(date: IsoDate): number {
@@ -20,9 +20,13 @@ function unit(date: IsoDate): number {
   return (h >>> 0) / 2 ** 32;
 }
 
+/** 눈이 오는 달 (12~2월). 그 외 달은 비. */
+const SNOW_MONTHS = new Set(['12', '01', '02']);
+
 /** 포키 세계의 날씨 (스펙 7.1). 날짜만으로 정해 같은 날은 늘 같고, 모든 사용자가 같은 날씨를 본다. */
 export function weatherFor(date: IsoDate): Weather {
-  return unit(date) < RAIN_RATE ? 'rain' : 'clear';
+  if (unit(date) >= WET_RATE) return 'clear';
+  return SNOW_MONTHS.has(date.slice(5, 7)) ? 'snow' : 'rain';
 }
 
 let devWeather: Weather | null = null;
