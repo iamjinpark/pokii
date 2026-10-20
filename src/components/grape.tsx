@@ -33,7 +33,7 @@ type Props = {
   box: Pick<ViewStyle, 'left' | 'top' | 'width' | 'height'>;
 };
 
-/** 진한 보라면 채운 날, 연보라면 안 채운 날 (스펙 8.1). 채운 알에는 광택을 얹는다. */
+/** 진한 보라면 채운 날, 연회색이면 안 채운 날 (스펙 8.1). 채운 알에는 광택을 얹는다. */
 export function Grape({ day, state, mood = null, wilt = null, onPress, shape, box }: Props) {
   const floating = state === 'today';
   const pulse = useSharedValue(0);

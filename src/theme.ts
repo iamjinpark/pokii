@@ -6,7 +6,7 @@ export const theme = {
   tagEdge: '#8B5E3C',
   amber: '#B45309',
   /** 채우지 않은 알. 가장 옅은 기분(sad)보다 확실히 옅어야 한다 (스펙 8.1). */
-  empty: '#C6B6D8',
+  empty: '#DEDEDE',
   /** 끝난 송이 후광. */
   glow: '#FFF3A6',
   mood: {
