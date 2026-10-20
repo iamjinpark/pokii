@@ -1,6 +1,6 @@
 import {
   BUNCH_SIZE, bunchDates, isBunchOpen, grapeStateFor, canFill, containerFor,
-  startLabel, footerKey, isBunchEnded,
+  startLabel, footerKey, isBunchEnded, treeSignals,
 } from './bunch';
 
 const START = '2026-09-01';
@@ -201,5 +201,20 @@ describe('isBunchEnded', () => {
 
   it('한 알도 없이 기한이 지나도 끝난 것이다', () => {
     expect(isBunchEnded({ startedOn: START, filled: 0, today: '2026-09-12' })).toBe(true);
+  });
+});
+
+describe('treeSignals', () => {
+  test('오늘 칸이 비면 흐리게 한다', () => {
+    expect(treeSignals({ startedOn: START, today: '2026-09-03', filled: none }).needsToday).toBe(true);
+  });
+
+  test('오늘 칸을 채우면 원래 색이다', () => {
+    const filled = new Set(['2026-09-03']);
+    expect(treeSignals({ startedOn: START, today: '2026-09-03', filled }).needsToday).toBe(false);
+  });
+
+  test('유예일에는 오늘 칸이 없어 흐리지 않는다', () => {
+    expect(treeSignals({ startedOn: START, today: '2026-09-11', filled: none }).needsToday).toBe(false);
   });
 });

@@ -1,0 +1,11 @@
+<svg width="13" height="15" viewBox="0 0 13 15" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="main-night">
+<path id="Star 1" d="M6.5 0L7.36024 6.4073L13 5.72949L8.98278 9.27051L10.5172 15L6.5 11.459L2.48278 15L4.96556 9.27051L0 5.72949H4.96556L6.5 0Z" fill="url(#pattern0_25_10)"/>
+</g>
+<defs>
+<pattern id="pattern0_25_10" patternContentUnits="objectBoundingBox" width="0.0369231" height="0.032">
+<use xlink:href="#image0_25_10" transform="scale(0.00230769 0.002)"/>
+</pattern>
+<image id="image0_25_10" data-name="image.png" width="16" height="16" preserveAspectRatio="none" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAEKADAAQAAAABAAAAEAAAAAA0VXHyAAAANElEQVQ4EWP8+GLxfwY84Nu3H3hkGRiY8MoSITlqwGAIRBZC8czFxYE3MkejcTBEI8WxAADQcQmBeyliOgAAAABJRU5ErkJggg=="/>
+</defs>
+</svg>
