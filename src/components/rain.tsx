@@ -14,7 +14,7 @@ import Animated, {
 const COLOR = '#A9C4E8';
 const SLANT = 0.35;
 /** 화면 넓이 1만 dp²당 빗방울 수. */
-const DENSITY = 2.2;
+const DENSITY = 4.5;
 
 type Drop = { x: number; length: number; ms: number; delay: number };
 
