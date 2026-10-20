@@ -9,10 +9,9 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
+import { BerryLook, type BerryShape } from '@/components/tree-bunch';
 import { theme, type Mood } from '@/theme';
-import type { GrapeState } from '@/utils/bunch';
-
-const SIZE = 38;
+import type { GrapeState, WiltLevel } from '@/utils/bunch';
 
 const STATE_LABEL: Record<GrapeState, string> = {
   filled: '채움',
@@ -22,27 +21,20 @@ const STATE_LABEL: Record<GrapeState, string> = {
   future: '미래',
 };
 
-/** 진한 보라면 채운 날, 연보라면 안 채운 날 (스펙 8.1). */
-function berryStyle(state: GrapeState, mood: Mood | null): ViewStyle {
-  if (state === 'filled') {
-    return { backgroundColor: mood ? theme.mood[mood] : theme.empty };
-  }
-  if (state === 'yesterday') {
-    return {
-      backgroundColor: theme.empty,
-      borderWidth: 2.5,
-      borderStyle: 'dashed',
-      borderColor: theme.amber,
-    };
-  }
-  // 놓침은 영구히 채울 수 없다. 시든 알로 바꾸는 안은 스펙에서 폐기했다.
-  if (state === 'missed') return { backgroundColor: theme.empty, opacity: 0.3 };
-  return { backgroundColor: theme.empty };
-}
+type Props = {
+  day: number;
+  state: GrapeState;
+  mood?: Mood | null;
+  /** 놓친 알일 때만 준다. */
+  wilt?: WiltLevel | null;
+  onPress?: () => void;
+  shape: BerryShape;
+  /** 송이 안의 자리와 크기. */
+  box: Pick<ViewStyle, 'left' | 'top' | 'width' | 'height'>;
+};
 
-type Props = { day: number; state: GrapeState; mood?: Mood | null; onPress?: () => void };
-
-export function Grape({ day, state, mood = null, onPress }: Props) {
+/** 진한 보라면 채운 날, 연보라면 안 채운 날 (스펙 8.1). 채운 알에는 광택을 얹는다. */
+export function Grape({ day, state, mood = null, wilt = null, onPress, shape, box }: Props) {
   const floating = state === 'today';
   const pulse = useSharedValue(0);
 
@@ -91,37 +83,28 @@ export function Grape({ day, state, mood = null, onPress }: Props) {
   const Wrapper = onPress ? Pressable : View;
 
   return (
-    <Animated.View style={[styles.wrap, floating && styles.above, lift]}>
+    <Animated.View style={[styles.wrap, box, lift]}>
       {floating ? <Animated.View style={[styles.halo, halo]} /> : null}
       <Wrapper
         onPress={onPress}
         accessible
         accessibilityRole={onPress ? 'button' : undefined}
         accessibilityLabel={`${day}일차 ${STATE_LABEL[state]}`}
-        style={[styles.berry, berryStyle(state, mood), floating && styles.lifted]}
-      />
+        style={styles.fill}
+      >
+        <BerryLook shape={shape} mood={state === 'filled' ? mood : null} wilt={wilt} />
+        {state === 'yesterday' ? <View style={styles.yesterday} /> : null}
+      </Wrapper>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center' },
-  /** 오늘 알의 후광이 다음 알에 덮이지 않게 한다 (스펙 8.5.2). */
-  above: { zIndex: 1 },
-  halo: {
-    position: 'absolute',
-    width: SIZE,
-    height: SIZE,
-    borderRadius: SIZE / 2,
-    backgroundColor: theme.vine,
-  },
-  berry: { width: SIZE, height: SIZE, borderRadius: SIZE / 2 },
-  /** 오늘 알은 떠 있는 상태다 (스펙 8.5). elevation은 Android용. */
-  lifted: {
-    shadowColor: theme.ink,
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+  wrap: { position: 'absolute' },
+  halo: { ...StyleSheet.absoluteFill, borderRadius: 999, backgroundColor: theme.vine },
+  fill: { width: '100%', height: '100%' },
+  yesterday: {
+    ...StyleSheet.absoluteFill, borderRadius: 999,
+    borderWidth: 3, borderStyle: 'dashed', borderColor: theme.amber,
   },
 });

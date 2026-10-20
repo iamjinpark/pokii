@@ -2,8 +2,8 @@ import { Image } from 'expo-image';
 import { Image as RNImage, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/text';
 import type { Goal } from '@/hooks/use-goals';
-import { theme } from '@/theme';
-import { bunchDates, isBunchEnded, treeSignals } from '@/utils/bunch';
+import { theme, type Mood } from '@/theme';
+import { bunchDates, grapeStateFor, isBunchEnded, treeSignals, wiltLevels, type WiltLevel } from '@/utils/bunch';
 import type { IsoDate } from '@/utils/date';
 
 /** 송이 그룹 크기와 알 자리 (Figma main-morning Group 51 기준, 그룹 좌상단 원점). */
@@ -15,7 +15,7 @@ export const BUNCH_H = 168;
  * 브러시가 알마다 곡선 수십만 개라 실시간으로 그리기엔 무겁다. 그래서 모양 6종을 PNG@3x 두 장으로
  * 미리 구웠다: mask(흰 실루엣, 기분 색으로 tint)와 tex(질감의 밝고 어두운 부분만 남긴 반투명 층).
  */
-const SHAPES = {
+export const SHAPES = {
   e62: { mask: require('../../assets/tree/berries/e62-mask.png'), tex: require('../../assets/tree/berries/e62-tex.png'), w: 34, h: 34 },
   e10: { mask: require('../../assets/tree/berries/e10-mask.png'), tex: require('../../assets/tree/berries/e10-tex.png'), w: 34, h: 35 },
   e9: { mask: require('../../assets/tree/berries/e9-mask.png'), tex: require('../../assets/tree/berries/e9-tex.png'), w: 34, h: 35 },
@@ -25,21 +25,79 @@ const SHAPES = {
 };
 
 /**
- * 그리는 순서(뒤 → 앞)대로. day는 위에서부터 0..9. (cx, cy)는 Figma 노드의 중심이다.
- * 구운 이미지는 브러시 테두리만큼 노드보다 커서 중심을 맞춰 놓는다.
+ * 그리는 순서(뒤 → 앞)대로. day는 위에서부터 0..9. (cx, cy)는 알 중심이다 (송이 그룹 기준).
+ * Figma 배치에서 알 사이를 벌리고(1.13) 왼쪽으로 휜 정도를 줄인(0.08) 뒤 알을 하나씩 옮겨 잡았다.
+ * 값은 사용자가 조절 페이지에서 골랐다 (#57). 나무와 상세가 같은 배치를 쓴다.
  */
-const BERRIES = [
-  { day: 6, cx: 67.5, cy: 101.5, shape: SHAPES.e62 },
-  { day: 3, cx: 82.5, cy: 83, shape: SHAPES.e10 },
-  { day: 8, cx: 27.5, cy: 126, shape: SHAPES.e9 },
-  { day: 2, cx: 17.5, cy: 73.5, shape: SHAPES.e26 },
-  { day: 0, cx: 40, cy: 63.5, shape: SHAPES.e59 },
-  { day: 5, cx: 23.5, cy: 98.5, shape: SHAPES.e62 },
-  { day: 9, cx: 38.5, cy: 152.5, shape: SHAPES.e62 },
-  { day: 1, cx: 67.5, cy: 66.5, shape: SHAPES.e26 },
-  { day: 4, cx: 45.5, cy: 91.5, shape: SHAPES.e8 },
-  { day: 7, cx: 51.5, cy: 122.5, shape: SHAPES.e26 },
+export const BERRIES = [
+  { day: 6, cx: 75.6, cy: 102.9, shape: SHAPES.e62 },
+  { day: 3, cx: 88.1, cy: 80.8, shape: SHAPES.e10 },
+  { day: 8, cx: 35.4, cy: 129.3, shape: SHAPES.e9 },
+  { day: 2, cx: 11.7, cy: 72.2, shape: SHAPES.e26 },
+  { day: 0, cx: 37.2, cy: 64.5, shape: SHAPES.e59 },
+  { day: 5, cx: 23.9, cy: 98.8, shape: SHAPES.e62 },
+  { day: 9, cx: 50.1, cy: 158.9, shape: SHAPES.e62 },
+  { day: 1, cx: 68.3, cy: 65.4, shape: SHAPES.e26 },
+  { day: 4, cx: 49.9, cy: 94.2, shape: SHAPES.e8 },
+  { day: 7, cx: 62, cy: 127.8, shape: SHAPES.e26 },
 ];
+
+export type BerryShape = (typeof SHAPES)[keyof typeof SHAPES];
+
+/** 나무 송이의 알 지름. 사용자가 조절 페이지에서 골랐다 (#57). */
+export const BERRY_D = 39;
+
+/** 줄기잎 자리 (송이 그룹 기준). 알 배치에 맞춰 옮겼다. */
+export const STEM_LEAF = { left: 27.8, top: -7.8, width: 84, height: 74 };
+
+/** 줄기잎 위 끝부터 맨 아래 알 아래 끝까지. 간격을 벌려 BUNCH_H 밖으로 조금 나간다. */
+export const BUNCH_EXTENT = {
+  top: STEM_LEAF.top,
+  bottom: Math.max(...BERRIES.map((b) => b.cy)) + BERRY_D / 2,
+};
+
+/** (cx, cy)에 지름 d로 놓을 알의 자리. 모양마다 원본 크기가 달라(e8만 38) 모양별로 같은 지름에 맞춘다. */
+export function berryBox(shape: BerryShape, cx: number, cy: number, d: number) {
+  const k = d / Math.max(shape.w, shape.h);
+  return { left: cx - (shape.w * k) / 2, top: cy - (shape.h * k) / 2, width: shape.w * k, height: shape.h * k };
+}
+
+/** 놓친 알 그림. 놓친 순서가 늦을수록 더 시든다 (스펙 8.1). 기분 색을 칠하지 않아 통째로 구운 그림을 쓴다. */
+const WILT: Record<WiltLevel, number> = {
+  1: require('../../assets/grape/wilt-1.png'),
+  2: require('../../assets/grape/wilt-2.png'),
+  3: require('../../assets/grape/wilt-3.png'),
+};
+
+/**
+ * 알 한 알의 그림. 나무와 상세가 같은 그림을 쓴다. 크기는 부모가 정한다.
+ * mood가 있으면 채운 알(기분 색 + 광택), wilt가 있으면 시든 알, 둘 다 없으면 빈 알이다.
+ */
+export function BerryLook({ shape, mood, wilt }: { shape: BerryShape; mood: Mood | null; wilt: WiltLevel | null }) {
+  // 같은 실루엣을 살짝 크게 어둡게 깔아 테두리를 만든다. 없으면 겹친 빈 알이 한 덩어리로 보인다.
+  if (wilt) {
+    return (
+      <>
+        <RNImage source={WILT[wilt]} style={[styles.layer, styles.wilt, styles.edge]} tintColor={theme.ink} />
+        <RNImage source={WILT[wilt]} style={[styles.layer, styles.wilt]} />
+      </>
+    );
+  }
+  return (
+    <>
+      {/* tintColor로 흰 실루엣을 기분 색으로 칠한다. expo-image 대신 RN Image를 쓰는 건 웹 tint 때문. */}
+      <RNImage source={shape.mask} style={[styles.layer, styles.edge]} tintColor={theme.ink} />
+      <RNImage source={shape.mask} style={styles.layer} tintColor={mood ? theme.mood[mood] : theme.empty} />
+      <RNImage source={shape.tex} style={styles.layer} />
+      {mood ? (
+        <>
+          <View style={styles.gloss} />
+          <View style={styles.glossDot} />
+        </>
+      ) : null}
+    </>
+  );
+}
 
 type Props = { goal: Goal; today: IsoDate; onPress: () => void };
 
@@ -52,10 +110,7 @@ export function TreeBunch({ goal, today, onPress }: Props) {
   const { needsToday } = treeSignals({ startedOn, today, filled });
 
   const dates = bunchDates(startedOn);
-  const colors = dates.map((date) => {
-    const mood = moods.get(date);
-    return mood ? theme.mood[mood] : theme.empty;
-  });
+  const wilts = wiltLevels(dates.map((date) => grapeStateFor({ date, today, filled })));
 
   return (
     <Pressable
@@ -81,19 +136,10 @@ export function TreeBunch({ goal, today, onPress }: Props) {
       >
         <Image source={require('../../assets/tree/stem-leaf.svg')} style={styles.stemLeaf} />
         {BERRIES.map(({ day, cx, cy, shape }) => {
-          const box = {
-            left: cx - shape.w / 2,
-            top: cy - shape.h / 2,
-            width: shape.w,
-            height: shape.h,
-          };
+          const box = berryBox(shape, cx, cy, BERRY_D);
           return (
             <View key={day} style={[styles.berry, box]}>
-              {/* tintColor로 흰 실루엣을 기분 색으로 칠한다. expo-image 대신 RN Image를 쓰는 건 웹 tint 때문. */}
-              {/* 같은 실루엣을 살짝 크게 어둡게 깔아 테두리를 만든다. 없으면 겹친 빈 알이 한 덩어리로 보인다. */}
-              <RNImage source={shape.mask} style={[styles.layer, styles.edge]} tintColor={theme.ink} />
-              <RNImage source={shape.mask} style={styles.layer} tintColor={colors[day]} />
-              {filled.has(dates[day]) ? <RNImage source={shape.tex} style={styles.layer} /> : null}
+              <BerryLook shape={shape} mood={moods.get(dates[day]) ?? null} wilt={wilts[day]} />
             </View>
           );
         })}
@@ -104,11 +150,21 @@ export function TreeBunch({ goal, today, onPress }: Props) {
 
 const styles = StyleSheet.create({
   root: { width: BUNCH_W, height: BUNCH_H },
-  stemLeaf: { position: 'absolute', left: 31, top: 0, width: 84, height: 74 },
+  stemLeaf: { position: 'absolute', ...STEM_LEAF },
   dimmed: { opacity: 0.45 },
   berry: { position: 'absolute' },
   layer: { ...StyleSheet.absoluteFill, width: '100%', height: '100%' },
   edge: { opacity: 0.15, transform: [{ scale: 1.08 }] },
+  wilt: { resizeMode: 'contain' },
+  /** 시안 detail-full-1의 광택: 오른쪽 아래 짧은 획과 그 위 점. */
+  gloss: {
+    position: 'absolute', right: '20%', bottom: '24%', width: '30%', height: '9%',
+    borderRadius: 999, backgroundColor: '#fff', opacity: 0.45, transform: [{ rotate: '-40deg' }],
+  },
+  glossDot: {
+    position: 'absolute', right: '14%', bottom: '44%', width: '8%', height: '8%',
+    borderRadius: 999, backgroundColor: '#fff', opacity: 0.45,
+  },
   halo: {
     position: 'absolute', left: -18, top: 20, width: 140, height: 140, borderRadius: 70,
     backgroundColor: theme.glow, opacity: 0.55,
