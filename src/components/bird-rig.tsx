@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { type ComponentProps, useEffect } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import Animated, {
   cancelAnimation,
@@ -10,6 +10,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { theme } from '@/theme';
 
 /**
  * 조각으로 나눈 흰 새(종이 오리기)를 다시 조립해 움직인다. 좌표는 조각 시트의 조립 그림(605x440) 기준이고,
@@ -29,6 +30,21 @@ const SRC = {
   envelope: require('../../assets/tree/bird/envelope.png'),
   heart: require('../../assets/tree/bird/heart.png'),
 };
+
+/**
+ * 종이 조각 하나. 같은 그림을 ink로 칠해 흐리게 번진 사본을 살짝 아래에 깔아,
+ * 종이 한 장이 배경에서 떠 있는 정도로만 구분되게 한다. 날개 회전 같은 움직임은 style로 함께 넘긴다.
+ */
+function PaperPiece({ source, style }: { source: number; style: ComponentProps<typeof Animated.Image>['style'] }) {
+  return (
+    <>
+      <View style={styles.shadow} pointerEvents="none">
+        <Animated.Image source={source} style={style} tintColor={theme.ink} blurRadius={14} />
+      </View>
+      <Animated.Image source={source} style={style} />
+    </>
+  );
+}
 
 /** 눈 가운데. 웃는 눈(^)도 같은 자리에 그린다. */
 const EYES = [{ cx: 430, cy: 219, d: 31 }];
@@ -83,8 +99,8 @@ export function BirdRig({ flap, heart, envelope, size }: Props) {
         {/* 편지는 부리 아래, 부리는 마름모라 뒤쪽 절반이 머리 뒤에 숨도록 몸통보다 먼저 그린다. */}
         {envelope ? <Image source={SRC.envelope} style={styles.envelope} /> : null}
         <Image source={SRC.beak} style={styles.beak} />
-        <Animated.Image source={SRC.wingBack} style={[styles.wingBack, wingBack]} />
-        <Image source={SRC.body} style={styles.body} />
+        <PaperPiece source={SRC.wingBack} style={[styles.wingBack, wingBack]} />
+        <PaperPiece source={SRC.body} style={styles.body} />
         <Image source={SRC.feet} style={styles.feet} />
         {EYES.map((e) => (
           <View key={e.cx}>
@@ -98,7 +114,7 @@ export function BirdRig({ flap, heart, envelope, size }: Props) {
             />
           </View>
         ))}
-        <Animated.Image source={SRC.wingFront} style={[styles.wingFront, wingFront]} />
+        <PaperPiece source={SRC.wingFront} style={[styles.wingFront, wingFront]} />
         <Animated.Image source={SRC.heart} style={[styles.heart, heartPop]} />
       </Animated.View>
     </View>
@@ -107,6 +123,11 @@ export function BirdRig({ flap, heart, envelope, size }: Props) {
 
 const styles = StyleSheet.create({
   rig: { width: RIG_W, height: RIG_H, transformOrigin: 'top left' },
+  /** 새 폭 60dp에서 약 1dp 아래로, 옅게. */
+  shadow: {
+    position: 'absolute', left: 0, top: 0, width: RIG_W, height: RIG_H, opacity: 0.15,
+    transform: [{ translateX: 4 }, { translateY: 12 }],
+  },
   /** 날개는 몸에 붙는 밑동(조각 시트의 관절 자리)을 축으로 돈다. 날개·몸통이 같은 종이색이라 관절은 그대로 둔다. */
   // 시안보다 몸통은 통통하게(세로로 늘림), 날개는 작게 했다. 날개 밑동(축)의 자리는 그대로다.
   wingBack: { position: 'absolute', left: 35, top: 264, width: 210, height: 118, transformOrigin: '189px 71px' },
