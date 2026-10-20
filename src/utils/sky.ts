@@ -1,5 +1,7 @@
 import { Platform, type ViewStyle } from 'react-native';
 import { theme } from '@/theme';
+import type { IsoDate } from '@/utils/date';
+import { type Weather, weatherNow } from '@/utils/weather';
 
 export type SkyTime = 'morning' | 'afternoon' | 'night';
 
@@ -49,18 +51,27 @@ export type Sky = {
   dark: boolean;
 };
 
-/** 하루 중 분(0–1439)의 하늘. 가운데 색이 어두우면 밝은 글자를 쓴다. */
-export function skyAt(minutes: number): Sky {
+/** 비 오는 하늘 (시안 main-rainy-*). 낮은 회색, 밤은 어두운 남색. */
+const RAIN_DAY = '#C4C4C4';
+const RAIN_NIGHT = '#26303F';
+
+/**
+ * 하루 중 분(0–1439)의 하늘. 가운데 색이 어두우면 밝은 글자를 쓴다.
+ * 비 오는 날은 그 시각 하늘을 회색·남색 쪽으로 눌러 시각 변화는 은은하게 남기고, 해·달빛 번짐은 끈다.
+ */
+export function skyAt(minutes: number, weather: Weather = 'clear'): Sky {
   const h = (((minutes / 60) % 24) + 24) % 24;
   const i = KEYS.findIndex((k) => k[0] > h) - 1;
   const [h0, ...a] = KEYS[i];
   const [h1, ...b] = KEYS[i + 1];
   const t = (h - h0) / (h1 - h0);
   const s = t * t * (3 - 2 * t);
-  const stops = a.map((c, j) => mix(c, b[j], s)) as Stops;
-  const dark = luminance(stops[1]) < 0.5;
+  const clear = a.map((c, j) => mix(c, b[j], s)) as Stops;
+  const dark = luminance(clear[1]) < 0.5;
+  const stops =
+    weather === 'rain' ? (clear.map((c) => mix(c, dark ? RAIN_NIGHT : RAIN_DAY, 0.8)) as Stops) : clear;
   // 오른쪽 위 모서리에서 번지는 빛. 낮엔 해 색(스펙 8.6), 밤엔 달빛.
-  const glow = { rgb: rgb(dark ? LIGHT : h < 12 ? '#FFC187' : '#FF9987'), alpha: dark ? 0.18 : 0.45 };
+  const glow = { rgb: rgb(dark ? LIGHT : h < 12 ? '#FFC187' : '#FF9987'), alpha: weather === 'rain' ? 0 : dark ? 0.18 : 0.45 };
   return {
     stops,
     glow,
@@ -78,10 +89,10 @@ export function setDevSkyMinutes(minutes: number | null) {
   devMinutes = minutes;
 }
 
-/** 지금(또는 개발 막대가 고른 시각)의 하늘. */
-export function skyNow(): Sky {
+/** 지금(또는 개발 막대가 고른 시각)의 하늘. 오늘 날씨를 반영한다. */
+export function skyNow(today: IsoDate): Sky {
   const now = new Date();
-  return skyAt(devMinutes ?? now.getHours() * 60 + now.getMinutes());
+  return skyAt(devMinutes ?? now.getHours() * 60 + now.getMinutes(), weatherNow(today));
 }
 
 /** 하늘을 화면 배경 스타일로. glow(0–1)만큼 오른쪽 위 모서리 빛 번짐을 위에 얹는다. */

@@ -28,6 +28,8 @@ import { isBunchEnded, treeSignals } from '@/utils/bunch';
 import { useToday } from '@/hooks/use-today';
 import { noticeKeyFor } from '@/utils/bird';
 import { setDevSkyMinutes, skyAt, skyBackground, skyTimeFor } from '@/utils/sky';
+import { setDevWeather, type Weather, weatherNow } from '@/utils/weather';
+import { Rain } from '@/components/rain';
 import { STAGE_H, STAGE_W, stageScale } from '@/utils/stage';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
@@ -125,6 +127,10 @@ function firstName(meta: Record<string, unknown> | undefined): string | null {
   return typeof raw === 'string' && raw.trim() ? raw.trim().split(/\s+/)[0] : null;
 }
 
+/** 비 오는 날 흐려진 해·달 (시안 main-rainy-*). */
+const RAIN_SUN = '#B2B2B2';
+const RAIN_MOON = '#4F5A66';
+
 const DEV_BAR_W = 240;
 const barMinutes = (x: number) =>
   Math.round(Math.min(1439, Math.max(0, (x / DEV_BAR_W) * 1440)) / 5) * 5;
@@ -147,7 +153,16 @@ export default function TreeScreen() {
   const now = new Date();
   const minutes = devMinutes ?? now.getHours() * 60 + now.getMinutes();
   const time = skyTimeFor(Math.floor(minutes / 60));
-  const sky = skyAt(minutes);
+  // 개발 빌드에서 고른 날씨. null이면 오늘 날짜의 포키 날씨.
+  const [devWeather, setDevWeatherState] = useState<Weather | null>(null);
+  const toggleDevRain = () => {
+    const next = weatherNow(today) === 'rain' ? 'clear' : 'rain';
+    setDevWeather(next);
+    setDevWeatherState(next);
+  };
+  const weather = devWeather ?? weatherNow(today);
+  const rain = weather === 'rain';
+  const sky = skyAt(minutes, weather);
   const skyBg = skyBackground(sky, 0.5);
   // 화면을 열 때마다 구름 2종을 새로 고르고, 화면이 떠 있는 동안은 그대로 둔다.
   const [clouds] = useState(pickClouds);
@@ -209,7 +224,7 @@ export default function TreeScreen() {
     <>
             <View style={[styles.ground, { transform: [{ scale }] }]}>
               {/* 구름은 덤불에 걸쳐 있어야 해서 하늘이 아니라 덤불과 같은 무대에, 덤불 뒤에 둔다. */}
-              {time === 'night' ? null : (
+              {time === 'night' || rain ? null : (
                 <>
                   {clouds.map((c, i) => (
                     <DriftingCloud
@@ -281,13 +296,18 @@ export default function TreeScreen() {
           <View style={[styles.sky, { transform: [{ scale: skyScale }] }]}>
             {time === 'night' ? (
               <>
-                <Image source={require('../../assets/tree/moon.svg')} style={styles.moon} />
-                {STARS.map((p, i) => (
+                {/* 비 오는 밤은 흐린 달만 (시안 main-rainy-night). */}
+                <Image
+                  source={require('../../assets/tree/moon.svg')}
+                  style={styles.moon}
+                  tintColor={rain ? RAIN_MOON : undefined}
+                />
+                {rain ? null : STARS.map((p, i) => (
                   <Image key={i} source={require('../../assets/tree/star.svg')} style={[styles.star, p]} />
                 ))}
               </>
             ) : (
-              <Image source={SUN[time]} style={styles.sun} />
+              <Image source={SUN[time]} style={styles.sun} tintColor={rain ? RAIN_SUN : undefined} />
             )}
           </View>
 
@@ -300,16 +320,22 @@ export default function TreeScreen() {
           >
             {treeBody}
           </BirdScene>
+          {rain ? <Rain width={area.width} height={area.height} /> : null}
         </>
       ) : null}
       {/* 개발 빌드 전용: 막대를 눌러 끌면 하늘 시각이 바뀌고, 글자를 누르면 지금으로 돌아간다. */}
       {__DEV__ ? (
         <View style={styles.devSky}>
-          <Pressable onPress={() => setDevMinutes(null)}>
-            <Text style={styles.devSkyLabel}>
-              {devMinutes === null ? '하늘: 지금' : `하늘: ${hhmm(devMinutes)} (지금으로)`}
-            </Text>
-          </Pressable>
+          <View style={styles.devRow}>
+            <Pressable onPress={() => setDevMinutes(null)}>
+              <Text style={styles.devSkyLabel}>
+                {devMinutes === null ? '하늘: 지금' : `하늘: ${hhmm(devMinutes)} (지금으로)`}
+              </Text>
+            </Pressable>
+            <Pressable onPress={toggleDevRain}>
+              <Text style={styles.devSkyLabel}>{rain ? '비 ☔' : '맑음'}</Text>
+            </Pressable>
+          </View>
           <View
             style={styles.devBar}
             onStartShouldSetResponder={() => true}
@@ -377,6 +403,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, backgroundColor: 'rgba(0,0,0,0.45)',
   },
   devSkyLabel: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  devRow: { flexDirection: 'row', gap: 14 },
   devBar: {
     width: DEV_BAR_W, height: 24, justifyContent: 'center',
     borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.25)',

@@ -85,7 +85,7 @@ export default function BunchDetailScreen() {
     height: win.height - top - HEADER_HEIGHT - bottom - TAB_BAR_HEIGHT,
   };
   // ponytail: 렌더 시점 시각. Tree와 같은 한계다.
-  const sky = skyNow();
+  const sky = skyNow(today);
   const skyBg = skyBackground(sky, 1);
   // 송이 칸(제목 아래 ~ 안내 문구 위)의 크기. 재기 전(0)에는 송이를 그리지 않는다.
   const [slot, setSlot] = useState({ y: 0, width: 0, height: 0 });

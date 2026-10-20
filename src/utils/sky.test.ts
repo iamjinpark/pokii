@@ -34,3 +34,12 @@ test.each([
   expect(skyAt(minutes).text).toBe(text);
 });
 
+
+test('비 오는 날 하늘은 낮엔 회색, 밤엔 어두운 남색 쪽이고 빛 번짐이 없다', () => {
+  const day = skyAt(14 * 60, 'rain');
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(day.stops[1].slice(i, i + 2), 16));
+  expect(Math.max(r, g, b) - Math.min(r, g, b)).toBeLessThan(12);
+  expect(day.glow.alpha).toBe(0);
+  expect(day.text).toBe('#353364');
+  expect(skyAt(22 * 60, 'rain').text).toBe('#F7FFE3');
+});
