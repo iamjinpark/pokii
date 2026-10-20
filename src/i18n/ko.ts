@@ -61,6 +61,10 @@ export const ko: Record<TranslationKey, string> = {
   'goal.delete.yes': '삭제',
   'goal.delete.no': '그대로 두기',
   'goal.edit.failed': '저장하지 못했어요. 다시 시도해주세요.',
+  'settings.language': '언어',
+  'settings.account': '계정',
+  'settings.signOut': '로그아웃',
+  'settings.signOut.failed': '로그아웃하지 못했어요. 다시 시도해주세요.',
   'common.retry': '다시 시도',
   'common.error.network': '나무에 닿지 못했어요.',
 };

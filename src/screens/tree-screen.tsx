@@ -18,7 +18,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { HEADER_HEIGHT } from '@/components/app-header';
+import { HEADER_HEIGHT, TAB_BAR_HEIGHT } from '@/components/app-header';
 import { Text } from '@/components/text';
 import { BirdScene } from '@/components/tree-bird';
 import { BUNCH_H, BUNCH_W, TreeBunch } from '@/components/tree-bunch';
@@ -31,7 +31,6 @@ import { skyTimeFor } from '@/utils/sky';
 import { STAGE_H, STAGE_W, stageScale } from '@/utils/stage';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
-import { signOut } from '@/utils/sign-in';
 
 
 /**
@@ -137,10 +136,13 @@ export default function TreeScreen() {
   const byPosition = new Map((goals ?? []).map((g) => [g.position as number, g]));
   const full = byPosition.size === SLOTS.length;
   // onLayout은 웹에서 첫 값이 0이거나 크기가 바뀌어도 다시 오지 않는 경우가 있어(빈 화면·고정 크기)
-  // 창 크기에서 헤더를 뺀 값으로 계산한다. 창 크기는 바뀔 때마다 다시 렌더된다.
+  // 창 크기에서 헤더·하단 탭을 뺀 값으로 계산한다. 창 크기는 바뀔 때마다 다시 렌더된다.
   const win = useWindowDimensions();
-  const { top } = useSafeAreaInsets();
-  const area = { width: win.width, height: win.height - top - HEADER_HEIGHT };
+  const { top, bottom } = useSafeAreaInsets();
+  const area = {
+    width: win.width,
+    height: win.height - top - HEADER_HEIGHT - bottom - TAB_BAR_HEIGHT,
+  };
   const scale = stageScale(area.width, area.height);
   // 하늘은 세로로 맞출 것이 없어 폭만 따른다. 해·달·별의 위치와 크기가 화면 폭에 비례한다.
   const skyScale = area.width / STAGE_W;
@@ -281,11 +283,6 @@ export default function TreeScreen() {
           </BirdScene>
         </>
       ) : null}
-
-      {/* 설정 화면(계획 2)이 나오기 전까지 provider를 바꿔가며 테스트하기 위한 임시 버튼. */}
-      <Pressable onPress={() => signOut()} style={styles.devSignOut}>
-        <Text style={[styles.devSignOutLabel, { color: sky.text }]}>로그아웃 (임시)</Text>
-      </Pressable>
     </View>
   );
 }
@@ -332,8 +329,6 @@ const styles = StyleSheet.create({
   plus: { fontSize: 28, fontWeight: '800', color: theme.sky },
   message: { position: 'absolute', right: 15, top: 606 },
   line: { fontSize: 26 },
-  devSignOut: { position: 'absolute', left: 8, top: 4, paddingVertical: 4 },
-  devSignOutLabel: { fontSize: 11, fontWeight: '600', textDecorationLine: 'underline' },
   retry: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.ink },
   retryLabel: { color: '#fff', fontWeight: '700' },
 });

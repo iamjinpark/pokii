@@ -1,6 +1,6 @@
 import { withAppFont } from './text';
 
-jest.mock('@/i18n', () => ({ deviceLocale: () => 'ko' }));
+jest.mock('@/i18n', () => ({ appLocale: () => 'ko' }));
 
 describe('withAppFont', () => {
   test('600 이상은 굵은 글꼴 파일로 바꾸고 fontWeight를 지운다', () => {

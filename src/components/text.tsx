@@ -6,7 +6,7 @@ import {
   type TextProps,
   type TextStyle,
 } from 'react-native';
-import { deviceLocale } from '@/i18n';
+import { appLocale } from '@/i18n';
 import { fonts } from '@/theme';
 
 /**
@@ -15,7 +15,7 @@ import { fonts } from '@/theme';
  */
 export function withAppFont(style: TextProps['style'], display = false): TextStyle {
   const { fontWeight, ...rest } = StyleSheet.flatten(style) ?? {};
-  const f = fonts[deviceLocale()];
+  const f = fonts[appLocale()];
   const bold = fontWeight === 'bold' || Number(fontWeight) >= 600;
   return { fontFamily: display ? f.display : bold ? f.bodyBold : f.body, ...rest };
 }
