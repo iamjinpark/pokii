@@ -30,6 +30,21 @@ export function grapeStateFor(args: {
   return offset < 0 ? 'missed' : 'future';
 }
 
+export type WiltLevel = 1 | 2 | 3;
+
+/**
+ * 놓친 알이 얼마나 시들어 보일지. 송이에서 몇 번째로 놓친 알인지로 정한다 (스펙 8.1).
+ * 1·2번째는 1단계, 3·4번째는 2단계, 그 뒤는 3단계. 놓친 알이 아니면 null.
+ */
+export function wiltLevels(states: readonly GrapeState[]): (WiltLevel | null)[] {
+  let nth = 0;
+  return states.map((s) => {
+    if (s !== 'missed') return null;
+    nth += 1;
+    return nth <= 2 ? 1 : nth <= 4 ? 2 : 3;
+  });
+}
+
 export function canFill(args: {
   date: IsoDate;
   today: IsoDate;

@@ -36,12 +36,12 @@ describe('canCreateGoal', () => {
   });
 
   it('길이를 넘기면 잠긴다', () => {
-    expect(canCreateGoal('a'.repeat(61), 'tag')).toBe(false);
+    expect(canCreateGoal('a'.repeat(41), 'tag')).toBe(false);
     expect(canCreateGoal('운동', 'a'.repeat(9))).toBe(false);
   });
 
   it('경계값은 통과한다', () => {
-    expect(canCreateGoal('a'.repeat(60), 'a'.repeat(8))).toBe(true);
+    expect(canCreateGoal('a'.repeat(40), 'a'.repeat(8))).toBe(true);
   });
 });
 

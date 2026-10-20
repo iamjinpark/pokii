@@ -1,11 +1,17 @@
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { HEADER_HEIGHT, TAB_BAR_HEIGHT } from '@/components/app-header';
 import { Text } from '@/components/text';
 import { Grape } from '@/components/grape';
+import { BERRIES, berryBox, BERRY_D, BUNCH_EXTENT, STEM_LEAF } from '@/components/tree-bunch';
 import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useDeleteGoal, useGoalFootprint } from '@/hooks/use-goal-mutations';
 import { useToday } from '@/hooks/use-today';
+import { skyTimeFor } from '@/utils/sky';
+import { STAGE_W } from '@/utils/stage';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
 import {
@@ -13,11 +19,51 @@ import {
   footerKey,
   grapeStateFor,
   startLabel,
+  wiltLevels,
   type GrapeState,
 } from '@/utils/bunch';
 
 /** 탭하면 하루 기록 화면이 열리는 상태 (스펙 7.4). 놓침·미래는 아무 일도 일어나지 않는다. */
 const OPENABLE = new Set<GrapeState>(['filled', 'today', 'yesterday']);
+
+/**
+ * 큰 송이는 나무 송이를 그대로 키워 쓴다. 두 화면의 송이 모양이 같아야 한다.
+ * 배율(393 폭 기준)과 아래 상수 값은 사용자가 상세 화면 조절기에서 골랐다 (#57).
+ */
+const BIG = 2.8;
+/** stem-leaf.svg(84×74)는 위쪽 10.7이 비어 있다. 보이는 잎 끝부터 간격을 재려고 뺀다. */
+const LEAF_EMPTY_TOP = 10.7;
+/** 보이는 송이 위 끝. 송이 그룹 기준. */
+const BUNCH_TOP = BUNCH_EXTENT.top + LEAF_EMPTY_TOP;
+/** 송이(보이는 잎 끝 ~ 맨 아래 알)의 높이. 393 폭 기준 px. */
+const BIG_H = (BUNCH_EXTENT.bottom - BUNCH_TOP) * BIG;
+/**
+ * 송이는 이 비율 밑으로 줄이지 않는다 (화면 폭 기준 크기 대비). 짧은 화면에 긴 제목이면 안내 문구와 겹친다.
+ * 이 비율로도 탭바에 잘리면 그때만 더 줄인다.
+ */
+const MIN_BUNCH_RATIO = 0.75;
+/** 알 범위(그룹 x 0–100)의 가로 가운데. 오른쪽으로 삐져나온 줄기잎은 빼고 잰다. */
+const BIG_CENTER_X = 50 * BIG;
+/** 송이가 터치를 받는 영역. 부모 밖의 터치는 Android에서 버려지므로 알이 모두 들어가게 잡는다. */
+const BIG_BOX = { width: (STEM_LEAF.left + STEM_LEAF.width) * BIG, height: BUNCH_EXTENT.bottom * BIG };
+/** 제목과 송이 사이 간격. 제목이 몇 줄이든 같다. 잎 위 빈 여백은 빼고 잰다. */
+const TITLE_BUNCH_GAP = 12;
+/** 송이 아래 여백. 안내 문구는 토스트처럼 떠서 송이와 겹쳐도 된다. */
+const FOOTER_SPACE = 32;
+/**
+ * 덤불은 포도를 기준으로 놓는다. 덤불 경계가 포도 가운데 세로선에서 포도 높이의 이 비율 지점을 지난다.
+ * 시안 detail-*에서 약 53%다. 덤불은 그린 비율 그대로 폭에 맞추고 위아래로만 옮긴다.
+ */
+const CANOPY_CROSS = 0.52;
+/** canopy.svg 크기. */
+const CANOPY_W = 393;
+const CANOPY_H = 551;
+/** canopy.svg(사용자가 그린 덤불)의 경계가 가운데 세로선(x 196.5)을 처음 지나는 높이 (그림 높이 대비). 외곽선에서 쟀다. */
+const CANOPY_EDGE_AT_CENTER = 0.7477;
+/** 헤더(← No · Start)와 제목 사이 간격. */
+const HEADER_TITLE_GAP = 16;
+/** 덤불 위 글자색. */
+const CANOPY_TEXT = '#FFFFFF';
 
 export default function BunchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -31,10 +77,21 @@ export default function BunchDetailScreen() {
   const back = () => (router.canGoBack() ? router.back() : router.replace('/'));
   // 훅이라 이른 return보다 위에 있어야 한다.
   const today = useToday();
+  // onLayout은 웹에서 믿을 수 없어 Tree처럼 창 크기에서 헤더·하단 탭을 뺀다.
+  const win = useWindowDimensions();
+  const { top, bottom } = useSafeAreaInsets();
+  const area = {
+    width: win.width,
+    height: win.height - top - HEADER_HEIGHT - bottom - TAB_BAR_HEIGHT,
+  };
+  // ponytail: 렌더 시점 시각. Tree와 같은 한계다.
+  const sky = theme.skies[skyTimeFor(new Date().getHours())];
+  // 송이 칸(제목 아래 ~ 안내 문구 위)의 크기. 재기 전(0)에는 송이를 그리지 않는다.
+  const [slot, setSlot] = useState({ y: 0, width: 0, height: 0 });
 
   if (isLoading) {
     return (
-      <View style={styles.center}>
+      <View style={[styles.center, { backgroundColor: sky.bg }]}>
         <ActivityIndicator />
       </View>
     );
@@ -42,8 +99,8 @@ export default function BunchDetailScreen() {
 
   if (isError || !bunch) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.body}>{t('common.error.network')}</Text>
+      <View style={[styles.center, { backgroundColor: sky.bg }]}>
+        <Text style={[styles.body, { color: sky.text }]}>{t('common.error.network')}</Text>
         <Pressable onPress={() => refetch()} style={styles.retry}>
           <Text style={styles.retryLabel}>{t('common.retry')}</Text>
         </Pressable>
@@ -55,32 +112,110 @@ export default function BunchDetailScreen() {
   const filled = new Set(bunch.grapes.map((g) => g.grapeDate));
   const moodOf = new Map(bunch.grapes.map((g) => [g.grapeDate, g.mood]));
   const states = dates.map((date) => grapeStateFor({ date, today, filled }));
+  const wilts = wiltLevels(states);
 
   const key = footerKey({ startedOn: bunch.startedOn, today, filled });
 
-  return (
-    <View style={styles.root}>
-      <Pressable onPress={back} style={styles.back} accessibilityLabel="뒤로">
-        <Text style={styles.backLabel}>←</Text>
-      </Pressable>
+  const { width } = area;
+  // 송이는 칸 맨 위에 붙인다. 칸이 송이보다 작으면 줄이되 최소 크기 밑으로는 줄이지 않는다.
+  // 최소 크기여도 칸(탭바 위까지)을 넘치면 칸에 딱 맞게 더 줄인다. 잘리는 것보다 작은 게 낫다.
+  const full = area.width / STAGE_W;
+  const fit = (slot.height - FOOTER_SPACE) / BIG_H;
+  const floor = Math.min(full * MIN_BUNCH_RATIO, slot.height / BIG_H);
+  const bigScale = slot.height > 0 ? Math.max(floor, Math.min(full, fit)) : 0;
+  const bunchAt = {
+    left: slot.width / 2 - BIG_CENTER_X * bigScale,
+    top: -BUNCH_TOP * BIG * bigScale,
+  };
+  // 덤불 경계가 지나야 할 높이에 맞춰 덤불을 올린다. 내려야 하면 위에 하늘이 드러나 흰 제목이 안 보이므로,
+  // 그때만 위를 붙인 채 세로로 늘린다.
+  const crossY = slot.y + CANOPY_CROSS * BIG_H * bigScale;
+  const canopyNaturalH = (width * CANOPY_H) / CANOPY_W;
+  const canopyTop = crossY - CANOPY_EDGE_AT_CENTER * canopyNaturalH;
+  const canopyBox =
+    canopyTop <= 0
+      ? { top: canopyTop, height: canopyNaturalH }
+      : { top: 0, height: crossY / CANOPY_EDGE_AT_CENTER };
 
-      <View style={styles.header}>
-        <Text style={styles.meta}>{`No.${bunch.sequence}`}</Text>
-        <View style={styles.headerRight}>
-          <Text style={styles.meta}>{startLabel(bunch.startedOn)}</Text>
-          <Pressable
-            onPress={() => setMenu(menu === 'closed' ? 'open' : 'closed')}
-            style={styles.menuButton}
-            accessibilityLabel={t('goal.menu')}
-          >
-            <Text style={styles.menuDots}>⋯</Text>
-          </Pressable>
+  return (
+    <View style={[styles.root, { backgroundColor: sky.bg }]}>
+      <Image
+        source={require('../../assets/detail/canopy.svg')}
+        contentFit="fill"
+        style={[styles.canopy, { width }, canopyBox]}
+      />
+
+      <View style={styles.column}>
+        <View style={styles.top}>
+          <View style={styles.header}>
+            <View style={styles.headerSide}>
+              <Pressable onPress={back} style={styles.back} accessibilityLabel="뒤로">
+                <Text style={styles.backLabel}>←</Text>
+              </Pressable>
+              <Text style={styles.meta}>{`No.${bunch.sequence}`}</Text>
+            </View>
+            <View style={styles.headerSide}>
+              <Text style={styles.meta}>{startLabel(bunch.startedOn)}</Text>
+              <Pressable
+                onPress={() => setMenu(menu === 'closed' ? 'open' : 'closed')}
+                style={styles.menuButton}
+                accessibilityLabel={t('goal.menu')}
+              >
+                <Text style={styles.menuDots}>⋯</Text>
+              </Pressable>
+            </View>
+          </View>
+          <Text style={styles.title}>{bunch.title}</Text>
+        </View>
+        <View style={styles.slot} onLayout={(e) => setSlot(e.nativeEvent.layout)}>
+          {bigScale > 0 ? (
+            <View style={[styles.bunch, BIG_BOX, bunchAt, { transform: [{ scale: bigScale }] }]}>
+              <Image
+                source={require('../../assets/tree/stem-leaf.svg')}
+                style={{
+                  position: 'absolute',
+                  left: STEM_LEAF.left * BIG,
+                  top: STEM_LEAF.top * BIG,
+                  width: STEM_LEAF.width * BIG,
+                  height: STEM_LEAF.height * BIG,
+                }}
+              />
+              {/* 오늘 알은 채웠든 아니든 맨 앞에 그린다. 뒤에 겹친 자리여도 가려지지 않는다. */}
+              {[...BERRIES]
+                .sort((a, b) => Number(dates[a.day] === today) - Number(dates[b.day] === today))
+                .map(({ day, cx, cy, shape }) => {
+                const date = dates[day];
+                return (
+                  <Grape
+                    key={date}
+                    day={day + 1}
+                    state={states[day]}
+                    mood={moodOf.get(date) ?? null}
+                    wilt={wilts[day]}
+                    shape={shape}
+                    box={berryBox(shape, cx * BIG, cy * BIG, BERRY_D * BIG)}
+                    onPress={
+                      OPENABLE.has(states[day])
+                        ? () => router.push({ pathname: '/goal/[id]/[date]', params: { id, date } })
+                        : undefined
+                    }
+                  />
+                );
+              })}
+            </View>
+          ) : null}
         </View>
       </View>
-      <Text style={styles.title}>{bunch.title}</Text>
+
+      {/* 안내 문구는 토스트처럼 반투명 배경에 띄운다. 송이와 겹쳐도 읽힌다. */}
+      {key ? (
+        <View style={styles.toast}>
+          <Text style={styles.toastLabel}>{t(key)}</Text>
+        </View>
+      ) : null}
 
       {menu === 'open' ? (
-        <View style={styles.menu}>
+        <View style={[styles.menu, styles.overlay]}>
           <Pressable
             onPress={() => router.push({ pathname: '/goal/[id]/edit', params: { id } })}
             style={styles.menuItem}
@@ -99,7 +234,7 @@ export default function BunchDetailScreen() {
       ) : null}
 
       {menu === 'confirm' ? (
-        <View style={styles.menu}>
+        <View style={[styles.menu, styles.overlay]}>
           <Text style={styles.confirmText}>
             {footprint.data
               ? t('goal.delete.confirm', {
@@ -130,48 +265,32 @@ export default function BunchDetailScreen() {
         </View>
       ) : null}
 
-      <View style={styles.stem}>
-        {dates.map((date, i) => (
-          <Grape
-            key={date}
-            day={i + 1}
-            state={states[i]}
-            mood={moodOf.get(date) ?? null}
-            onPress={
-              OPENABLE.has(states[i])
-                ? () => router.push({ pathname: '/goal/[id]/[date]', params: { id, date } })
-                : undefined
-            }
-          />
-        ))}
-      </View>
-
-      <View style={styles.footer}>{key ? <Text style={styles.body}>{t(key)}</Text> : null}</View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.sky, padding: 20 },
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.sky,
-    gap: 12,
-  },
-  back: { alignSelf: 'flex-start', paddingVertical: 6, paddingRight: 12 },
-  backLabel: { fontSize: 22, fontWeight: '800', color: theme.ink },
+  root: { flex: 1, overflow: 'hidden' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
+  canopy: { position: 'absolute', top: 0, left: 0 },
+  bunch: { position: 'absolute', transformOrigin: 'top left' },
+  back: { paddingVertical: 4, paddingRight: 4 },
+  backLabel: { fontSize: 18, fontWeight: '800', color: CANOPY_TEXT },
+  column: { flex: 1, gap: TITLE_BUNCH_GAP, paddingTop: 22 },
+  top: { gap: HEADER_TITLE_GAP },
+  slot: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 4,
+    paddingHorizontal: 22,
   },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  menuButton: { paddingHorizontal: 8, paddingVertical: 4 },
-  menuDots: { fontSize: 20, fontWeight: '800', color: theme.ink },
-  menu: { marginTop: 12, borderRadius: 14, backgroundColor: '#fff', padding: 12, gap: 10 },
+  headerSide: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  menuButton: { paddingLeft: 6, paddingVertical: 4 },
+  menuDots: { fontSize: 18, fontWeight: '800', color: CANOPY_TEXT },
+  menu: { borderRadius: 14, backgroundColor: '#fff', padding: 12, gap: 10 },
+  /** 메뉴는 제목·송이 위에 뜬다. */
+  overlay: { position: 'absolute', top: 60, right: 20, minWidth: 180, zIndex: 2, elevation: 2 },
   menuItem: { paddingVertical: 8 },
   menuLabel: { fontSize: 15, fontWeight: '700', color: theme.ink },
   danger: { color: theme.amber },
@@ -186,11 +305,14 @@ const styles = StyleSheet.create({
   },
   removeLabel: { fontSize: 14, fontWeight: '700', color: '#fff' },
   off: { opacity: 0.4 },
-  meta: { fontSize: 13, fontWeight: '700', color: theme.ink, letterSpacing: 0.5 },
-  title: { fontSize: 22, fontWeight: '800', color: theme.ink, marginTop: 6 },
-  stem: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
-  footer: { paddingBottom: 20, minHeight: 24 },
-  body: { fontSize: 15, fontWeight: '600', color: theme.ink },
+  meta: { fontSize: 13, color: CANOPY_TEXT },
+  title: { fontSize: 22, fontWeight: '700', lineHeight: 26, color: CANOPY_TEXT, paddingHorizontal: 22 },
+  toast: {
+    position: 'absolute', bottom: 16, alignSelf: 'center', maxWidth: '90%', pointerEvents: 'none',
+    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(53, 51, 100, 0.72)',
+  },
+  toastLabel: { fontSize: 14, fontWeight: '600', color: '#fff', textAlign: 'center' },
+  body: { fontSize: 15, fontWeight: '600', textAlign: 'center' },
   retry: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.ink },
   retryLabel: { color: '#fff', fontWeight: '700' },
 });

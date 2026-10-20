@@ -1,4 +1,4 @@
-export const TITLE_MAX = 60;
+export const TITLE_MAX = 40;
 export const TAG_MAX = 8;
 
 /**

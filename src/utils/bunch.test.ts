@@ -1,6 +1,6 @@
 import {
   BUNCH_SIZE, bunchDates, isBunchOpen, grapeStateFor, canFill, containerFor,
-  startLabel, footerKey, isBunchEnded, treeSignals,
+  startLabel, footerKey, isBunchEnded, treeSignals, wiltLevels,
 } from './bunch';
 
 const START = '2026-09-01';
@@ -216,5 +216,17 @@ describe('treeSignals', () => {
 
   test('유예일에는 오늘 칸이 없어 흐리지 않는다', () => {
     expect(treeSignals({ startedOn: START, today: '2026-09-11', filled: none }).needsToday).toBe(false);
+  });
+});
+
+describe('wiltLevels', () => {
+  test('놓친 순서대로 1·2번째는 1단계, 3·4번째는 2단계, 그 뒤는 3단계', () => {
+    expect(
+      wiltLevels(['missed', 'filled', 'missed', 'missed', 'missed', 'missed', 'missed', 'yesterday', 'today', 'future']),
+    ).toEqual([1, null, 1, 2, 2, 3, 3, null, null, null]);
+  });
+
+  test('놓친 알이 없으면 모두 null', () => {
+    expect(wiltLevels(['filled', 'today', 'future'])).toEqual([null, null, null]);
   });
 });
