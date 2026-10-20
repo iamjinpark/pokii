@@ -118,7 +118,7 @@ export default function BunchDetailScreen() {
             </Pressable>
             <Pressable
               onPress={() =>
-                remove.mutate(undefined, { onSuccess: () => router.replace('/') })
+                remove.mutate(undefined, { onSuccess: back })
               }
               disabled={!footprint.data || remove.isPending}
               style={[styles.removeButton, (!footprint.data || remove.isPending) && styles.off]}

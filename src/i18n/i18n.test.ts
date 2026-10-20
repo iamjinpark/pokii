@@ -1,4 +1,10 @@
-import { resolveLocale, translate } from './index';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { appLocale, loadLocale, resolveLocale, setLocale, translate } from './index';
+
+jest.mock('@react-native-async-storage/async-storage', () =>
+  jest.requireActual('@react-native-async-storage/async-storage/jest/async-storage-mock'),
+);
+jest.mock('expo-localization', () => ({ getLocales: () => [{ languageCode: 'ko' }] }));
 
 describe('resolveLocale', () => {
   test('한국어 기기는 ko다', () => {
@@ -37,5 +43,30 @@ describe('값 끼우기', () => {
 
   test('없는 이름은 건드리지 않는다', () => {
     expect(translate('en', 'goal.delete.confirm', { bunches: 2 })).toContain('{grapes}');
+  });
+});
+
+// 모듈 안의 선택 값이 테스트 사이에 이어지므로 순서대로 읽는다.
+describe('고른 언어', () => {
+  test('고르기 전에는 기기 언어를 따른다', () => {
+    expect(appLocale()).toBe('ko');
+  });
+
+  test('저장된 값이 지원 언어가 아니면 무시한다', async () => {
+    await AsyncStorage.setItem('pokii.locale', 'ja');
+    await loadLocale();
+    expect(appLocale()).toBe('ko');
+  });
+
+  test('시작할 때 저장된 언어를 읽어온다', async () => {
+    await AsyncStorage.setItem('pokii.locale', 'en');
+    await loadLocale();
+    expect(appLocale()).toBe('en');
+  });
+
+  test('고르면 바로 바뀌고 저장된다', async () => {
+    setLocale('ko');
+    expect(appLocale()).toBe('ko');
+    expect(await AsyncStorage.getItem('pokii.locale')).toBe('ko');
   });
 });
