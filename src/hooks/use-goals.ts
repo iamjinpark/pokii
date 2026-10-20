@@ -1,4 +1,5 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import type { Mood } from '@/theme';
 import type { IsoDate } from '@/utils/date';
 import { supabase } from '@/utils/supabase';
 
@@ -8,7 +9,13 @@ export type Goal = {
   tag: string;
   position: 1 | 2 | 3;
   /** 현재(마지막 sequence) 송이. 송이 없는 목표는 존재하지 않는다(설계 3.6). */
-  bunch: { id: string; sequence: number; startedOn: IsoDate; filled: number };
+  bunch: {
+    id: string;
+    sequence: number;
+    startedOn: IsoDate;
+    filled: number;
+    grapes: { grapeDate: IsoDate; mood: Mood }[];
+  };
 };
 
 /** 나무의 자리 순서. 첫 목표가 가운데(1)에 온다. */
@@ -19,13 +26,13 @@ type Row = {
   title: string;
   tag: string;
   position: 1 | 2 | 3;
-  bunches: { id: string; sequence: number; started_on: IsoDate; grapes: { id: string }[] }[];
+  bunches: { id: string; sequence: number; started_on: IsoDate; grapes: { grape_date: IsoDate; mood: Mood }[] }[];
 };
 
 async function fetchGoals(): Promise<Goal[]> {
   const { data, error } = await supabase
     .from('goals')
-    .select('id, title, tag, position, bunches(id, sequence, started_on, grapes(id))')
+    .select('id, title, tag, position, bunches(id, sequence, started_on, grapes(grape_date, mood))')
     .is('archived_at', null)
     .order('position');
   if (error) throw error;
@@ -43,6 +50,7 @@ async function fetchGoals(): Promise<Goal[]> {
         sequence: latest.sequence,
         startedOn: latest.started_on,
         filled: latest.grapes.length,
+        grapes: latest.grapes.map((g) => ({ grapeDate: g.grape_date, mood: g.mood })),
       },
     };
   });

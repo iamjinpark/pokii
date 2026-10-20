@@ -82,3 +82,17 @@ export function footerKey(args: {
   if (filled.has(today)) return 'tree.done';
   return null;
 }
+
+/**
+ * 나무에서 송이 하나가 보여줄 신호 (스펙 7.1).
+ * needsToday: 오늘이 이 송이의 칸인데 아직 비었다 → 송이를 반투명하게 흐린다.
+ * 어제 칸 보충 안내는 나무가 아니라 송이 상세에서 한다 (footerKey).
+ */
+export function treeSignals(args: {
+  startedOn: IsoDate;
+  today: IsoDate;
+  filled: ReadonlySet<IsoDate>;
+}): { needsToday: boolean } {
+  const { startedOn, today, filled } = args;
+  return { needsToday: bunchDates(startedOn).includes(today) && !filled.has(today) };
+}

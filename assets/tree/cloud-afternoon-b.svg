@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="154" height="72" viewBox="236 40 154 72">
+  <defs>
+    <pattern id="paper" width="5" height="5" patternUnits="userSpaceOnUse">
+      <rect width="5" height="5" fill="#FFECB6"/>
+      <circle cx="1" cy="1" r=".35" fill="#D8D4BD" opacity=".35"/>
+      <circle cx="3.5" cy="3.5" r=".4" fill="#D8D4BD" opacity=".3"/>
+    </pattern>
+  </defs>
+  <path fill="url(#paper)" d="M247 111 Q237 98 247 85 Q253 75 267 75 Q267 56 284 47 Q301 38 318 49 Q331 45 343 56 Q349 62 350 74 Q369 71 381 87 Q389 99 379 111 Z"/>
+</svg>
