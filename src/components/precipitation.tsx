@@ -33,8 +33,8 @@ function makeParticles(kind: PrecipitationKind, width: number, height: number): 
     // 처음부터 저마다 다른 높이에 있어야 한꺼번에 쏟아지지 않는다.
     offset: Math.random(),
     size: kind === 'rain' ? 10 + Math.random() * 10 : 5 + Math.random() * 4,
-    // 절반만 튀어야 바닥이 요란하지 않다.
-    splash: Math.random() < 0.5,
+    // 전부 튀면 바닥이 요란해서 일부는 그냥 사라진다.
+    splash: Math.random() < 0.8,
   }));
 }
 
@@ -97,7 +97,7 @@ function splashDot(p: number, side: number) {
   const t = Math.max(0, (p - FALL) / (1 - FALL));
   return {
     opacity: 0.8 * (1 - t),
-    transform: [{ translateX: side * 6 * t }, { translateY: -6 * Math.sin(Math.PI * t) }],
+    transform: [{ translateX: side * 8 * t }, { translateY: -9 * Math.sin(Math.PI * t) }],
   };
 }
 
