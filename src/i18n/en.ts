@@ -57,7 +57,7 @@ export const en = {
   'goal.edit.save': 'save',
   'goal.delete.confirm': "this deletes {bunches} bunch / {grapes} pokii. it can't be undone.",
   'goal.delete.yes': 'delete',
-  'goal.delete.no': 'keep it',
+  'goal.delete.no': 'cancel',
   'goal.edit.failed': "couldn't save it. try again.",
   'settings.language': 'language',
   'settings.account': 'account',
