@@ -101,30 +101,14 @@ function splashDot(p: number, side: number) {
   };
 }
 
-/** 눈송이 하나를 이루는 동그라미 셋: [가로, 세로, 지름] (눈송이 지름 대비). 겹쳐서 울퉁불퉁한 솜뭉치가 된다. */
-const PUFFS = [
-  [0, 0.15, 0.8],
-  [0.35, 0, 0.75],
-  [0.2, 0.35, 0.7],
-] as const;
-
-/** 눈송이: 작은 동그라미 셋이 뭉친 솜뭉치. 천천히 내려오며 좌우로 살랑인다. */
+/** 눈송이: 천천히 내려오며 좌우로 살랑인다. */
 function SnowFlake({ q, time, width, height }: { q: Particle; time: SharedValue<number>; width: number; height: number }) {
   const style = useAnimatedStyle(() => {
     const { p, x } = progress(time.value, q, width);
     const sway = Math.sin(p * Math.PI * 3 + q.seed) * 16;
     return { transform: [{ translateX: x + sway }, { translateY: -q.size + p * (height + q.size * 2) }] };
   });
-  return (
-    <Animated.View style={[styles.flake, { width: q.size, height: q.size }, style]}>
-      {PUFFS.map(([x, y, d]) => (
-        <View
-          key={`${x},${y}`}
-          style={[styles.puff, { left: x * q.size, top: y * q.size, width: d * q.size, height: d * q.size, borderRadius: (d * q.size) / 2 }]}
-        />
-      ))}
-    </Animated.View>
-  );
+  return <Animated.View style={[styles.flake, { width: q.size, height: q.size, borderRadius: q.size / 2 }, style]} />;
 }
 
 /** 바닥 눈 더미가 다 쌓이기까지 걸리는 시간과 최대 높이(dp). */
@@ -184,7 +168,7 @@ const styles = StyleSheet.create({
   splash: { position: 'absolute', left: 0, top: 0, width: 12, height: 4, alignItems: 'center', justifyContent: 'center' },
   ring: { position: 'absolute', width: 12, height: 4, borderRadius: 6, borderWidth: 1, borderColor: RAIN_COLOR },
   splashDot: { position: 'absolute', top: -1, width: 2, height: 2, borderRadius: 1, backgroundColor: RAIN_COLOR },
-  flake: { position: 'absolute', left: 0, top: 0, opacity: 0.9 },
+  flake: { position: 'absolute', left: 0, top: 0, backgroundColor: '#FFFFFF', opacity: 0.85 },
   puff: { position: 'absolute', backgroundColor: '#FFFFFF' },
   pile: { position: 'absolute', left: 0, overflow: 'hidden' },
   pileBase: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF' },
