@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import type { Weather } from '@/utils/weather';
 
-type Kind = 'rain' | 'snow' | 'wind' | 'petal' | 'leaf' | 'firefly';
+type Kind = 'rain' | 'snow' | 'wind' | 'windLeaf' | 'petal' | 'leaf' | 'firefly';
 
 /** 시안 main-rainy-*의 빗줄기: 옅은 파랑, 오른쪽 위에서 왼쪽 아래로 비스듬히. */
 const RAIN_COLOR = '#A9C4E8';
@@ -27,7 +27,8 @@ const FALL_LEAVES = ['#E08A3C', '#C9652E', '#D9A441', '#9C5A2E'];
 const LOOK: Record<Kind, { density: number; ms: [number, number]; size: [number, number] }> = {
   rain: { density: 4.5, ms: [900, 1600], size: [10, 20] },
   snow: { density: 2.2, ms: [8000, 13000], size: [5, 9] },
-  wind: { density: 0.25, ms: [2600, 4200], size: [8, 14] },
+  wind: { density: 0.25, ms: [4000, 6500], size: [9, 14] },
+  windLeaf: { density: 0.12, ms: [3500, 5500], size: [7, 10] },
   petal: { density: 1, ms: [7000, 11000], size: [6, 9] },
   leaf: { density: 0.6, ms: [7000, 10000], size: [8, 12] },
   firefly: { density: 0.5, ms: [3000, 6000], size: [3, 3] },
@@ -134,26 +135,47 @@ const leafShape = (size: number, color: string) => ({
   backgroundColor: color,
 });
 
-/** 바람 줄기가 한 번 지나가는 동안 보이는 몫. 나머지는 쉬어서 훅, 훅 끊어 분다. */
-const GUST = 0.35;
-/** 살짝 휘고 끝이 말린 흰 바람 줄 (가로:세로 = 5:1). */
+/** 바람이 한 번 지나가는 동안 보이는 몫. 나머지는 쉬어서 한 줄기씩 분다. */
+const GUST = 0.5;
+/** 나란히 흐르는 세 가닥 중 긴 줄 끝이 말린 흰 바람 (가로:세로 = 16:7). */
 const WIND_GUST = require('../../assets/weather/wind-gust.svg');
+const WIND_LEAVES = ['#3F8A4A', '#5E9E4F', '#2F6B3A'];
 
-/** 바람: 살짝 휘고 끝이 말린 흰 줄기가 왼쪽에서 오른쪽으로 훅 스쳐 지나가고 잠시 쉰다. */
+/** 바람: 아주 옅은 바람 그림이 천천히 나타나 왼쪽에서 오른쪽으로 스쳐 가고 사라진다. 느껴질 만큼만 보인다. */
 function WindGust({ q, time, width, height }: PieceProps) {
-  const length = q.size * 6;
+  const w = q.size * 8;
   const style = useAnimatedStyle(() => {
     const { p, x: y } = progress(time.value, q, height * 0.7);
     const t = Math.min(1, p / GUST);
     return {
-      opacity: p < GUST ? 0.75 * Math.sin(Math.PI * t) : 0,
-      transform: [{ translateX: -length + t * (width + length) }, { translateY: y }],
+      opacity: p < GUST ? 0.35 * Math.sin(Math.PI * t) : 0,
+      transform: [{ translateX: -w + t * t * (3 - 2 * t) * (width + w) }, { translateY: y }],
     };
   });
   // SVG는 RN Image가 Android에서 그리지 못해 expo-image로 그린다.
   return (
-    <Animated.View style={[styles.piece, { width: length, height: length / 5 }, style]}>
+    <Animated.View style={[styles.piece, { width: w, height: (w * 7) / 16 }, style]}>
       <Image source={WIND_GUST} style={styles.fill} />
+    </Animated.View>
+  );
+}
+
+/** 바람에 날리는 잎: 꼭지 달린 초록 잎이 빙글 돌며 오른쪽으로 날아간다. */
+function WindLeaf({ q, time, width, height }: PieceProps) {
+  const style = useAnimatedStyle(() => {
+    const { p, x: y0 } = progress(time.value, q, height * 0.8);
+    return {
+      transform: [
+        { translateX: -q.size * 2 + p * (width + q.size * 4) },
+        { translateY: y0 + Math.sin(p * Math.PI * 3 + q.seed) * 18 },
+        { rotate: `${p * 540 + q.seed * 30}deg` },
+      ],
+    };
+  });
+  return (
+    <Animated.View style={[styles.piece, style]}>
+      <View style={leafShape(q.size, WIND_LEAVES[Math.floor(q.tone * WIND_LEAVES.length)])} />
+      <View style={styles.stem} />
     </Animated.View>
   );
 }
@@ -241,6 +263,7 @@ const PIECE: Record<Kind, (props: PieceProps) => React.JSX.Element> = {
   rain: RainDrop,
   snow: SnowFlake,
   wind: WindGust,
+  windLeaf: WindLeaf,
   petal: Petal,
   leaf: FallLeaf,
   firefly: Firefly,
@@ -306,6 +329,14 @@ function Particles({ kind, width, height }: { kind: Kind; width: number; height:
 export function WeatherLayer({ weather, night, width, height }: { weather: Weather; night: boolean; width: number; height: number }) {
   if (weather === 'clear' || weather === 'cloudy') return null;
   if (weather === 'firefly' && !night) return null;
+  if (weather === 'wind') {
+    return (
+      <>
+        <Particles kind="wind" width={width} height={height} />
+        <Particles kind="windLeaf" width={width} height={height} />
+      </>
+    );
+  }
   return <Particles key={weather} kind={weather} width={width} height={height} />;
 }
 
@@ -317,6 +348,8 @@ const styles = StyleSheet.create({
   flake: { position: 'absolute', left: 0, top: 0, backgroundColor: '#FFFFFF', opacity: 0.85 },
   piece: { position: 'absolute', left: 0, top: 0, opacity: 0.9 },
   fill: { width: '100%', height: '100%' },
+  /** 잎 꼭지: 잎 아래 오른쪽 끝에 붙는 짧은 갈색 선. */
+  stem: { position: 'absolute', right: -2, bottom: -1, width: 4, height: 1.5, backgroundColor: '#7A5A3A', transform: [{ rotate: '45deg' }] },
   firefly: { position: 'absolute', left: -6, top: -6, width: 12, height: 12, alignItems: 'center', justifyContent: 'center' },
   fireflyHalo: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: 'rgba(255, 236, 140, 0.25)' },
   fireflyDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#FFF4AA' },
