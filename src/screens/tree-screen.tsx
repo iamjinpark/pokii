@@ -29,7 +29,7 @@ import { useToday } from '@/hooks/use-today';
 import { noticeKeyFor } from '@/utils/bird';
 import { setDevSkyMinutes, skyAt, skyBackground, skyTimeFor } from '@/utils/sky';
 import { setDevWeather, type Weather, weatherNow } from '@/utils/weather';
-import { Precipitation } from '@/components/precipitation';
+import { WeatherLayer } from '@/components/weather-layer';
 import { STAGE_H, STAGE_W, stageScale } from '@/utils/stage';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
@@ -90,6 +90,9 @@ function pickClouds(): [number, number] {
   return [first, (first + 1 + Math.floor(Math.random() * 2)) % 3];
 }
 
+/** 흐린 날 해 앞을 가리는 구름 자리 (하늘 무대 좌표). 해(left 311, top -17)의 아래 왼쪽에 걸친다. */
+const SUN_CLOUD = { left: 280, top: 50, width: 150 };
+
 const STARS = [
   { left: 235, top: 34 },
   { left: 372, top: 41 },
@@ -130,8 +133,11 @@ function firstName(meta: Record<string, unknown> | undefined): string | null {
 /** 비·눈 오는 날 흐려진 해·달 (시안 main-rainy-*). */
 const WET_SUN = '#B2B2B2';
 const WET_MOON = '#4F5A66';
-const NEXT_WEATHER: Record<Weather, Weather> = { clear: 'rain', rain: 'snow', snow: 'clear' };
-const DEV_WEATHER_LABEL: Record<Weather, string> = { clear: '맑음', rain: '비 ☔', snow: '눈 ❄' };
+/** 개발 빌드 날씨 버튼이 차례로 보여 주는 날씨. */
+const DEV_WEATHERS: Weather[] = ['clear', 'rain', 'snow', 'cloudy', 'fog', 'wind', 'petal', 'leaf', 'firefly'];
+const DEV_WEATHER_LABEL: Record<Weather, string> = {
+  clear: '맑음', rain: '비', snow: '눈', cloudy: '흐림', fog: '안개', wind: '바람', petal: '벚꽃', leaf: '낙엽', firefly: '반딧불',
+};
 
 const DEV_BAR_W = 240;
 const barMinutes = (x: number) =>
@@ -158,17 +164,22 @@ export default function TreeScreen() {
   // 개발 빌드에서 고른 날씨. null이면 오늘 날짜의 포키 날씨.
   const [devWeather, setDevWeatherState] = useState<Weather | null>(null);
   const cycleDevWeather = () => {
-    const next = NEXT_WEATHER[weatherNow(today)];
+    const next = DEV_WEATHERS[(DEV_WEATHERS.indexOf(weatherNow(today)) + 1) % DEV_WEATHERS.length];
     setDevWeather(next);
     setDevWeatherState(next);
   };
   const weather = devWeather ?? weatherNow(today);
-  // 비·눈 오는 날: 해·달이 흐려지고 구름·별이 숨는다.
-  const wet = weather !== 'clear';
+  // 비·눈 오는 날: 해·달이 흐려지고 구름·별이 숨는다. 흐리거나 안개 낀 밤에도 별은 숨는다.
+  const wet = weather === 'rain' || weather === 'snow';
+  const starless = wet || weather === 'cloudy' || weather === 'fog';
+  // 바람 부는 날은 구름이 더 크게, 빨리 오간다.
+  const gust = weather === 'wind' ? 3 : 1;
   const sky = skyAt(minutes, weather);
   const skyBg = skyBackground(sky, 0.5);
   // 화면을 열 때마다 구름 2종을 새로 고르고, 화면이 떠 있는 동안은 그대로 둔다.
   const [clouds] = useState(pickClouds);
+  /** 고르지 않은 나머지 구름 한 종. 흐린 날 해 앞에 건다. */
+  const spare = 3 - clouds[0] - clouds[1];
 
   const byPosition = new Map((goals ?? []).map((g) => [g.position as number, g]));
   const full = byPosition.size === SLOTS.length;
@@ -234,8 +245,8 @@ export default function TreeScreen() {
                       key={i}
                       source={CLOUDS[time][c]}
                       style={{ ...CLOUD_SPOTS[i](CLOUD_SIZE[c].width), height: CLOUD_SIZE[c].height }}
-                      drift={i === 0 ? 10 : -8}
-                      ms={i === 0 ? 7000 : 9000}
+                      drift={(i === 0 ? 10 : -8) * gust}
+                      ms={(i === 0 ? 7000 : 9000) / gust}
                     />
                   ))}
                 </>
@@ -302,15 +313,26 @@ export default function TreeScreen() {
                 {/* 비 오는 밤은 흐린 달만 (시안 main-rainy-night). */}
                 <Image
                   source={require('../../assets/tree/moon.svg')}
-                  style={styles.moon}
+                  style={[styles.moon, weather === 'cloudy' && styles.hazyMoon]}
                   tintColor={wet ? WET_MOON : undefined}
                 />
-                {wet ? null : STARS.map((p, i) => (
+                {starless ? null : STARS.map((p, i) => (
                   <Image key={i} source={require('../../assets/tree/star.svg')} style={[styles.star, p]} />
                 ))}
               </>
             ) : (
-              <Image source={SUN[time]} style={styles.sun} tintColor={wet ? WET_SUN : undefined} />
+              <>
+                <Image source={SUN[time]} style={styles.sun} tintColor={wet ? WET_SUN : undefined} />
+                {/* 흐린 낮: 남은 구름 한 장이 해 앞을 가린다. */}
+                {weather === 'cloudy' ? (
+                  <DriftingCloud
+                    source={CLOUDS[time][spare]}
+                    style={{ ...SUN_CLOUD, height: (SUN_CLOUD.width * CLOUD_SIZE[spare].height) / CLOUD_SIZE[spare].width }}
+                    drift={-6}
+                    ms={8000}
+                  />
+                ) : null}
+              </>
             )}
           </View>
 
@@ -323,7 +345,7 @@ export default function TreeScreen() {
           >
             {treeBody}
           </BirdScene>
-          {wet ? <Precipitation key={weather} kind={weather} width={area.width} height={area.height} /> : null}
+          <WeatherLayer weather={weather} night={sky.dark} width={area.width} height={area.height} />
         </>
       ) : null}
       {/* 개발 빌드 전용: 막대를 눌러 끌면 하늘 시각이 바뀌고, 글자를 누르면 지금으로 돌아간다. */}
@@ -369,6 +391,7 @@ const styles = StyleSheet.create({
   sun: { position: 'absolute', left: 311, top: -17, width: 132, height: 125 },
   cloud: { position: 'absolute' },
   cloudImage: { width: '100%', height: '100%' },
+  hazyMoon: { opacity: 0.55 },
   moon: { position: 'absolute', left: 289, top: 13, width: 96, height: 114 },
   star: { position: 'absolute', width: 13, height: 15 },
   ground: {

@@ -10,7 +10,7 @@ import { BERRIES, berryBox, BERRY_D, BUNCH_EXTENT, STEM_LEAF } from '@/component
 import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useDeleteGoal, useGoalFootprint } from '@/hooks/use-goal-mutations';
 import { useToday } from '@/hooks/use-today';
-import { Precipitation } from '@/components/precipitation';
+import { WeatherLayer } from '@/components/weather-layer';
 import { skyBackground, skyNow } from '@/utils/sky';
 import { weatherNow } from '@/utils/weather';
 import { STAGE_W } from '@/utils/stage';
@@ -218,8 +218,8 @@ export default function BunchDetailScreen() {
         </View>
       ) : null}
 
-      {/* 메뉴·삭제 확인은 비·눈 위에 뜬다. */}
-      {weather !== 'clear' ? <Precipitation key={weather} kind={weather} width={area.width} height={area.height} /> : null}
+      {/* 메뉴·삭제 확인은 날씨 효과 위에 뜬다. */}
+      <WeatherLayer weather={weather} night={sky.dark} width={area.width} height={area.height} />
 
       {menu === 'open' ? (
         <View style={[styles.menu, styles.overlay]}>

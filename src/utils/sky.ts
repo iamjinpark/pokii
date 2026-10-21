@@ -51,12 +51,25 @@ export type Sky = {
   dark: boolean;
 };
 
-/** 비·눈 오는 하늘: [낮, 밤]. 비는 시안 main-rainy-*의 회색·남색, 눈은 그보다 밝은 회청색. */
-const WET_SKY = { rain: ['#C4C4C4', '#26303F'], snow: ['#D6DCE4', '#2E3848'] } as const;
+/**
+ * 날씨별로 그 시각 하늘을 얼마나 어느 색 쪽으로 누를지와 해·달빛 번짐을 얼마나 남길지 (스펙 8.6).
+ * 비는 시안 main-rainy-*의 회색·남색, 눈은 그보다 밝은 회청색. 바람·계절 날씨는 맑은 하늘 그대로다.
+ */
+const WEATHER_SKY: Record<Weather, { day: string; night: string; amount: number; glow: number }> = {
+  clear: { day: '#FFFFFF', night: '#000000', amount: 0, glow: 1 },
+  wind: { day: '#FFFFFF', night: '#000000', amount: 0, glow: 1 },
+  petal: { day: '#FFFFFF', night: '#000000', amount: 0, glow: 1 },
+  leaf: { day: '#FFFFFF', night: '#000000', amount: 0, glow: 1 },
+  firefly: { day: '#FFFFFF', night: '#000000', amount: 0, glow: 1 },
+  rain: { day: '#C4C4C4', night: '#26303F', amount: 0.8, glow: 0 },
+  snow: { day: '#D6DCE4', night: '#2E3848', amount: 0.8, glow: 0 },
+  cloudy: { day: '#D3D8DC', night: '#28323F', amount: 0.45, glow: 0.4 },
+  fog: { day: '#ECEEEE', night: '#3A4556', amount: 0.35, glow: 0.5 },
+};
 
 /**
  * 하루 중 분(0–1439)의 하늘. 가운데 색이 어두우면 밝은 글자를 쓴다.
- * 비·눈 오는 날은 그 시각 하늘을 회색·남색 쪽으로 눌러 시각 변화는 은은하게 남기고, 해·달빛 번짐은 끈다.
+ * 흐리거나 비·눈·안개인 날은 그 시각 하늘을 회색·남색 쪽으로 눌러 시각 변화는 은은하게 남기고, 해·달빛 번짐을 줄인다.
  */
 export function skyAt(minutes: number, weather: Weather = 'clear'): Sky {
   const h = (((minutes / 60) % 24) + 24) % 24;
@@ -68,9 +81,9 @@ export function skyAt(minutes: number, weather: Weather = 'clear'): Sky {
   const clear = a.map((c, j) => mix(c, b[j], s)) as Stops;
   const dark = luminance(clear[1]) < 0.5;
   const stops =
-    weather === 'clear' ? clear : (clear.map((c) => mix(c, WET_SKY[weather][dark ? 1 : 0], 0.8)) as Stops);
+    clear.map((c) => mix(c, dark ? WEATHER_SKY[weather].night : WEATHER_SKY[weather].day, WEATHER_SKY[weather].amount)) as Stops;
   // 오른쪽 위 모서리에서 번지는 빛. 낮엔 해 색(스펙 8.6), 밤엔 달빛.
-  const glow = { rgb: rgb(dark ? LIGHT : h < 12 ? '#FFC187' : '#FF9987'), alpha: weather !== 'clear' ? 0 : dark ? 0.18 : 0.45 };
+  const glow = { rgb: rgb(dark ? LIGHT : h < 12 ? '#FFC187' : '#FF9987'), alpha: WEATHER_SKY[weather].glow * (dark ? 0.18 : 0.45) };
   return {
     stops,
     glow,
@@ -99,9 +112,14 @@ export function skyBackground(sky: Sky, glow: number): ViewStyle {
   const [r, g, b] = sky.glow.rgb;
   const a = sky.glow.alpha * glow;
   const image = `radial-gradient(circle at 100% 0%, rgba(${r}, ${g}, ${b}, ${a}) 0%, rgba(${r}, ${g}, ${b}, 0) 65%), ${sky.gradient}`;
+  return { backgroundColor: sky.stops[1], ...backgroundImage(image) };
+}
+
+/** CSS 그라데이션을 배경으로. */
+export function backgroundImage(image: string): ViewStyle {
   // react-native-web은 experimental_backgroundImage를 모르고, CSS backgroundImage는 그대로 넘긴다.
   // RN 타입에 backgroundImage가 없어 캐스트한다.
   return Platform.OS === 'web'
-    ? ({ backgroundColor: sky.stops[1], backgroundImage: image } as ViewStyle)
-    : { backgroundColor: sky.stops[1], experimental_backgroundImage: image };
+    ? ({ backgroundImage: image } as ViewStyle)
+    : { experimental_backgroundImage: image };
 }
