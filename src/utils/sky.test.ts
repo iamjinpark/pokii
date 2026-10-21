@@ -1,4 +1,4 @@
-import { GLASS_ALPHA, glassColor, skyAt, skyTimeFor } from './sky';
+import { skyAt, skyTimeFor } from './sky';
 
 test.each([
   [5, 'night'],
@@ -44,22 +44,3 @@ test('비 오는 날 하늘은 낮엔 회색, 밤엔 어두운 남색 쪽이고 
   expect(skyAt(22 * 60, 'rain').text).toBe('#F7FFE3');
 });
 
-test('떠 있는 면 위 크림 글씨는 하루 내내, 덤불·하늘 어디서든 4.5:1 넘게 읽힌다', () => {
-  const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
-  const lin = (v: number) => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
-  const lum = (c: number[]) => 0.2126 * lin(c[0]) + 0.7152 * lin(c[1]) + 0.0722 * lin(c[2]);
-  const ratio = (a: number[], b: number[]) => {
-    const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
-    return (x + 0.05) / (y + 0.05);
-  };
-  for (let m = 0; m < 1440; m += 30) {
-    for (const weather of ['clear', 'rain', 'snow', 'cloudy'] as const) {
-      const sky = skyAt(m, weather);
-      const glass = hex(glassColor(sky));
-      for (const under of [hex('#03703D'), ...sky.stops.map(hex)]) {
-        const comp = glass.map((v, i) => v * GLASS_ALPHA + under[i] * (1 - GLASS_ALPHA));
-        expect(ratio(hex('#F7FFE3'), comp)).toBeGreaterThan(4.5);
-      }
-    }
-  }
-});

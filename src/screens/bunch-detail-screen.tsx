@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HEADER_HEIGHT, TAB_BAR_HEIGHT } from '@/components/app-header';
 import { Text } from '@/components/text';
@@ -11,7 +11,7 @@ import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useDeleteGoal, useGoalFootprint } from '@/hooks/use-goal-mutations';
 import { useToday } from '@/hooks/use-today';
 import { WeatherLayer } from '@/components/weather-layer';
-import { glassBackground, skyBackground, skyNow } from '@/utils/sky';
+import { skyBackground, skyNow } from '@/utils/sky';
 import { weatherNow } from '@/utils/weather';
 import { STAGE_W } from '@/utils/stage';
 import { t } from '@/i18n';
@@ -66,17 +66,7 @@ const CANOPY_EDGE_AT_CENTER = 0.7477;
 const HEADER_TITLE_GAP = 16;
 /** 덤불 위 글자색. */
 const CANOPY_TEXT = '#FFFFFF';
-/**
- * 떠 있는 면(드롭다운·삭제 확인·토스트)의 테두리와 블러. 바탕은 그 시각 하늘을 조금 머금은 어두운 초록 유리라
- * 렌더할 때 glassBackground(sky)로 얹는다. 뒤를 흐리는 효과는 웹만 된다(CSS backdrop-filter).
- */
-const GLASS = {
-  borderWidth: 1,
-  borderColor: 'rgba(247, 255, 227, 0.16)',
-  ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(10px)' } as object) : {}),
-};
-const GLASS_TEXT = '#F7FFE3';
-const GLASS_DANGER = '#FFC2A6';
+
 
 export default function BunchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -101,7 +91,6 @@ export default function BunchDetailScreen() {
   const weather = weatherNow(today);
   const sky = skyNow(today);
   const skyBg = skyBackground(sky, 1);
-  const glass = { backgroundColor: glassBackground(sky) };
   // 송이 칸(제목 아래 ~ 안내 문구 위)의 크기. 재기 전(0)에는 송이를 그리지 않는다.
   const [slot, setSlot] = useState({ y: 0, width: 0, height: 0 });
 
@@ -235,7 +224,7 @@ export default function BunchDetailScreen() {
 
       {/* 안내 문구는 토스트처럼 반투명 배경에 띄운다. 송이와 겹쳐도 읽힌다. */}
       {key ? (
-        <View style={[styles.toast, glass]}>
+        <View style={[styles.toast, styles.surface]}>
           <Text style={styles.toastLabel}>{t(key)}</Text>
         </View>
       ) : null}
@@ -253,7 +242,7 @@ export default function BunchDetailScreen() {
       ) : null}
 
       {menu === 'open' ? (
-        <View style={[styles.menu, styles.overlay, glass]}>
+        <View style={[styles.menu, styles.overlay, styles.surface]}>
           <Pressable
             onPress={() => router.push({ pathname: '/goal/[id]/edit', params: { id } })}
             style={styles.menuItem}
@@ -273,7 +262,7 @@ export default function BunchDetailScreen() {
       ) : null}
 
       {menu === 'confirm' ? (
-        <View style={[styles.menu, styles.overlay, glass]}>
+        <View style={[styles.menu, styles.overlay, styles.surface]}>
           <Text style={styles.confirmText}>
             {footprint.data
               ? t('goal.delete.confirm', {
@@ -327,33 +316,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   headerSide: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  menu: { ...GLASS, borderRadius: 10, paddingHorizontal: 22, paddingVertical: 4 },
+  /** 떠 있는 면(드롭다운·삭제 확인·토스트): 무난한 흰 면에 아주 옅은 윤곽선과 부드러운 그림자. */
+  surface: {
+    backgroundColor: '#FFFFFF',
+    boxShadow: '0 6px 18px rgba(53, 51, 100, 0.16), 0 0 0 0.5px rgba(53, 51, 100, 0.14)',
+  },
+  menu: { borderRadius: 10, paddingHorizontal: 22, paddingVertical: 4 },
   /** 삭제 확인이 떠 있을 때 뒤 화면을 살짝 덮어 확인 창에 집중시킨다. */
   scrim: { backgroundColor: 'rgba(0, 0, 0, 0.25)' },
   /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. 너비는 글자에 맞추고, 긴 삭제 확인 문구만 최대 폭에서 줄바꿈한다. */
   overlay: { position: 'absolute', top: 64, right: 14, minWidth: 128, maxWidth: 280, zIndex: 2, elevation: 2 },
   menuItem: { paddingVertical: 13 },
-  menuRule: { height: 1, marginHorizontal: -6, backgroundColor: 'rgba(247, 255, 227, 0.18)' },
-  menuLabel: { fontSize: 15, color: GLASS_TEXT },
-  danger: { color: GLASS_DANGER },
-  confirmText: { fontSize: 14, color: GLASS_TEXT, lineHeight: 20, paddingTop: 10 },
+  menuRule: { height: 1, marginHorizontal: -6, backgroundColor: 'rgba(53, 51, 100, 0.1)' },
+  menuLabel: { fontSize: 15, color: theme.ink },
+  danger: { color: theme.amber },
+  confirmText: { fontSize: 14, color: theme.ink, lineHeight: 20, paddingTop: 10 },
   confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, paddingTop: 12, paddingBottom: 8 },
-  keep: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 6, backgroundColor: 'rgba(247, 255, 227, 0.14)' },
+  keep: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 6, backgroundColor: 'rgba(53, 51, 100, 0.07)' },
   removeButton: {
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 6,
-    backgroundColor: GLASS_DANGER,
+    backgroundColor: theme.amber,
   },
-  removeLabel: { fontSize: 14, color: theme.ink },
+  removeLabel: { fontSize: 14, color: '#FFFFFF' },
   off: { opacity: 0.4 },
   meta: { fontSize: 16, color: CANOPY_TEXT },
   title: { fontSize: 22, fontWeight: '700', lineHeight: 26, color: CANOPY_TEXT, paddingHorizontal: 22 },
   toast: {
-    ...GLASS, position: 'absolute', bottom: 16, alignSelf: 'center', maxWidth: '90%', pointerEvents: 'none',
+    position: 'absolute', bottom: 16, alignSelf: 'center', maxWidth: '90%', pointerEvents: 'none',
     paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999,
   },
-  toastLabel: { fontSize: 14, color: GLASS_TEXT, textAlign: 'center' },
+  toastLabel: { fontSize: 14, color: theme.ink, textAlign: 'center' },
   body: { fontSize: 15, fontWeight: '600', textAlign: 'center' },
   retry: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.ink },
   retryLabel: { color: '#fff', fontWeight: '700' },
