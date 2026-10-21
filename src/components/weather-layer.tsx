@@ -73,20 +73,11 @@ function progress(time: number, q: Particle, span: number) {
 
 type PieceProps = { q: Particle; time: SharedValue<number>; width: number; height: number };
 
-/** 빗방울이 닿는 높이를 바닥에서 이만큼(dp) 안에서 흩는다. 같은 높이에서 튀면 물결이 한 줄로 늘어서 선처럼 보인다. */
-const LAND_SPREAD = 20;
-
 function RainDrop({ q, time, width, height }: PieceProps) {
   const span = width + height * SLANT;
-  // 지금 떨어지는 빗방울이 닿을 높이. 떨어질 때마다 새로 뽑는다.
-  const landing = (t: number) => {
-    'worklet';
-    const cycle = Math.floor(t / q.ms + q.offset);
-    return height - 4 - hash(q.seed + cycle * 3.7) * LAND_SPREAD;
-  };
   const drop = useAnimatedStyle(() => {
     const { p, x } = progress(time.value, q, span);
-    const y = -q.size + Math.min(1, p / FALL) * landing(time.value);
+    const y = -q.size + Math.min(1, p / FALL) * height;
     return {
       opacity: p < FALL ? 0.8 : 0,
       transform: [{ translateX: x - y * SLANT }, { translateY: y }, { rotate: `${Math.atan(SLANT)}rad` }],
@@ -95,8 +86,7 @@ function RainDrop({ q, time, width, height }: PieceProps) {
   // 바닥에 닿은 자리에서 작은 물결 고리가 퍼지고 물방울 둘이 양옆으로 튄다.
   const splash = useAnimatedStyle(() => {
     const { p, x } = progress(time.value, q, span);
-    const land = landing(time.value);
-    return { transform: [{ translateX: x - (land - q.size) * SLANT - 6 }, { translateY: land }], opacity: p < FALL ? 0 : 1 };
+    return { transform: [{ translateX: x - (height - q.size) * SLANT - 6 }, { translateY: height - 4 }], opacity: p < FALL ? 0 : 1 };
   });
   const ring = useAnimatedStyle(() => {
     const t = Math.max(0, (progress(time.value, q, span).p - FALL) / (1 - FALL));
