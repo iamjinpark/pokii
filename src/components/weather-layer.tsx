@@ -143,13 +143,13 @@ const WIND_LEAVES = ['#3F8A4A', '#5E9E4F', '#2F6B3A'];
 
 /** 바람: 아주 옅은 바람 그림이 천천히 나타나 왼쪽에서 오른쪽으로 스쳐 가고 사라진다. 느껴질 만큼만 보인다. */
 function WindGust({ q, time, width, height }: PieceProps) {
-  const w = q.size * 15;
+  const w = q.size * 20;
   const h = q.size * 3.5;
   const style = useAnimatedStyle(() => {
     const { p, x: y } = progress(time.value, q, height * 0.7);
     const t = Math.min(1, p / GUST);
     return {
-      opacity: p < GUST ? 0.25 * Math.sin(Math.PI * t) : 0,
+      opacity: p < GUST ? 0.16 * Math.sin(Math.PI * t) : 0,
       transform: [{ translateX: -w + t * t * (3 - 2 * t) * (width + w) }, { translateY: y }],
     };
   });
