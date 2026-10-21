@@ -266,34 +266,37 @@ export default function BunchDetailScreen() {
         </View>
       ) : null}
 
+      {/* 모달은 화면 가운데. 바깥(뒤 Pressable)을 누르면 닫히도록 가운데 정렬 틀은 터치를 흘려보낸다. */}
       {menu === 'confirm' ? (
-        <View style={[styles.menu, styles.overlay, styles.surface]}>
-          <Text style={styles.confirmText}>
-            {footprint.data
-              ? t('goal.delete.confirm', {
-                  bunches: footprint.data.bunches,
-                  grapes: footprint.data.grapes,
-                })
-              : '…'}
-          </Text>
-          <View style={styles.confirmRow}>
-            <Pressable
-              onPress={() => setMenu('closed')}
-              style={styles.keep}
-              accessibilityLabel={t('goal.delete.no')}
-            >
-              <Text style={styles.menuLabel}>{t('goal.delete.no')}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() =>
-                remove.mutate(undefined, { onSuccess: back })
-              }
-              disabled={!footprint.data || remove.isPending}
-              style={[styles.removeButton, (!footprint.data || remove.isPending) && styles.off]}
-              accessibilityLabel={t('goal.delete.yes')}
-            >
-              <Text style={styles.removeLabel}>{t('goal.delete.yes')}</Text>
-            </Pressable>
+        <View style={styles.modalFrame} pointerEvents="box-none">
+          <View style={[styles.menu, styles.modal, styles.surface]}>
+            <Text style={styles.confirmText}>
+              {footprint.data
+                ? t('goal.delete.confirm', {
+                    bunches: footprint.data.bunches,
+                    grapes: footprint.data.grapes,
+                  })
+                : '…'}
+            </Text>
+            <View style={styles.confirmRow}>
+              <Pressable
+                onPress={() => setMenu('closed')}
+                style={styles.keep}
+                accessibilityLabel={t('goal.delete.no')}
+              >
+                <Text style={styles.menuLabel}>{t('goal.delete.no')}</Text>
+              </Pressable>
+              <Pressable
+                onPress={() =>
+                  remove.mutate(undefined, { onSuccess: back })
+                }
+                disabled={!footprint.data || remove.isPending}
+                style={[styles.removeButton, (!footprint.data || remove.isPending) && styles.off]}
+                accessibilityLabel={t('goal.delete.yes')}
+              >
+                <Text style={styles.removeLabel}>{t('goal.delete.yes')}</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       ) : null}
@@ -334,6 +337,8 @@ const styles = StyleSheet.create({
   menu: { borderRadius: SURFACE_RADIUS, paddingHorizontal: 12, paddingVertical: 3 },
   /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. 너비는 글자에 맞추고, 긴 삭제 확인 문구만 최대 폭에서 줄바꿈한다. */
   overlay: { position: 'absolute', top: 64, right: 14, minWidth: 92, maxWidth: 280, zIndex: 2, elevation: 2 },
+  modalFrame: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
+  modal: { width: '84%', maxWidth: 320 },
   menuItem: { paddingVertical: 8 },
   menuLabel: { fontSize: 14, color: SURFACE_TEXT },
   danger: { color: SURFACE_DANGER },
