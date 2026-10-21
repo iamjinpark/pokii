@@ -137,19 +137,15 @@ const leafShape = (size: number, color: string) => ({
 /** 바람 줄기가 한 번 지나가는 동안 보이는 몫. 나머지는 쉬어서 훅, 훅 끊어 분다. */
 const GUST = 0.35;
 
-/** 바람 그림 3종 (참고 이미지의 소용돌이·여러 가닥·고리). 가로:세로 = 5:2. */
-const WIND_SVG = [
-  require('../../assets/weather/wind-a.svg'),
-  require('../../assets/weather/wind-b.svg'),
-  require('../../assets/weather/wind-c.svg'),
-];
+/** 끝이 말린 소용돌이 바람 그림. 가로:세로 = 5:2. */
+const WIND_SVG = require('../../assets/weather/wind-a.svg');
 
 /**
  * 바람: 바람 그림이 왼쪽에서 오른쪽으로 훅 스쳐 지나가고 잠시 쉰다.
  * 지나가는 동안 살짝 늘어났다 줄고 위아래로 출렁여 흐르는 느낌을 낸다.
  */
 function WindGust({ q, time, width, height }: PieceProps) {
-  const w = q.size * 12;
+  const w = q.size * 6;
   const style = useAnimatedStyle(() => {
     const { p, x: y } = progress(time.value, q, height * 0.7);
     const t = Math.min(1, p / GUST);
@@ -164,7 +160,7 @@ function WindGust({ q, time, width, height }: PieceProps) {
   });
   return (
     <Animated.View style={[styles.gust, { width: w, height: w * 0.4 }, style]}>
-      <Image source={WIND_SVG[Math.floor(q.tone * WIND_SVG.length)]} style={styles.gustImage} />
+      <Image source={WIND_SVG} style={styles.gustImage} />
     </Animated.View>
   );
 }
