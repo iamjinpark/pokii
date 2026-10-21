@@ -11,7 +11,7 @@ import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useDeleteGoal, useGoalFootprint } from '@/hooks/use-goal-mutations';
 import { useToday } from '@/hooks/use-today';
 import { WeatherLayer } from '@/components/weather-layer';
-import { skyBackground, skyNow } from '@/utils/sky';
+import { backgroundImage, skyBackground, skyNow } from '@/utils/sky';
 import { weatherNow } from '@/utils/weather';
 import { STAGE_W } from '@/utils/stage';
 import { t } from '@/i18n';
@@ -66,8 +66,6 @@ const CANOPY_EDGE_AT_CENTER = 0.7477;
 const HEADER_TITLE_GAP = 16;
 /** 덤불 위 글자색. */
 const CANOPY_TEXT = '#FFFFFF';
-/** 메뉴 카드 바탕: 구름 그림의 종이색. */
-const PAPER = '#FFFDF1';
 
 export default function BunchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -315,22 +313,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   headerSide: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  /** 메뉴·삭제 확인 카드: 종이색 바탕에 앱 헤더와 같은 남색 선, 살짝 어긋난 종이 그림자. */
+  /**
+   * 메뉴·삭제 확인 카드: 뿌연 유리처럼. 거의 불투명한 흰 바탕이 아래로 살짝 회색으로 진해지고,
+   * 밝은 흰 테두리와 부드러운 그림자를 두른다. 블러 라이브러리 없이 비슷하게 낸 것이라 뒤가 비치지는 않는다.
+   */
   menu: {
-    borderRadius: 16, backgroundColor: PAPER, borderWidth: 1.5, borderColor: theme.ink,
+    borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: 'rgba(244, 244, 246, 0.94)',
+    ...backgroundImage('linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(236, 236, 240, 0.94) 100%)'),
     paddingHorizontal: 14, paddingVertical: 6,
-    boxShadow: '2px 3px 0 rgba(53, 51, 100, 0.2)',
+    boxShadow: '0 8px 24px rgba(53, 51, 100, 0.18), 0 0 0 0.5px rgba(53, 51, 100, 0.12)',
   },
   /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. */
   overlay: { position: 'absolute', top: 64, right: 14, minWidth: 180, zIndex: 2, elevation: 2 },
   menuItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12 },
   menuIcon: { width: 20, height: 20 },
-  menuRule: { height: 1, backgroundColor: theme.ink, opacity: 0.12 },
+  menuRule: { height: 1, backgroundColor: 'rgba(53, 51, 100, 0.1)' },
   menuLabel: { fontSize: 15, fontWeight: '700', color: theme.ink },
   danger: { color: theme.amber },
   confirmText: { fontSize: 14, fontWeight: '600', color: theme.ink, lineHeight: 20, paddingTop: 10 },
   confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, paddingTop: 12, paddingBottom: 8 },
-  keep: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1.5, borderColor: theme.ink },
+  keep: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 20, backgroundColor: 'rgba(53, 51, 100, 0.06)' },
   removeButton: {
     paddingVertical: 10,
     paddingHorizontal: 16,
