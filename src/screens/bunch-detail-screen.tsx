@@ -229,7 +229,7 @@ export default function BunchDetailScreen() {
       {key ? (
         <View style={[styles.toast, styles.surface]}>
           {/* 토스트는 하늘 위에 떠서, 밝은 하늘(아침·낮·노을)엔 남색, 어두운 하늘엔 흰 글씨로 바꾼다. */}
-          <Text style={[styles.toastLabel, { color: sky.text }]}>{t(key)}</Text>
+          <Text style={[styles.toastLabel, { color: sky.dark ? SURFACE_TEXT : theme.ink }]}>{t(key)}</Text>
         </View>
       ) : null}
 
