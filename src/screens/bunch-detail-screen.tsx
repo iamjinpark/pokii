@@ -228,7 +228,8 @@ export default function BunchDetailScreen() {
       {/* 안내 문구는 토스트처럼 반투명 배경에 띄운다. 송이와 겹쳐도 읽힌다. */}
       {key ? (
         <View style={[styles.toast, styles.surface]}>
-          <Text style={styles.toastLabel}>{t(key)}</Text>
+          {/* 토스트는 하늘 위에 떠서, 밝은 하늘(아침·낮·노을)엔 남색, 어두운 하늘엔 흰 글씨로 바꾼다. */}
+          <Text style={[styles.toastLabel, { color: sky.text }]}>{t(key)}</Text>
         </View>
       ) : null}
 
@@ -238,7 +239,7 @@ export default function BunchDetailScreen() {
       {/* 메뉴·삭제 확인이 떠 있을 때 바깥을 누르면 닫힌다. */}
       {menu !== 'closed' ? (
         <Pressable
-          style={[StyleSheet.absoluteFill, menu === 'confirm' && styles.scrim]}
+          style={StyleSheet.absoluteFill}
           onPress={() => setMenu('closed')}
           accessibilityLabel={t('goal.delete.no')}
         />
@@ -253,7 +254,6 @@ export default function BunchDetailScreen() {
           >
             <Text style={styles.menuLabel}>{t('goal.edit')}</Text>
           </Pressable>
-          <View style={styles.menuRule} />
           <Pressable
             onPress={() => setMenu('confirm')}
             style={styles.menuItem}
@@ -321,30 +321,27 @@ const styles = StyleSheet.create({
   headerSide: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   /**
    * 떠 있는 면(드롭다운·삭제 확인·토스트). 사용자가 놀이터에서 고른 값 (2026-10-21):
-   * 하늘색 #DCF4FF 20%, 뒤 흐림 24, 테두리 없음, 부드러운 그림자 16%, 흰 글씨.
+   * 흰색 20%, 뒤 흐림 24, 테두리·구분선·딤 없음, 부드러운 그림자 16%, 흰 글씨 14.
    * 뒤를 흐리는 효과는 웹만 된다(CSS backdrop-filter). 앱에서는 블러 라이브러리가 없어 반투명하게만 보인다.
    */
   surface: {
-    backgroundColor: 'rgba(220, 244, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(24px)' } as object) : {}),
     boxShadow: '0 6px 18px rgba(53, 51, 100, 0.16)',
   },
-  menu: { borderRadius: 12, paddingHorizontal: 20, paddingVertical: 4 },
-  /** 삭제 확인이 떠 있을 때 뒤 화면을 살짝 덮어 확인 창에 집중시킨다. */
-  scrim: { backgroundColor: 'rgba(0, 0, 0, 0.25)' },
+  menu: { borderRadius: 8, paddingHorizontal: 12, paddingVertical: 3 },
   /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. 너비는 글자에 맞추고, 긴 삭제 확인 문구만 최대 폭에서 줄바꿈한다. */
-  overlay: { position: 'absolute', top: 64, right: 14, minWidth: 128, maxWidth: 280, zIndex: 2, elevation: 2 },
-  menuItem: { paddingVertical: 12 },
-  menuRule: { height: 1, marginHorizontal: -6, backgroundColor: 'rgba(255, 255, 255, 0.1)' },
-  menuLabel: { fontSize: 15, color: SURFACE_TEXT },
+  overlay: { position: 'absolute', top: 64, right: 14, minWidth: 92, maxWidth: 280, zIndex: 2, elevation: 2 },
+  menuItem: { paddingVertical: 8 },
+  menuLabel: { fontSize: 14, color: SURFACE_TEXT },
   danger: { color: SURFACE_DANGER },
-  confirmText: { fontSize: 14, color: SURFACE_TEXT, lineHeight: 21, paddingTop: 14 },
-  confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, paddingTop: 14, paddingBottom: 10 },
-  keep: { paddingVertical: 9, paddingHorizontal: 15, borderRadius: 10, backgroundColor: 'rgba(255, 255, 255, 0.08)' },
+  confirmText: { fontSize: 13, color: SURFACE_TEXT, lineHeight: 20, paddingTop: 11 },
+  confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, paddingTop: 12, paddingBottom: 7 },
+  keep: { paddingVertical: 9, paddingHorizontal: 15, borderRadius: 8, backgroundColor: 'rgba(255, 255, 255, 0.08)' },
   removeButton: {
     paddingVertical: 9,
     paddingHorizontal: 15,
-    borderRadius: 10,
+    borderRadius: 8,
     backgroundColor: SURFACE_DANGER,
   },
   removeLabel: { fontSize: 14, color: '#1F1F27' },
@@ -355,7 +352,7 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: 16, alignSelf: 'center', maxWidth: '90%', pointerEvents: 'none',
     paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999,
   },
-  toastLabel: { fontSize: 14, color: SURFACE_TEXT, textAlign: 'center' },
+  toastLabel: { fontSize: 13, textAlign: 'center' },
   body: { fontSize: 15, fontWeight: '600', textAlign: 'center' },
   retry: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.ink },
   retryLabel: { color: '#fff', fontWeight: '700' },
