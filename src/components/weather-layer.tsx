@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   type SharedValue,
@@ -136,21 +137,34 @@ const leafShape = (size: number, color: string) => ({
 /** 바람 줄기가 한 번 지나가는 동안 보이는 몫. 나머지는 쉬어서 훅, 훅 끊어 분다. */
 const GUST = 0.35;
 
-/** 바람: 끝이 말린 흰 줄기가 왼쪽에서 오른쪽으로 훅 스쳐 지나가고 잠시 쉰다. */
+/** 바람 그림 3종 (참고 이미지의 소용돌이·여러 가닥·고리). 가로:세로 = 5:2. */
+const WIND_SVG = [
+  require('../../assets/weather/wind-a.svg'),
+  require('../../assets/weather/wind-b.svg'),
+  require('../../assets/weather/wind-c.svg'),
+];
+
+/**
+ * 바람: 바람 그림이 왼쪽에서 오른쪽으로 훅 스쳐 지나가고 잠시 쉰다.
+ * 지나가는 동안 살짝 늘어났다 줄고 위아래로 출렁여 흐르는 느낌을 낸다.
+ */
 function WindGust({ q, time, width, height }: PieceProps) {
-  const length = q.size * 6;
+  const w = q.size * 12;
   const style = useAnimatedStyle(() => {
     const { p, x: y } = progress(time.value, q, height * 0.7);
     const t = Math.min(1, p / GUST);
     return {
-      opacity: p < GUST ? 0.75 * Math.sin(Math.PI * t) : 0,
-      transform: [{ translateX: -length + t * (width + length) }, { translateY: y }],
+      opacity: p < GUST ? 0.8 * Math.sin(Math.PI * t) : 0,
+      transform: [
+        { translateX: -w + t * (width + w) },
+        { translateY: y + Math.sin(t * Math.PI * 2 + q.seed) * 8 },
+        { scaleX: 0.85 + 0.3 * Math.sin(Math.PI * t) },
+      ],
     };
   });
   return (
-    <Animated.View style={[styles.gust, style]}>
-      <View style={[styles.gustLine, { width: length }]} />
-      <View style={styles.gustCurl} />
+    <Animated.View style={[styles.gust, { width: w, height: w * 0.4 }, style]}>
+      <Image source={WIND_SVG[Math.floor(q.tone * WIND_SVG.length)]} style={styles.gustImage} />
     </Animated.View>
   );
 }
@@ -307,12 +321,8 @@ const styles = StyleSheet.create({
   splashDot: { position: 'absolute', top: -1, width: 2, height: 2, borderRadius: 1, backgroundColor: RAIN_COLOR },
   flake: { position: 'absolute', left: 0, top: 0, backgroundColor: '#FFFFFF', opacity: 0.85 },
   piece: { position: 'absolute', left: 0, top: 0, opacity: 0.9 },
-  gust: { position: 'absolute', left: 0, top: 0, flexDirection: 'row', alignItems: 'flex-start' },
-  gustLine: { height: 2, marginTop: 8, borderRadius: 1, backgroundColor: '#FFFFFF' },
-  gustCurl: {
-    width: 10, height: 10, marginLeft: -2, borderTopWidth: 2, borderRightWidth: 2, borderColor: '#FFFFFF',
-    borderTopRightRadius: 5, borderBottomRightRadius: 5, transform: [{ translateY: -0.5 }],
-  },
+  gust: { position: 'absolute', left: 0, top: 0 },
+  gustImage: { width: '100%', height: '100%' },
   firefly: { position: 'absolute', left: -6, top: -6, width: 12, height: 12, alignItems: 'center', justifyContent: 'center' },
   fireflyHalo: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: 'rgba(255, 236, 140, 0.25)' },
   fireflyDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#FFF4AA' },
