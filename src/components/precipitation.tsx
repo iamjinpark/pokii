@@ -112,7 +112,7 @@ function SnowFlake({ q, time, width, height }: { q: Particle; time: SharedValue<
 }
 
 /** 바닥 눈 더미가 다 쌓이기까지 걸리는 시간과 최대 높이(dp). */
-const PILE_MS = 60000;
+const PILE_MS = 30000;
 const PILE_H = 14;
 
 /** 바닥에 쌓이는 눈 더미. 크기가 다른 동그라미를 이어 붙여 위쪽이 울퉁불퉁하고, 눈이 내리는 동안 천천히 올라온다. */
@@ -123,7 +123,8 @@ function SnowPile({ time, width, height, grown }: { time: SharedValue<number>; w
     return out;
   });
   const rise = useAnimatedStyle(() => {
-    const g = grown ? 1 : Math.min(1, time.value / PILE_MS);
+    // 처음 몇 초에 빠르게 쌓이고 점점 느려진다 (제곱근). 내리자마자 바닥이 하얘진다.
+    const g = grown ? 1 : Math.sqrt(Math.min(1, time.value / PILE_MS));
     return { transform: [{ translateY: (1 - g) * PILE_H }] };
   });
   // 화면 밖으로 삐져나가지 않게 바깥 칸에서 자르고, 안쪽을 아래에서 밀어 올린다.
