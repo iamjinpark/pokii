@@ -66,7 +66,16 @@ const CANOPY_EDGE_AT_CENTER = 0.7477;
 const HEADER_TITLE_GAP = 16;
 /** 덤불 위 글자색. */
 const CANOPY_TEXT = '#FFFFFF';
-/** 덤불 위 어두운 유리 메뉴의 밝은 글씨와, 연한 살구색 삭제. */
+/**
+ * 떠 있는 면(드롭다운·삭제 확인·토스트)은 모두 어두운 초록 유리 한 가지다. 불투명도 60%는 하늘 위에서도
+ * 크림 글씨 대비가 4.5:1을 넘는 가장 옅은 값이다. 뒤를 흐리는 효과는 웹만 된다(CSS backdrop-filter).
+ */
+const GLASS = {
+  backgroundColor: 'rgba(10, 30, 20, 0.6)',
+  borderWidth: 1,
+  borderColor: 'rgba(247, 255, 227, 0.16)',
+  ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(10px)' } as object) : {}),
+};
 const GLASS_TEXT = '#F7FFE3';
 const GLASS_DANGER = '#FFC2A6';
 
@@ -236,7 +245,11 @@ export default function BunchDetailScreen() {
 
       {/* 메뉴·삭제 확인이 떠 있을 때 바깥을 누르면 닫힌다. */}
       {menu !== 'closed' ? (
-        <Pressable style={StyleSheet.absoluteFill} onPress={() => setMenu('closed')} accessibilityLabel={t('goal.delete.no')} />
+        <Pressable
+          style={[StyleSheet.absoluteFill, menu === 'confirm' && styles.scrim]}
+          onPress={() => setMenu('closed')}
+          accessibilityLabel={t('goal.delete.no')}
+        />
       ) : null}
 
       {menu === 'open' ? (
@@ -314,16 +327,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   headerSide: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  /**
-   * 메뉴·삭제 확인 카드: 덤불 위에 뜬 어두운 유리. 짙은 반투명 초록빛 바탕에 은은한 테두리, 밝은 글씨.
-   * 뒤를 흐리는 효과는 웹만 된다(CSS backdrop-filter). 앱에서는 블러 라이브러리가 없어 반투명하게만 보인다.
-   */
-  menu: {
-    borderRadius: 10, borderWidth: 1, borderColor: 'rgba(247, 255, 227, 0.16)',
-    backgroundColor: 'rgba(10, 30, 20, 0.55)',
-    ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(10px)' } as object) : {}),
-    paddingHorizontal: 22, paddingVertical: 4,
-  },
+  menu: { ...GLASS, borderRadius: 10, paddingHorizontal: 22, paddingVertical: 4 },
+  /** 삭제 확인이 떠 있을 때 뒤 화면을 살짝 덮어 확인 창에 집중시킨다. */
+  scrim: { backgroundColor: 'rgba(0, 0, 0, 0.25)' },
   /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. 너비는 글자에 맞추고, 긴 삭제 확인 문구만 최대 폭에서 줄바꿈한다. */
   overlay: { position: 'absolute', top: 64, right: 14, minWidth: 128, maxWidth: 280, zIndex: 2, elevation: 2 },
   menuItem: { paddingVertical: 13 },
@@ -344,10 +350,10 @@ const styles = StyleSheet.create({
   meta: { fontSize: 16, color: CANOPY_TEXT },
   title: { fontSize: 22, fontWeight: '700', lineHeight: 26, color: CANOPY_TEXT, paddingHorizontal: 22 },
   toast: {
-    position: 'absolute', bottom: 16, alignSelf: 'center', maxWidth: '90%', pointerEvents: 'none',
-    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(53, 51, 100, 0.72)',
+    ...GLASS, position: 'absolute', bottom: 16, alignSelf: 'center', maxWidth: '90%', pointerEvents: 'none',
+    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999,
   },
-  toastLabel: { fontSize: 14, fontWeight: '600', color: '#fff', textAlign: 'center' },
+  toastLabel: { fontSize: 14, color: GLASS_TEXT, textAlign: 'center' },
   body: { fontSize: 15, fontWeight: '600', textAlign: 'center' },
   retry: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.ink },
   retryLabel: { color: '#fff', fontWeight: '700' },
