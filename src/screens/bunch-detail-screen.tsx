@@ -162,8 +162,8 @@ export default function BunchDetailScreen() {
         <View style={styles.top}>
           <View style={styles.header}>
             <View style={styles.headerSide}>
-              <Pressable onPress={back} style={styles.back} accessibilityLabel="뒤로">
-                <Text style={styles.backLabel}>←</Text>
+              <Pressable onPress={back} style={styles.iconButton} accessibilityLabel="뒤로" hitSlop={5}>
+                <Image source={require('../../assets/icons/back.svg')} style={styles.icon} tintColor={CANOPY_TEXT} />
               </Pressable>
               <Text style={styles.meta}>{`No.${bunch.sequence}`}</Text>
             </View>
@@ -171,10 +171,11 @@ export default function BunchDetailScreen() {
               <Text style={styles.meta}>{startLabel(bunch.startedOn)}</Text>
               <Pressable
                 onPress={() => setMenu(menu === 'closed' ? 'open' : 'closed')}
-                style={styles.menuButton}
+                style={styles.iconButton}
                 accessibilityLabel={t('goal.menu')}
+                hitSlop={5}
               >
-                <Text style={styles.menuDots}>⋯</Text>
+                <Image source={require('../../assets/icons/more.svg')} style={styles.icon} tintColor={CANOPY_TEXT} />
               </Pressable>
             </View>
           </View>
@@ -290,8 +291,9 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   canopy: { position: 'absolute', top: 0, left: 0 },
   bunch: { position: 'absolute', transformOrigin: 'top left' },
-  back: { paddingVertical: 4, paddingRight: 4 },
-  backLabel: { fontSize: 18, fontWeight: '800', color: CANOPY_TEXT },
+  /** 뒤로가기·메뉴 아이콘 버튼. 보이는 크기는 34, hitSlop으로 누르는 영역은 44다. */
+  iconButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 22, height: 22 },
   column: { flex: 1, gap: TITLE_BUNCH_GAP, paddingTop: 22 },
   top: { gap: HEADER_TITLE_GAP },
   slot: { flex: 1 },
@@ -299,11 +301,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 22,
+    // 아이콘 버튼(34) 안쪽 여백만큼 줄여, 꺾쇠 끝이 제목(좌우 22)과 같은 선에 오게 한다.
+    paddingHorizontal: 12,
   },
   headerSide: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  menuButton: { paddingLeft: 6, paddingVertical: 4 },
-  menuDots: { fontSize: 18, fontWeight: '800', color: CANOPY_TEXT },
   menu: { borderRadius: 14, backgroundColor: '#fff', padding: 12, gap: 10 },
   /** 메뉴는 제목·송이 위에 뜬다. */
   overlay: { position: 'absolute', top: 60, right: 20, minWidth: 180, zIndex: 2, elevation: 2 },
@@ -321,7 +322,7 @@ const styles = StyleSheet.create({
   },
   removeLabel: { fontSize: 14, fontWeight: '700', color: '#fff' },
   off: { opacity: 0.4 },
-  meta: { fontSize: 13, color: CANOPY_TEXT },
+  meta: { fontSize: 16, color: CANOPY_TEXT },
   title: { fontSize: 22, fontWeight: '700', lineHeight: 26, color: CANOPY_TEXT, paddingHorizontal: 22 },
   toast: {
     position: 'absolute', bottom: 16, alignSelf: 'center', maxWidth: '90%', pointerEvents: 'none',
