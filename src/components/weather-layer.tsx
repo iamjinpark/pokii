@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
@@ -172,10 +172,16 @@ function WindGust({ q, time, width, height }: PieceProps) {
 export function useWindSway(active: boolean): SharedValue<number> {
   const reduceMotion = useReducedMotion();
   const sway = useSharedValue(0);
-  useFrameCallback((frame) => {
+  const clock = useFrameCallback((frame) => {
     const t = frame.timeSinceFirstFrame / 1000;
     sway.value = Math.sin(t * 1.9) * 0.8 + Math.sin(t * 5.3) * 0.3;
-  }, active && !reduceMotion);
+  }, false);
+  // useFrameCallback의 시작 여부는 처음 한 번만 읽혀서, 화면이 떠 있는 동안 날씨가 바뀌면 직접 켜고 끈다.
+  const on = active && !reduceMotion;
+  useEffect(() => {
+    clock.setActive(on);
+    if (!on) sway.set(0);
+  }, [clock, on, sway]);
   return sway;
 }
 
