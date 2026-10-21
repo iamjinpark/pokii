@@ -272,6 +272,8 @@ export default function TreeScreen() {
                   style={styles.trunkTexture}
                 />
               </View>
+              {/* 바람에 기울면 왼쪽 끝이 화면 안으로 들어와 틈이 생긴다. 같은 덤불을 왼쪽에 한 장 더 깔아 메운다. */}
+              <Image source={require('../../assets/tree/bush.svg')} style={[styles.bush, styles.bushBackfill]} />
               <Image source={require('../../assets/tree/bush.svg')} style={styles.bush} />
               {SLOTS.map((slot) => {
                 const goal = byPosition.get(slot);
@@ -418,12 +420,14 @@ const styles = StyleSheet.create({
     pointerEvents: 'box-none',
   },
   /** 시안보다 긴 화면에서 덤불 줄기(svg 아래 끝, x -1~109)를 화면 끝까지 잇는다. */
-  trunk: { position: 'absolute', left: -1, top: 700, width: 110, height: 2000, overflow: 'hidden' },
+  /** 왼쪽으로 40 넓혀 바람에 기울어도 화면 왼쪽 끝이 비지 않게 한다. 오른쪽 끝(109)은 그대로다. */
+  trunk: { position: 'absolute', left: -41, top: 700, width: 150, height: 2000, overflow: 'hidden' },
   /** bush.svg의 패턴은 16px 타일을 약 9.6px로 깐다. */
   trunkTexture: {
-    width: 110 / 0.6, height: 2000 / 0.6, transform: [{ scale: 0.6 }], transformOrigin: 'top left',
+    width: 150 / 0.6, height: 2000 / 0.6, transform: [{ scale: 0.6 }], transformOrigin: 'top left',
   },
   bush: { position: 'absolute', left: -1, top: -15, width: 336, height: 725 },
+  bushBackfill: { left: -41 },
   slot: {
     position: 'absolute', width: BUNCH_W, height: BUNCH_H, justifyContent: 'center',
     transform: [{ scale: BUNCH_ZOOM }],
