@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import type { Weather } from '@/utils/weather';
 
-type Kind = 'rain' | 'snow' | 'wind' | 'petal' | 'leaf' | 'firefly';
+type Kind = 'rain' | 'snow' | 'petal' | 'leaf' | 'firefly';
 
 /** 시안 main-rainy-*의 빗줄기: 옅은 파랑, 오른쪽 위에서 왼쪽 아래로 비스듬히. */
 const RAIN_COLOR = '#A9C4E8';
@@ -27,7 +27,6 @@ const FALL_LEAVES = ['#E08A3C', '#C9652E', '#D9A441', '#9C5A2E'];
 const LOOK: Record<Kind, { density: number; ms: [number, number]; size: [number, number] }> = {
   rain: { density: 4.5, ms: [900, 1600], size: [10, 20] },
   snow: { density: 2.2, ms: [8000, 13000], size: [5, 9] },
-  wind: { density: 0.25, ms: [7000, 11000], size: [8, 14] },
   petal: { density: 1, ms: [7000, 11000], size: [6, 9] },
   leaf: { density: 0.6, ms: [7000, 10000], size: [8, 12] },
   firefly: { density: 0.5, ms: [3000, 6000], size: [3, 3] },
@@ -134,37 +133,90 @@ const leafShape = (size: number, color: string) => ({
   backgroundColor: color,
 });
 
-/** 바람이 한 번 지나가는 동안 보이는 몫. 나머지는 쉬어서 한 줄기씩 분다. */
-const GUST = 0.6;
+/** 화면을 가로지르는 물결 바람 줄기 그림 (가로:세로 = 2:1). 끝이 살짝 말린다. */
+const WIND_STREAM = require('../../assets/weather/wind-stream.svg');
+const WIND_LEAVES = ['#3F8A4A', '#5E9E4F', '#2F6B3A'];
+/** 바람 한 줄기가 나타나 흐르고 사라지기까지(ms). 두 줄기가 반 주기씩 엇갈려 분다. */
+const STREAM_MS = 8000;
+/** 한 주기 중 줄기가 왼쪽부터 그려지는 몫과 다 사라지는 시점. */
+const REVEAL = 0.55;
+const GONE = 0.9;
 
-/** 끝이 말린 소용돌이 바람 그림. 가로:세로 = 5:2. */
-const WIND_SVG = require('../../assets/weather/wind-a.svg');
+function smooth(t: number) {
+  'worklet';
+  const c = Math.min(1, Math.max(0, t));
+  return c * c * (3 - 2 * c);
+}
+
+/** 지금 이 줄기가 몇 번째로 부는지와 진행도, 그리고 그려진 정도·진하기. */
+function stream(time: number, index: number) {
+  'worklet';
+  const phase = time / STREAM_MS + index * 0.5;
+  const cycle = Math.floor(phase);
+  const p = phase - cycle;
+  const reveal = smooth(p / REVEAL);
+  const fade = p < REVEAL ? 1 : Math.max(0, 1 - (p - REVEAL) / (GONE - REVEAL));
+  return { cycle, p, reveal, fade };
+}
 
 /**
- * 바람: 옅은 바람 그림이 왼쪽에서 오른쪽으로 후우~ 천천히 흘러가고 잠시 쉰다.
- * 천천히 출발해 빨라졌다 다시 느려지고, 살짝 떠오르며 기울기가 바뀌어 기계적으로 보이지 않게 한다.
+ * 바람 한 줄기: 물결 치는 흰 줄기가 왼쪽부터 스르르 그려지듯 나타났다가 오른쪽으로 흐르며 옅어진다.
+ * 잎 세 장이 줄기 앞쪽을 따라 빙글 돌며 실려 간다. 줄기마다 부는 높이가 매번 다르다.
  */
-function WindGust({ q, time, width, height }: PieceProps) {
-  const w = q.size * 6;
-  const style = useAnimatedStyle(() => {
-    const { p, x: y } = progress(time.value, q, height * 0.7);
-    const t = Math.min(1, p / GUST);
-    const eased = t * t * (3 - 2 * t);
-    const swell = Math.sin(Math.PI * t);
+function WindStream({ index, time, width, height }: { index: number; time: SharedValue<number>; width: number; height: number }) {
+  const w = width * 1.1;
+  const h = w / 2;
+  const box = useAnimatedStyle(() => {
+    const { cycle, p, reveal, fade } = stream(time.value, index);
     return {
-      opacity: p < GUST ? 0.45 * swell * swell : 0,
-      transform: [
-        { translateX: -w + eased * (width + w) },
-        { translateY: y - t * 14 + Math.sin(t * Math.PI * 1.2 + q.seed) * 6 },
-        { rotate: `${-4 + 6 * swell}deg` },
-        { scaleX: 0.9 + 0.2 * swell },
-      ],
+      opacity: 0.6 * fade,
+      width: reveal * w,
+      transform: [{ translateX: -w * 0.05 + p * 24 }, { translateY: (0.05 + 0.4 * hash(cycle * 3.1 + index)) * height }],
     };
   });
   return (
-    <Animated.View style={[styles.gust, { width: w, height: w * 0.4 }, style]}>
-      <Image source={WIND_SVG} style={styles.gustImage} />
-    </Animated.View>
+    <>
+      <Animated.View style={[styles.stream, { height: h }, box]}>
+        <Image source={WIND_STREAM} style={{ width: w, height: h }} />
+      </Animated.View>
+      {[0, 1, 2].map((k) => (
+        <StreamLeaf key={k} k={k} index={index} time={time} w={w} h={h} height={height} />
+      ))}
+    </>
+  );
+}
+
+/** 바람 줄기를 따라가는 잎 하나. 줄기가 그려지는 앞쪽보다 조금씩 늦게 따라간다. */
+function StreamLeaf({ k, index, time, w, h, height }: { k: number; index: number; time: SharedValue<number>; w: number; h: number; height: number }) {
+  const size = 7 + k * 1.5;
+  const style = useAnimatedStyle(() => {
+    const { cycle, reveal, fade } = stream(time.value, index);
+    const along = reveal - 0.1 - k * 0.12;
+    const top = (0.05 + 0.4 * hash(cycle * 3.1 + index)) * height;
+    return {
+      opacity: along > 0 ? 0.9 * fade : 0,
+      transform: [
+        { translateX: -w * 0.05 + along * w },
+        { translateY: top + h * (0.25 + 0.2 * k) + Math.sin(along * Math.PI * 2 + k) * h * 0.1 },
+        { rotate: `${along * 540 + k * 60}deg` },
+      ],
+    };
+  });
+  return <Animated.View style={[styles.piece, leafShape(size, WIND_LEAVES[k]), style]} />;
+}
+
+/** 바람: 물결 바람 줄기 두 개가 엇갈려 쉼 없이 후우~ 분다. 동작 줄이기 설정이면 멈춘 채로 보인다. */
+function Wind({ width, height }: { width: number; height: number }) {
+  const reduceMotion = useReducedMotion();
+  const time = useSharedValue(STREAM_MS * 0.4);
+  useFrameCallback((frame) => {
+    time.value = STREAM_MS * 0.4 + frame.timeSinceFirstFrame;
+  }, !reduceMotion);
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <WindStream index={0} time={time} width={width} height={height} />
+      <WindStream index={1} time={time} width={width} height={height} />
+    </View>
   );
 }
 
@@ -250,7 +302,6 @@ function Firefly({ q, time, width, height }: PieceProps) {
 const PIECE: Record<Kind, (props: PieceProps) => React.JSX.Element> = {
   rain: RainDrop,
   snow: SnowFlake,
-  wind: WindGust,
   petal: Petal,
   leaf: FallLeaf,
   firefly: Firefly,
@@ -315,6 +366,7 @@ function Particles({ kind, width, height }: { kind: Kind; width: number; height:
  */
 export function WeatherLayer({ weather, night, width, height }: { weather: Weather; night: boolean; width: number; height: number }) {
   if (weather === 'clear' || weather === 'cloudy') return null;
+  if (weather === 'wind') return <Wind width={width} height={height} />;
   if (weather === 'firefly' && !night) return null;
   return <Particles key={weather} kind={weather} width={width} height={height} />;
 }
@@ -326,8 +378,7 @@ const styles = StyleSheet.create({
   splashDot: { position: 'absolute', top: -1, width: 2, height: 2, borderRadius: 1, backgroundColor: RAIN_COLOR },
   flake: { position: 'absolute', left: 0, top: 0, backgroundColor: '#FFFFFF', opacity: 0.85 },
   piece: { position: 'absolute', left: 0, top: 0, opacity: 0.9 },
-  gust: { position: 'absolute', left: 0, top: 0 },
-  gustImage: { width: '100%', height: '100%' },
+  stream: { position: 'absolute', left: 0, top: 0, overflow: 'hidden' },
   firefly: { position: 'absolute', left: -6, top: -6, width: 12, height: 12, alignItems: 'center', justifyContent: 'center' },
   fireflyHalo: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: 'rgba(255, 236, 140, 0.25)' },
   fireflyDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#FFF4AA' },
