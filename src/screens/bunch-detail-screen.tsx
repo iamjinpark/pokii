@@ -66,6 +66,9 @@ const CANOPY_EDGE_AT_CENTER = 0.7477;
 const HEADER_TITLE_GAP = 16;
 /** 덤불 위 글자색. */
 const CANOPY_TEXT = '#FFFFFF';
+/** 덤불 위 유리 메뉴의 글씨와, 초록 위에서 튀지 않는 연한 살구색 삭제. */
+const GLASS_TEXT = '#FFFFFF';
+const GLASS_DANGER = '#FFC2A6';
 
 export default function BunchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -243,7 +246,7 @@ export default function BunchDetailScreen() {
             style={styles.menuItem}
             accessibilityLabel={t('goal.edit')}
           >
-            <Image source={require('../../assets/icons/pencil.svg')} style={styles.menuIcon} tintColor={theme.ink} />
+            <Image source={require('../../assets/icons/pencil.svg')} style={styles.menuIcon} tintColor={GLASS_TEXT} />
             <Text style={styles.menuLabel}>{t('goal.edit')}</Text>
           </Pressable>
           <View style={styles.menuRule} />
@@ -252,7 +255,7 @@ export default function BunchDetailScreen() {
             style={styles.menuItem}
             accessibilityLabel={t('goal.delete')}
           >
-            <Image source={require('../../assets/icons/trash.svg')} style={styles.menuIcon} tintColor={theme.amber} />
+            <Image source={require('../../assets/icons/trash.svg')} style={styles.menuIcon} tintColor={GLASS_DANGER} />
             <Text style={[styles.menuLabel, styles.danger]}>{t('goal.delete')}</Text>
           </Pressable>
         </View>
@@ -314,35 +317,33 @@ const styles = StyleSheet.create({
   },
   headerSide: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   /**
-   * 메뉴·삭제 확인 카드: 뿌연 유리처럼. 반투명한 흰 바탕이 아래로 살짝 회색으로 진해지고, 밝은 흰 테두리와
-   * 부드러운 그림자를 두른다. 뒤를 흐리는 효과는 웹만 된다(CSS backdrop-filter). 앱에서는 블러 라이브러리가
-   * 없어 흐림 없이 반투명하게만 보인다.
+   * 메뉴·삭제 확인 카드: 덤불 위에 뜬 옅은 유리. 아주 옅은 반투명 흰 바탕에 은은한 흰 테두리, 흰 글씨.
+   * 뒤를 흐리는 효과는 웹만 된다(CSS backdrop-filter). 앱에서는 블러 라이브러리가 없어 반투명하게만 보인다.
    */
   menu: {
-    borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.85)',
-    backgroundColor: 'rgba(244, 244, 246, 0.6)',
-    ...backgroundImage('linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(232, 232, 238, 0.55) 100%)'),
-    ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(14px) saturate(1.3)' } as object) : {}),
+    borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.38)',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    ...backgroundImage('linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.14) 100%)'),
+    ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(12px)' } as object) : {}),
     paddingHorizontal: 14, paddingVertical: 6,
-    boxShadow: '0 8px 24px rgba(53, 51, 100, 0.18), 0 0 0 0.5px rgba(53, 51, 100, 0.12)',
   },
   /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. */
   overlay: { position: 'absolute', top: 64, right: 14, minWidth: 180, zIndex: 2, elevation: 2 },
   menuItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12 },
   menuIcon: { width: 20, height: 20 },
-  menuRule: { height: 1, backgroundColor: 'rgba(53, 51, 100, 0.1)' },
-  menuLabel: { fontSize: 15, fontWeight: '700', color: theme.ink },
-  danger: { color: theme.amber },
-  confirmText: { fontSize: 14, fontWeight: '600', color: theme.ink, lineHeight: 20, paddingTop: 10 },
+  menuRule: { height: 1, backgroundColor: 'rgba(255, 255, 255, 0.22)' },
+  menuLabel: { fontSize: 15, fontWeight: '700', color: GLASS_TEXT },
+  danger: { color: GLASS_DANGER },
+  confirmText: { fontSize: 14, fontWeight: '600', color: GLASS_TEXT, lineHeight: 20, paddingTop: 10 },
   confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, paddingTop: 12, paddingBottom: 8 },
-  keep: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 20, backgroundColor: 'rgba(53, 51, 100, 0.06)' },
+  keep: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 20, backgroundColor: 'rgba(255, 255, 255, 0.16)' },
   removeButton: {
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: theme.amber,
+    backgroundColor: GLASS_DANGER,
   },
-  removeLabel: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  removeLabel: { fontSize: 14, fontWeight: '700', color: theme.ink },
   off: { opacity: 0.4 },
   meta: { fontSize: 16, color: CANOPY_TEXT },
   title: { fontSize: 22, fontWeight: '700', lineHeight: 26, color: CANOPY_TEXT, paddingHorizontal: 22 },
