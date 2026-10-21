@@ -19,7 +19,7 @@ const FALL = 0.88;
 /** density는 화면 넓이 1만 dp²당 개수, ms는 위에서 아래까지 걸리는 시간 범위. */
 const LOOK = {
   rain: { density: 4.5, ms: [900, 1600] },
-  snow: { density: 2.2, ms: [6000, 10000] },
+  snow: { density: 2.2, ms: [8000, 13000] },
 } as const;
 
 type Particle = { seed: number; ms: number; offset: number; size: number; splash: boolean };
@@ -32,7 +32,7 @@ function makeParticles(kind: PrecipitationKind, width: number, height: number): 
     ms: ms[0] + Math.random() * (ms[1] - ms[0]),
     // 처음부터 저마다 다른 높이에 있어야 한꺼번에 쏟아지지 않는다.
     offset: Math.random(),
-    size: kind === 'rain' ? 10 + Math.random() * 10 : 3 + Math.random() * 2.5,
+    size: kind === 'rain' ? 10 + Math.random() * 10 : 5 + Math.random() * 4,
     // 절반만 튀어야 바닥이 요란하지 않다.
     splash: Math.random() < 0.5,
   }));
@@ -101,14 +101,20 @@ function splashDot(p: number, side: number) {
   };
 }
 
-/** 눈송이: 천천히 내려오며 좌우로 살랑인다. */
+/** 눈송이: 가장자리가 흰 빛으로 번진 솜뭉치처럼, 천천히 내려오며 좌우로 살랑인다. */
 function SnowFlake({ q, time, width, height }: { q: Particle; time: SharedValue<number>; width: number; height: number }) {
   const style = useAnimatedStyle(() => {
     const { p, x } = progress(time.value, q, width);
-    const sway = Math.sin(p * Math.PI * 3 + q.seed) * 12;
+    const sway = Math.sin(p * Math.PI * 3 + q.seed) * 16;
     return { transform: [{ translateX: x + sway }, { translateY: -q.size + p * (height + q.size * 2) }] };
   });
-  return <Animated.View style={[styles.flake, { width: q.size, height: q.size, borderRadius: q.size / 2 }, style]} />;
+  const fluff = {
+    width: q.size,
+    height: q.size,
+    borderRadius: q.size / 2,
+    boxShadow: `0 0 ${q.size * 0.7}px ${q.size * 0.3}px rgba(255, 255, 255, 0.6)`,
+  };
+  return <Animated.View style={[styles.flake, fluff, style]} />;
 }
 
 /**
@@ -138,5 +144,5 @@ const styles = StyleSheet.create({
   splash: { position: 'absolute', left: 0, top: 0, width: 12, height: 4, alignItems: 'center', justifyContent: 'center' },
   ring: { position: 'absolute', width: 12, height: 4, borderRadius: 6, borderWidth: 1, borderColor: RAIN_COLOR },
   splashDot: { position: 'absolute', top: -1, width: 2, height: 2, borderRadius: 1, backgroundColor: RAIN_COLOR },
-  flake: { position: 'absolute', left: 0, top: 0, backgroundColor: '#FFFFFF', opacity: 0.9 },
+  flake: { position: 'absolute', left: 0, top: 0, backgroundColor: '#FFFFFF', opacity: 0.85 },
 });
