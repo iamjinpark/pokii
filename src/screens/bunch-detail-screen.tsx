@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HEADER_HEIGHT, TAB_BAR_HEIGHT } from '@/components/app-header';
 import { Text } from '@/components/text';
@@ -66,6 +66,12 @@ const CANOPY_EDGE_AT_CENTER = 0.7477;
 const HEADER_TITLE_GAP = 16;
 /** 덤불 위 글자색. */
 const CANOPY_TEXT = '#FFFFFF';
+/** 떠 있는 면의 글씨와 삭제 글씨 (놀이터에서 고른 값: 둘 다 흰색). */
+const SURFACE_TEXT = '#FFFFFF';
+const SURFACE_DANGER = '#FFFFFF';
+/** 드롭다운·삭제 확인·토스트와 그 안 버튼의 모서리. */
+const SURFACE_RADIUS = 8;
+
 
 export default function BunchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -162,8 +168,8 @@ export default function BunchDetailScreen() {
         <View style={styles.top}>
           <View style={styles.header}>
             <View style={styles.headerSide}>
-              <Pressable onPress={back} style={styles.back} accessibilityLabel="뒤로">
-                <Text style={styles.backLabel}>←</Text>
+              <Pressable onPress={back} style={styles.iconButton} accessibilityLabel="뒤로" hitSlop={5}>
+                <Image source={require('../../assets/icons/back.svg')} style={styles.icon} tintColor={CANOPY_TEXT} />
               </Pressable>
               <Text style={styles.meta}>{`No.${bunch.sequence}`}</Text>
             </View>
@@ -171,10 +177,11 @@ export default function BunchDetailScreen() {
               <Text style={styles.meta}>{startLabel(bunch.startedOn)}</Text>
               <Pressable
                 onPress={() => setMenu(menu === 'closed' ? 'open' : 'closed')}
-                style={styles.menuButton}
+                style={styles.iconButton}
                 accessibilityLabel={t('goal.menu')}
+                hitSlop={5}
               >
-                <Text style={styles.menuDots}>⋯</Text>
+                <Image source={require('../../assets/icons/more.svg')} style={styles.icon} tintColor={CANOPY_TEXT} />
               </Pressable>
             </View>
           </View>
@@ -222,16 +229,26 @@ export default function BunchDetailScreen() {
 
       {/* 안내 문구는 토스트처럼 반투명 배경에 띄운다. 송이와 겹쳐도 읽힌다. */}
       {key ? (
-        <View style={styles.toast}>
-          <Text style={styles.toastLabel}>{t(key)}</Text>
+        <View style={[styles.toast, styles.surface]}>
+          {/* 토스트는 하늘 위에 떠서, 밝은 하늘(아침·낮·노을)엔 남색, 어두운 하늘엔 흰 글씨로 바꾼다. */}
+          <Text style={[styles.toastLabel, { color: sky.dark ? SURFACE_TEXT : theme.ink }]}>{t(key)}</Text>
         </View>
       ) : null}
 
       {/* 메뉴·삭제 확인은 날씨 효과 위에 뜬다. */}
       <WeatherLayer weather={weather} night={sky.dark} width={area.width} height={area.height} />
 
+      {/* 메뉴·삭제 확인이 떠 있을 때 바깥을 누르면 닫힌다. */}
+      {menu !== 'closed' ? (
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={() => setMenu('closed')}
+          accessibilityLabel={t('goal.delete.no')}
+        />
+      ) : null}
+
       {menu === 'open' ? (
-        <View style={[styles.menu, styles.overlay]}>
+        <View style={[styles.menu, styles.overlay, styles.surface]}>
           <Pressable
             onPress={() => router.push({ pathname: '/goal/[id]/edit', params: { id } })}
             style={styles.menuItem}
@@ -249,34 +266,37 @@ export default function BunchDetailScreen() {
         </View>
       ) : null}
 
+      {/* 모달은 화면 가운데. 바깥(뒤 Pressable)을 누르면 닫히도록 가운데 정렬 틀은 터치를 흘려보낸다. */}
       {menu === 'confirm' ? (
-        <View style={[styles.menu, styles.overlay]}>
-          <Text style={styles.confirmText}>
-            {footprint.data
-              ? t('goal.delete.confirm', {
-                  bunches: footprint.data.bunches,
-                  grapes: footprint.data.grapes,
-                })
-              : '…'}
-          </Text>
-          <View style={styles.confirmRow}>
-            <Pressable
-              onPress={() => setMenu('closed')}
-              style={styles.keep}
-              accessibilityLabel={t('goal.delete.no')}
-            >
-              <Text style={styles.menuLabel}>{t('goal.delete.no')}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() =>
-                remove.mutate(undefined, { onSuccess: back })
-              }
-              disabled={!footprint.data || remove.isPending}
-              style={[styles.removeButton, (!footprint.data || remove.isPending) && styles.off]}
-              accessibilityLabel={t('goal.delete.yes')}
-            >
-              <Text style={styles.removeLabel}>{t('goal.delete.yes')}</Text>
-            </Pressable>
+        <View style={styles.modalFrame} pointerEvents="box-none">
+          <View style={[styles.menu, styles.modal, styles.surface]}>
+            <Text style={styles.confirmText}>
+              {footprint.data
+                ? t('goal.delete.confirm', {
+                    bunches: footprint.data.bunches,
+                    grapes: footprint.data.grapes,
+                  })
+                : '…'}
+            </Text>
+            <View style={styles.confirmRow}>
+              <Pressable
+                onPress={() => setMenu('closed')}
+                style={styles.keep}
+                accessibilityLabel={t('goal.delete.no')}
+              >
+                <Text style={styles.menuLabel}>{t('goal.delete.no')}</Text>
+              </Pressable>
+              <Pressable
+                onPress={() =>
+                  remove.mutate(undefined, { onSuccess: back })
+                }
+                disabled={!footprint.data || remove.isPending}
+                style={[styles.removeButton, (!footprint.data || remove.isPending) && styles.off]}
+                accessibilityLabel={t('goal.delete.yes')}
+              >
+                <Text style={styles.removeLabel}>{t('goal.delete.yes')}</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       ) : null}
@@ -290,8 +310,9 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   canopy: { position: 'absolute', top: 0, left: 0 },
   bunch: { position: 'absolute', transformOrigin: 'top left' },
-  back: { paddingVertical: 4, paddingRight: 4 },
-  backLabel: { fontSize: 18, fontWeight: '800', color: CANOPY_TEXT },
+  /** 뒤로가기·메뉴 아이콘 버튼. 보이는 크기는 34, hitSlop으로 누르는 영역은 44다. */
+  iconButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 22, height: 22 },
   column: { flex: 1, gap: TITLE_BUNCH_GAP, paddingTop: 22 },
   top: { gap: HEADER_TITLE_GAP },
   slot: { flex: 1 },
@@ -299,35 +320,46 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 22,
+    // 아이콘 버튼(34) 안쪽 여백만큼 줄여, 꺾쇠 끝이 제목(좌우 22)과 같은 선에 오게 한다.
+    paddingHorizontal: 12,
   },
   headerSide: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  menuButton: { paddingLeft: 6, paddingVertical: 4 },
-  menuDots: { fontSize: 18, fontWeight: '800', color: CANOPY_TEXT },
-  menu: { borderRadius: 14, backgroundColor: '#fff', padding: 12, gap: 10 },
-  /** 메뉴는 제목·송이 위에 뜬다. */
-  overlay: { position: 'absolute', top: 60, right: 20, minWidth: 180, zIndex: 2, elevation: 2 },
-  menuItem: { paddingVertical: 8 },
-  menuLabel: { fontSize: 15, fontWeight: '700', color: theme.ink },
-  danger: { color: theme.amber },
-  confirmText: { fontSize: 14, fontWeight: '600', color: theme.ink, lineHeight: 20 },
-  confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
-  keep: { paddingVertical: 10, paddingHorizontal: 16 },
-  removeButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: theme.amber,
+  /**
+   * 떠 있는 면(드롭다운·삭제 확인·토스트). 사용자가 놀이터에서 고른 값 (2026-10-21):
+   * 흰색 20%, 뒤 흐림 24, 테두리·구분선·딤 없음, 부드러운 그림자 16%, 흰 글씨 14.
+   * 뒤를 흐리는 효과는 웹만 된다(CSS backdrop-filter). 앱에서는 블러 라이브러리가 없어 반투명하게만 보인다.
+   */
+  surface: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(24px)' } as object) : {}),
+    boxShadow: '0 6px 18px rgba(53, 51, 100, 0.16)',
   },
-  removeLabel: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  menu: { borderRadius: SURFACE_RADIUS, paddingHorizontal: 16, paddingVertical: 3 },
+  /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. 너비는 글자에 맞추고, 긴 삭제 확인 문구만 최대 폭에서 줄바꿈한다. */
+  overlay: { position: 'absolute', top: 64, right: 14, minWidth: 100, maxWidth: 280, zIndex: 2, elevation: 2 },
+  modalFrame: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
+  modal: { width: '84%', maxWidth: 320 },
+  menuItem: { paddingVertical: 10 },
+  menuLabel: { fontSize: 14, color: SURFACE_TEXT },
+  danger: { color: SURFACE_DANGER },
+  confirmText: { fontSize: 13, color: SURFACE_TEXT, lineHeight: 20, paddingTop: 11 },
+  confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, paddingTop: 12, paddingBottom: 7 },
+  keep: { paddingVertical: 9, paddingHorizontal: 15, borderRadius: SURFACE_RADIUS, backgroundColor: 'rgba(255, 255, 255, 0.08)' },
+  removeButton: {
+    paddingVertical: 9,
+    paddingHorizontal: 15,
+    borderRadius: SURFACE_RADIUS,
+    backgroundColor: SURFACE_DANGER,
+  },
+  removeLabel: { fontSize: 14, color: '#1F1F27' },
   off: { opacity: 0.4 },
-  meta: { fontSize: 13, color: CANOPY_TEXT },
+  meta: { fontSize: 16, color: CANOPY_TEXT },
   title: { fontSize: 22, fontWeight: '700', lineHeight: 26, color: CANOPY_TEXT, paddingHorizontal: 22 },
   toast: {
     position: 'absolute', bottom: 16, alignSelf: 'center', maxWidth: '90%', pointerEvents: 'none',
-    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(53, 51, 100, 0.72)',
+    paddingHorizontal: 16, paddingVertical: 8, borderRadius: SURFACE_RADIUS,
   },
-  toastLabel: { fontSize: 14, fontWeight: '600', color: '#fff', textAlign: 'center' },
+  toastLabel: { fontSize: 13, textAlign: 'center' },
   body: { fontSize: 15, fontWeight: '600', textAlign: 'center' },
   retry: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.ink },
   retryLabel: { color: '#fff', fontWeight: '700' },

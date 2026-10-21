@@ -43,3 +43,4 @@ test('비 오는 날 하늘은 낮엔 회색, 밤엔 어두운 남색 쪽이고 
   expect(day.text).toBe('#353364');
   expect(skyAt(22 * 60, 'rain').text).toBe('#F7FFE3');
 });
+

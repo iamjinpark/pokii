@@ -59,7 +59,7 @@ export const ko: Record<TranslationKey, string> = {
   'goal.edit.save': '저장',
   'goal.delete.confirm': '송이 {bunches}개와 포도알 {grapes}개가 사라집니다. 되돌릴 수 없어요.',
   'goal.delete.yes': '삭제',
-  'goal.delete.no': '그대로 두기',
+  'goal.delete.no': '취소',
   'goal.edit.failed': '저장하지 못했어요. 다시 시도해주세요.',
   'settings.language': '언어',
   'settings.account': '계정',
