@@ -27,7 +27,7 @@ const FALL_LEAVES = ['#E08A3C', '#C9652E', '#D9A441', '#9C5A2E'];
 const LOOK: Record<Kind, { density: number; ms: [number, number]; size: [number, number] }> = {
   rain: { density: 4.5, ms: [900, 1600], size: [10, 20] },
   snow: { density: 2.2, ms: [8000, 13000], size: [5, 9] },
-  wind: { density: 0.25, ms: [4000, 6500], size: [9, 14] },
+  wind: { density: 0.12, ms: [4000, 6500], size: [9, 14] },
   windLeaf: { density: 0.06, ms: [10000, 16000], size: [7, 10] },
   petal: { density: 1, ms: [7000, 11000], size: [6, 9] },
   leaf: { density: 0.6, ms: [7000, 10000], size: [8, 12] },
@@ -143,7 +143,7 @@ const WIND_LEAVES = ['#3F8A4A', '#5E9E4F', '#2F6B3A'];
 
 /** 바람: 아주 옅은 바람 그림이 천천히 나타나 왼쪽에서 오른쪽으로 스쳐 가고 사라진다. 느껴질 만큼만 보인다. */
 function WindGust({ q, time, width, height }: PieceProps) {
-  const w = q.size * 11;
+  const w = q.size * 15;
   const h = q.size * 3.5;
   const style = useAnimatedStyle(() => {
     const { p, x: y } = progress(time.value, q, height * 0.7);
@@ -195,7 +195,7 @@ export function useWindSway(active: boolean): SharedValue<number> {
   const sway = useSharedValue(0);
   const clock = useFrameCallback((frame) => {
     const t = frame.timeSinceFirstFrame / 1000;
-    sway.value = Math.sin(t * 1.1) * 1.5 + Math.sin(t * 2.3) * 0.5;
+    sway.value = Math.sin(t * 1.1) * 2.5 + Math.sin(t * 2.3) * 0.8;
   }, false);
   // useFrameCallback의 시작 여부는 처음 한 번만 읽혀서, 화면이 떠 있는 동안 날씨가 바뀌면 직접 켜고 끈다.
   const on = active && !reduceMotion;
