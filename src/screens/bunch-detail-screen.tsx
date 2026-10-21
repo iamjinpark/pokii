@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
    * 뒤를 흐리는 효과는 웹만 된다(CSS backdrop-filter). 앱에서는 블러 라이브러리가 없어 반투명하게만 보인다.
    */
   menu: {
-    borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.38)',
+    borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.38)',
     backgroundColor: 'rgba(255, 255, 255, 0.18)',
     ...backgroundImage('linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.14) 100%)'),
     ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(12px)' } as object) : {}),
@@ -332,18 +332,18 @@ const styles = StyleSheet.create({
   menuItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12 },
   menuIcon: { width: 20, height: 20 },
   menuRule: { height: 1, backgroundColor: 'rgba(255, 255, 255, 0.22)' },
-  menuLabel: { fontSize: 15, fontWeight: '700', color: GLASS_TEXT },
+  menuLabel: { fontSize: 15, color: GLASS_TEXT },
   danger: { color: GLASS_DANGER },
-  confirmText: { fontSize: 14, fontWeight: '600', color: GLASS_TEXT, lineHeight: 20, paddingTop: 10 },
+  confirmText: { fontSize: 14, color: GLASS_TEXT, lineHeight: 20, paddingTop: 10 },
   confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, paddingTop: 12, paddingBottom: 8 },
-  keep: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 20, backgroundColor: 'rgba(255, 255, 255, 0.16)' },
+  keep: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 6, backgroundColor: 'rgba(255, 255, 255, 0.16)' },
   removeButton: {
     paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 20,
+    borderRadius: 6,
     backgroundColor: GLASS_DANGER,
   },
-  removeLabel: { fontSize: 14, fontWeight: '700', color: theme.ink },
+  removeLabel: { fontSize: 14, color: theme.ink },
   off: { opacity: 0.4 },
   meta: { fontSize: 16, color: CANOPY_TEXT },
   title: { fontSize: 22, fontWeight: '700', lineHeight: 26, color: CANOPY_TEXT, paddingHorizontal: 22 },
