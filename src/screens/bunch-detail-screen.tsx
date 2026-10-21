@@ -11,7 +11,7 @@ import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useDeleteGoal, useGoalFootprint } from '@/hooks/use-goal-mutations';
 import { useToday } from '@/hooks/use-today';
 import { WeatherLayer } from '@/components/weather-layer';
-import { backgroundImage, skyBackground, skyNow } from '@/utils/sky';
+import { skyBackground, skyNow } from '@/utils/sky';
 import { weatherNow } from '@/utils/weather';
 import { STAGE_W } from '@/utils/stage';
 import { t } from '@/i18n';
@@ -66,8 +66,8 @@ const CANOPY_EDGE_AT_CENTER = 0.7477;
 const HEADER_TITLE_GAP = 16;
 /** 덤불 위 글자색. */
 const CANOPY_TEXT = '#FFFFFF';
-/** 덤불 위 유리 메뉴의 글씨와, 초록 위에서 튀지 않는 연한 살구색 삭제. */
-const GLASS_TEXT = '#FFFFFF';
+/** 덤불 위 어두운 유리 메뉴의 밝은 글씨와, 연한 살구색 삭제. */
+const GLASS_TEXT = '#F7FFE3';
 const GLASS_DANGER = '#FFC2A6';
 
 export default function BunchDetailScreen() {
@@ -315,25 +315,24 @@ const styles = StyleSheet.create({
   },
   headerSide: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   /**
-   * 메뉴·삭제 확인 카드: 덤불 위에 뜬 옅은 유리. 아주 옅은 반투명 흰 바탕에 은은한 흰 테두리, 흰 글씨.
+   * 메뉴·삭제 확인 카드: 덤불 위에 뜬 어두운 유리. 짙은 반투명 초록빛 바탕에 은은한 테두리, 밝은 글씨.
    * 뒤를 흐리는 효과는 웹만 된다(CSS backdrop-filter). 앱에서는 블러 라이브러리가 없어 반투명하게만 보인다.
    */
   menu: {
-    borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.38)',
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
-    ...backgroundImage('linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.14) 100%)'),
-    ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(12px)' } as object) : {}),
-    paddingHorizontal: 14, paddingVertical: 6,
+    borderRadius: 10, borderWidth: 1, borderColor: 'rgba(247, 255, 227, 0.16)',
+    backgroundColor: 'rgba(10, 30, 20, 0.55)',
+    ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(10px)' } as object) : {}),
+    paddingHorizontal: 22, paddingVertical: 4,
   },
   /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. 너비는 글자에 맞추고, 긴 삭제 확인 문구만 최대 폭에서 줄바꿈한다. */
-  overlay: { position: 'absolute', top: 64, right: 14, maxWidth: 280, zIndex: 2, elevation: 2 },
-  menuItem: { paddingVertical: 12 },
-  menuRule: { height: 1, backgroundColor: 'rgba(255, 255, 255, 0.22)' },
+  overlay: { position: 'absolute', top: 64, right: 14, minWidth: 128, maxWidth: 280, zIndex: 2, elevation: 2 },
+  menuItem: { paddingVertical: 13 },
+  menuRule: { height: 1, marginHorizontal: -6, backgroundColor: 'rgba(247, 255, 227, 0.18)' },
   menuLabel: { fontSize: 15, color: GLASS_TEXT },
   danger: { color: GLASS_DANGER },
   confirmText: { fontSize: 14, color: GLASS_TEXT, lineHeight: 20, paddingTop: 10 },
   confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, paddingTop: 12, paddingBottom: 8 },
-  keep: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 6, backgroundColor: 'rgba(255, 255, 255, 0.16)' },
+  keep: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 6, backgroundColor: 'rgba(247, 255, 227, 0.14)' },
   removeButton: {
     paddingVertical: 10,
     paddingHorizontal: 16,

@@ -115,7 +115,7 @@ export function skyBackground(sky: Sky, glow: number): ViewStyle {
 }
 
 /** CSS 그라데이션을 배경으로. */
-export function backgroundImage(image: string): ViewStyle {
+function backgroundImage(image: string): ViewStyle {
   // react-native-web은 experimental_backgroundImage를 모르고, CSS backgroundImage는 그대로 넘긴다.
   // RN 타입에 backgroundImage가 없어 캐스트한다.
   return Platform.OS === 'web'
