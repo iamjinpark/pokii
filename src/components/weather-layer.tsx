@@ -222,22 +222,23 @@ function useSettle(): SharedValue<number> {
 }
 
 /**
- * 덤불 위로 향한 가장자리에 소복이 얹히는 눈. points는 [x, y, 위를 향한 정도(0~1)] (덤불과 같은 좌표).
+ * 덤불 위로 향한 가장자리에 소복이 얹히는 눈. 바닥 눈 더미처럼 크기가 다른 동그라미가 서로 겹쳐
+ * 울퉁불퉁한 띠가 된다. points는 [x, y, 위를 향한 정도(0~1)] (덤불과 같은 좌표).
  * 덤불과 같은 무대에 그려 바람에 함께 기운다.
  */
 export function SnowCap({ points }: { points: readonly (readonly [number, number, number])[] }) {
   const grow = useSettle();
-  const style = useAnimatedStyle(() => ({ transform: [{ scaleY: grow.value }], opacity: grow.value > 0.02 ? 1 : 0 }));
+  const style = useAnimatedStyle(() => ({ opacity: grow.value > 0.02 ? 1 : 0, transform: [{ scale: grow.value }] }));
   return (
     <>
-      {points.map(([x, y, up], i) => {
-        const r = 6 + (i % 3) * 1.5;
-        const h = r * 1.3 * up;
+      {points.map(([x, y], i) => {
+        // 바닥 눈 더미와 같은 크기 범위(14~24). 이웃끼리 크기를 달리해 위쪽이 울퉁불퉁하다.
+        const d = 14 + ((i * 7) % 11);
         return (
           <Animated.View
             key={i}
             pointerEvents="none"
-            style={[styles.cap, { left: x - r, top: y - h * 0.7, width: r * 2, height: h, borderRadius: r, transformOrigin: 'bottom' }, style]}
+            style={[styles.mound, { left: x - d / 2, top: y - d * 0.55, width: d, height: d, borderRadius: d / 2, transformOrigin: 'bottom' }, style]}
           />
         );
       })}
@@ -443,7 +444,6 @@ const styles = StyleSheet.create({
   fireflyHalo: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: 'rgba(255, 236, 140, 0.25)' },
   fireflyDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#FFF4AA' },
   mound: { position: 'absolute', backgroundColor: '#FFFFFF' },
-  cap: { position: 'absolute', backgroundColor: '#FFFFFF' },
   pile: { position: 'absolute', left: 0, overflow: 'hidden' },
   pileBase: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF' },
 });
