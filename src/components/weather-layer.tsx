@@ -27,7 +27,7 @@ const FALL_LEAVES = ['#E08A3C', '#C9652E', '#D9A441', '#9C5A2E'];
 const LOOK: Record<Kind, { density: number; ms: [number, number]; size: [number, number] }> = {
   rain: { density: 4.5, ms: [900, 1600], size: [10, 20] },
   snow: { density: 2.2, ms: [8000, 13000], size: [5, 9] },
-  wind: { density: 0.25, ms: [2600, 4200], size: [8, 14] },
+  wind: { density: 0.25, ms: [7000, 11000], size: [8, 14] },
   petal: { density: 1, ms: [7000, 11000], size: [6, 9] },
   leaf: { density: 0.6, ms: [7000, 10000], size: [8, 12] },
   firefly: { density: 0.5, ms: [3000, 6000], size: [3, 3] },
@@ -134,27 +134,30 @@ const leafShape = (size: number, color: string) => ({
   backgroundColor: color,
 });
 
-/** 바람 줄기가 한 번 지나가는 동안 보이는 몫. 나머지는 쉬어서 훅, 훅 끊어 분다. */
-const GUST = 0.35;
+/** 바람이 한 번 지나가는 동안 보이는 몫. 나머지는 쉬어서 한 줄기씩 분다. */
+const GUST = 0.6;
 
 /** 끝이 말린 소용돌이 바람 그림. 가로:세로 = 5:2. */
 const WIND_SVG = require('../../assets/weather/wind-a.svg');
 
 /**
- * 바람: 바람 그림이 왼쪽에서 오른쪽으로 훅 스쳐 지나가고 잠시 쉰다.
- * 지나가는 동안 살짝 늘어났다 줄고 위아래로 출렁여 흐르는 느낌을 낸다.
+ * 바람: 옅은 바람 그림이 왼쪽에서 오른쪽으로 후우~ 천천히 흘러가고 잠시 쉰다.
+ * 천천히 출발해 빨라졌다 다시 느려지고, 살짝 떠오르며 기울기가 바뀌어 기계적으로 보이지 않게 한다.
  */
 function WindGust({ q, time, width, height }: PieceProps) {
   const w = q.size * 6;
   const style = useAnimatedStyle(() => {
     const { p, x: y } = progress(time.value, q, height * 0.7);
     const t = Math.min(1, p / GUST);
+    const eased = t * t * (3 - 2 * t);
+    const swell = Math.sin(Math.PI * t);
     return {
-      opacity: p < GUST ? 0.8 * Math.sin(Math.PI * t) : 0,
+      opacity: p < GUST ? 0.45 * swell * swell : 0,
       transform: [
-        { translateX: -w + t * (width + w) },
-        { translateY: y + Math.sin(t * Math.PI * 2 + q.seed) * 8 },
-        { scaleX: 0.85 + 0.3 * Math.sin(Math.PI * t) },
+        { translateX: -w + eased * (width + w) },
+        { translateY: y - t * 14 + Math.sin(t * Math.PI * 1.2 + q.seed) * 6 },
+        { rotate: `${-4 + 6 * swell}deg` },
+        { scaleX: 0.9 + 0.2 * swell },
       ],
     };
   });
@@ -174,7 +177,7 @@ export function useWindSway(active: boolean): SharedValue<number> {
   const sway = useSharedValue(0);
   const clock = useFrameCallback((frame) => {
     const t = frame.timeSinceFirstFrame / 1000;
-    sway.value = Math.sin(t * 1.9) * 0.8 + Math.sin(t * 5.3) * 0.3;
+    sway.value = Math.sin(t * 1.1) * 0.7 + Math.sin(t * 2.3) * 0.25;
   }, false);
   // useFrameCallback의 시작 여부는 처음 한 번만 읽혀서, 화면이 떠 있는 동안 날씨가 바뀌면 직접 켜고 끈다.
   const on = active && !reduceMotion;
