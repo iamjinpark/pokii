@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
+  Easing,
   type SharedValue,
   useAnimatedStyle,
   useFrameCallback,
   useReducedMotion,
   useSharedValue,
+  withTiming,
 } from 'react-native-reanimated';
 import type { Weather } from '@/utils/weather';
 
@@ -187,23 +189,60 @@ function WindLeaf({ q, time, width, height }: PieceProps) {
 }
 
 /**
- * 바람 부는 날 덤불이 밑동을 축으로 기울어지는 각도(deg). 느린 흔들림에 짧은 돌풍을 얹는다.
- * 바람이 아니거나 동작 줄이기 설정이면 0이다.
+ * 덤불이 밑동을 축으로 기울어지는 각도(deg). 느린 흔들림에 짧은 돌풍을 얹는다.
+ * strength 1이 바람 부는 날(최대 약 3.3도), 0이거나 동작 줄이기 설정이면 흔들리지 않는다.
  */
-export function useWindSway(active: boolean): SharedValue<number> {
+export function useWindSway(strength: number): SharedValue<number> {
   const reduceMotion = useReducedMotion();
   const sway = useSharedValue(0);
   const clock = useFrameCallback((frame) => {
     const t = frame.timeSinceFirstFrame / 1000;
-    sway.value = Math.sin(t * 1.1) * 2.5 + Math.sin(t * 2.3) * 0.8;
+    sway.value = (Math.sin(t * 1.1) * 2.5 + Math.sin(t * 2.3) * 0.8) * strength;
   }, false);
   // useFrameCallback의 시작 여부는 처음 한 번만 읽혀서, 화면이 떠 있는 동안 날씨가 바뀌면 직접 켜고 끈다.
-  const on = active && !reduceMotion;
+  const on = strength > 0 && !reduceMotion;
   useEffect(() => {
     clock.setActive(on);
     if (!on) sway.set(0);
   }, [clock, on, sway]);
   return sway;
+}
+
+/** 쌓이는 것(덤불 위 눈)이 다 쌓이기까지(ms). 처음엔 빠르게, 점점 느리게. */
+const SETTLE_MS = 30000;
+
+/** 0에서 1로 천천히 차오르는 값. 동작 줄이기 설정이면 처음부터 1이다. */
+function useSettle(): SharedValue<number> {
+  const reduceMotion = useReducedMotion();
+  const g = useSharedValue(reduceMotion ? 1 : 0);
+  useEffect(() => {
+    if (!reduceMotion) g.set(withTiming(1, { duration: SETTLE_MS, easing: Easing.out(Easing.quad) }));
+  }, [g, reduceMotion]);
+  return g;
+}
+
+/**
+ * 덤불 위로 향한 가장자리에 소복이 얹히는 눈. points는 [x, y, 위를 향한 정도(0~1)] (덤불과 같은 좌표).
+ * 덤불과 같은 무대에 그려 바람에 함께 기운다.
+ */
+export function SnowCap({ points }: { points: readonly (readonly [number, number, number])[] }) {
+  const grow = useSettle();
+  const style = useAnimatedStyle(() => ({ transform: [{ scaleY: grow.value }], opacity: grow.value > 0.02 ? 1 : 0 }));
+  return (
+    <>
+      {points.map(([x, y, up], i) => {
+        const r = 6 + (i % 3) * 1.5;
+        const h = r * 1.3 * up;
+        return (
+          <Animated.View
+            key={i}
+            pointerEvents="none"
+            style={[styles.cap, { left: x - r, top: y - h * 0.7, width: r * 2, height: h, borderRadius: r, transformOrigin: 'bottom' }, style]}
+          />
+        );
+      })}
+    </>
+  );
 }
 
 /** 벚꽃: 꽃잎이 뒤집히듯 납작해졌다 펴지며 왼쪽 아래로 팔랑인다. */
@@ -304,10 +343,53 @@ function SnowPile({ time, width, height, grown }: { time: SharedValue<number>; w
   );
 }
 
+/** 바닥에 쌓이는 낙엽 수와 한 장이 더 내려앉는 간격(ms). */
+const LEAF_PILE = 28;
+const LEAF_PILE_MS = 1500;
+
+/** 바닥에 낙엽이 한 장씩 내려앉아 쌓인다. 자리·각도·색은 처음에 정하고, 시간이 지나며 하나씩 보인다. */
+function LeafPile({ time, width, height, grown }: { time: SharedValue<number>; width: number; height: number; grown: boolean }) {
+  const [leaves] = useState(() =>
+    Array.from({ length: LEAF_PILE }, () => ({
+      x: Math.random() * width,
+      y: height - 3 - Math.random() * 7,
+      size: 8 + Math.random() * 4,
+      rotate: (Math.random() < 0.5 ? -1 : 1) * (60 + Math.random() * 50),
+      color: FALL_LEAVES[Math.floor(Math.random() * FALL_LEAVES.length)],
+    })),
+  );
+  return (
+    <>
+      {leaves.map((l, i) => (
+        <PiledLeaf key={i} index={i} leaf={l} time={time} grown={grown} />
+      ))}
+    </>
+  );
+}
+
+function PiledLeaf({ index, leaf, time, grown }: {
+  index: number;
+  leaf: { x: number; y: number; size: number; rotate: number; color: string };
+  time: SharedValue<number>;
+  grown: boolean;
+}) {
+  const style = useAnimatedStyle(() => ({ opacity: grown || time.value > (index + 1) * LEAF_PILE_MS ? 1 : 0 }));
+  return (
+    <Animated.View
+      style={[
+        styles.piece,
+        leafShape(leaf.size, leaf.color),
+        { transform: [{ translateX: leaf.x - leaf.size / 2 }, { translateY: leaf.y - leaf.size / 2 }, { rotate: `${leaf.rotate}deg` }] },
+        style,
+      ]}
+    />
+  );
+}
+
 /**
  * 알갱이가 내리거나 날아다니는 날씨. 알갱이마다 속도·크기·시작이 다르고 지나갈 때마다 자리를 새로 뽑아
  * 고르게 흩뿌려진다. 모든 알갱이가 프레임 시계 하나를 같이 쓴다.
- * 동작 줄이기 설정이면 멈춘 채로 두고 눈 더미는 다 쌓인 모습으로 보인다.
+ * 동작 줄이기 설정이면 멈춘 채로 두고 눈 더미·낙엽 더미는 다 쌓인 모습으로 보인다.
  */
 function Particles({ kind, width, height }: { kind: Kind; width: number; height: number }) {
   // ponytail: 크기가 바뀌어도 처음 만든 알갱이를 그대로 쓴다. 화면 회전을 지원하면 다시 만들 것.
@@ -324,6 +406,7 @@ function Particles({ kind, width, height }: { kind: Kind; width: number; height:
         <Piece key={i} q={q} time={time} width={width} height={height} />
       ))}
       {kind === 'snow' ? <SnowPile time={time} width={width} height={height} grown={reduceMotion} /> : null}
+      {kind === 'leaf' ? <LeafPile time={time} width={width} height={height} grown={reduceMotion} /> : null}
     </View>
   );
 }
@@ -360,6 +443,7 @@ const styles = StyleSheet.create({
   fireflyHalo: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: 'rgba(255, 236, 140, 0.25)' },
   fireflyDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#FFF4AA' },
   mound: { position: 'absolute', backgroundColor: '#FFFFFF' },
+  cap: { position: 'absolute', backgroundColor: '#FFFFFF' },
   pile: { position: 'absolute', left: 0, overflow: 'hidden' },
   pileBase: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF' },
 });

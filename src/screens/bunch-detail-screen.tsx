@@ -148,6 +148,15 @@ export default function BunchDetailScreen() {
         contentFit="fill"
         style={[styles.canopy, { width }, canopyBox]}
       />
+      {/* 비 오는 날은 덤불이 한 톤 짙어져 젖어 보인다 (나무 화면과 같은 색·세기). */}
+      {weather === 'rain' ? (
+        <Image
+          source={require('../../assets/detail/canopy.svg')}
+          contentFit="fill"
+          style={[styles.canopy, { width, opacity: 0.28 }, canopyBox]}
+          tintColor="#001914"
+        />
+      ) : null}
 
       <View style={styles.column}>
         <View style={styles.top}>

@@ -29,7 +29,7 @@ import { useToday } from '@/hooks/use-today';
 import { noticeKeyFor } from '@/utils/bird';
 import { setDevSkyMinutes, skyAt, skyBackground, skyTimeFor } from '@/utils/sky';
 import { setDevWeather, type Weather, weatherNow } from '@/utils/weather';
-import { useWindSway, WeatherLayer } from '@/components/weather-layer';
+import { SnowCap, useWindSway, WeatherLayer } from '@/components/weather-layer';
 import { STAGE_H, STAGE_W, stageScale } from '@/utils/stage';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
@@ -135,6 +135,20 @@ function firstName(meta: Record<string, unknown> | undefined): string | null {
   return typeof raw === 'string' && raw.trim() ? raw.trim().split(/\s+/)[0] : null;
 }
 
+/** 젖은 덤불: 덤불 위에 이 색을 옅게 한 겹 더 칠한다. */
+const WET_TINT = '#001914';
+
+/**
+ * 눈이 얹히는 덤불 가장자리: [x, y, 위를 향한 정도]. bush.svg 윤곽에서 바깥 법선이 위를 향하는 점을
+ * 약 9 간격으로 뽑아 무대 좌표로 옮겼다 (덤불 left -1, top -15). 덤불 그림이 바뀌면 다시 뽑는다.
+ */
+const BUSH_SNOW = [
+  [320.1, 184.9, 0.36], [315.8, 175.5, 0.47], [310.2, 166.9, 0.58], [304.2, 158.8, 0.64], [296.7, 151.4, 0.77],
+  [286.9, 144.8, 0.89], [278.0, 140.6, 0.91], [268.6, 136.6, 0.93], [258.5, 133.0, 0.95], [247.7, 129.5, 0.96],
+  [236.2, 126.2, 0.96], [224.0, 123.1, 0.97], [207.9, 48.1, 0.35], [203.2, 38.7, 0.54], [197.2, 31.6, 0.75],
+  [190.2, 24.7, 0.71], [182.9, 18.1, 0.77], [174.5, 11.7, 0.82], [166.2, 6.4, 0.86],
+] as const;
+
 /** 비·눈 오는 날 흐려진 해·달 (시안 main-rainy-*). */
 const WET_SUN = '#B2B2B2';
 const WET_MOON = '#4F5A66';
@@ -199,8 +213,8 @@ export default function TreeScreen() {
     height: win.height - top - HEADER_HEIGHT - bottom - TAB_BAR_HEIGHT,
   };
   const scale = stageScale(area.width, area.height);
-  // 바람 부는 날 덤불과 송이가 밑동(무대 아래 끝)을 축으로 살랑 기운다.
-  const sway = useWindSway(weather === 'wind');
+  // 바람 부는 날 덤불과 송이가 밑동(무대 아래 끝)을 축으로 기운다. 낙엽 지는 날은 아주 약하게.
+  const sway = useWindSway(weather === 'wind' ? 1 : weather === 'leaf' ? 0.3 : 0);
   const groundSway = useAnimatedStyle(() => ({
     transform: [{ scale }, { translateY: STAGE_H }, { skewX: `${sway.value}deg` }, { translateY: -STAGE_H }],
   }));
@@ -275,6 +289,11 @@ export default function TreeScreen() {
               {/* 바람에 기울면 왼쪽 끝이 화면 안으로 들어와 틈이 생긴다. 같은 덤불을 왼쪽으로 80 옮겨 한 장 더 깔아 메운다. */}
               <Image source={require('../../assets/tree/bush.svg')} style={[styles.bush, styles.bushBackfill]} />
               <Image source={require('../../assets/tree/bush.svg')} style={styles.bush} />
+              {/* 비 오는 날은 덤불이 한 톤 짙어져 젖어 보인다. */}
+              {weather === 'rain' ? (
+                <Image source={require('../../assets/tree/bush.svg')} style={[styles.bush, styles.wet]} tintColor={WET_TINT} />
+              ) : null}
+              {weather === 'snow' ? <SnowCap key={weather} points={BUSH_SNOW} /> : null}
               {SLOTS.map((slot) => {
                 const goal = byPosition.get(slot);
                 return (
@@ -428,6 +447,7 @@ const styles = StyleSheet.create({
   },
   bush: { position: 'absolute', left: -1, top: -15, width: 336, height: 725 },
   bushBackfill: { left: -81 },
+  wet: { opacity: 0.28 },
   slot: {
     position: 'absolute', width: BUNCH_W, height: BUNCH_H, justifyContent: 'center',
     transform: [{ scale: BUNCH_ZOOM }],
