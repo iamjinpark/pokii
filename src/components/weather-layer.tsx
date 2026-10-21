@@ -19,7 +19,6 @@ const SLANT = 0.35;
 const FALL = 0.88;
 
 const PETAL = '#F7C6D3';
-const WIND_LEAVES = ['#3F8A4A', '#5E9E4F', '#2F6B3A'];
 const FALL_LEAVES = ['#E08A3C', '#C9652E', '#D9A441', '#9C5A2E'];
 
 /**
@@ -28,7 +27,7 @@ const FALL_LEAVES = ['#E08A3C', '#C9652E', '#D9A441', '#9C5A2E'];
 const LOOK: Record<Kind, { density: number; ms: [number, number]; size: [number, number] }> = {
   rain: { density: 4.5, ms: [900, 1600], size: [10, 20] },
   snow: { density: 2.2, ms: [8000, 13000], size: [5, 9] },
-  wind: { density: 0.5, ms: [2500, 4000], size: [7, 11] },
+  wind: { density: 0.25, ms: [2600, 4200], size: [8, 14] },
   petal: { density: 1, ms: [7000, 11000], size: [6, 9] },
   leaf: { density: 0.6, ms: [7000, 10000], size: [8, 12] },
   firefly: { density: 0.5, ms: [3000, 6000], size: [3, 3] },
@@ -135,20 +134,40 @@ const leafShape = (size: number, color: string) => ({
   backgroundColor: color,
 });
 
-/** 바람: 초록 잎이 왼쪽에서 오른쪽으로 빙글빙글 날아간다. */
-function WindLeaf({ q, time, width, height }: PieceProps) {
+/** 바람 줄기가 한 번 지나가는 동안 보이는 몫. 나머지는 쉬어서 훅, 훅 끊어 분다. */
+const GUST = 0.35;
+
+/** 바람: 끝이 말린 흰 줄기가 왼쪽에서 오른쪽으로 훅 스쳐 지나가고 잠시 쉰다. */
+function WindGust({ q, time, width, height }: PieceProps) {
+  const length = q.size * 6;
   const style = useAnimatedStyle(() => {
-    const { p, x: y0 } = progress(time.value, q, height * 0.85);
+    const { p, x: y } = progress(time.value, q, height * 0.7);
+    const t = Math.min(1, p / GUST);
     return {
-      transform: [
-        { translateX: -q.size * 2 + p * (width + q.size * 4) },
-        { translateY: y0 + Math.sin(p * Math.PI * 4 + q.seed) * 14 },
-        { rotate: `${p * 720}deg` },
-      ],
+      opacity: p < GUST ? 0.75 * Math.sin(Math.PI * t) : 0,
+      transform: [{ translateX: -length + t * (width + length) }, { translateY: y }],
     };
   });
-  const color = WIND_LEAVES[Math.floor(q.tone * WIND_LEAVES.length)];
-  return <Animated.View style={[styles.piece, leafShape(q.size, color), style]} />;
+  return (
+    <Animated.View style={[styles.gust, style]}>
+      <View style={[styles.gustLine, { width: length }]} />
+      <View style={styles.gustCurl} />
+    </Animated.View>
+  );
+}
+
+/**
+ * 바람 부는 날 덤불이 밑동을 축으로 기울어지는 각도(deg). 느린 흔들림에 짧은 돌풍을 얹는다.
+ * 바람이 아니거나 동작 줄이기 설정이면 0이다.
+ */
+export function useWindSway(active: boolean): SharedValue<number> {
+  const reduceMotion = useReducedMotion();
+  const sway = useSharedValue(0);
+  useFrameCallback((frame) => {
+    const t = frame.timeSinceFirstFrame / 1000;
+    sway.value = Math.sin(t * 1.9) * 0.8 + Math.sin(t * 5.3) * 0.3;
+  }, active && !reduceMotion);
+  return sway;
 }
 
 /** 벚꽃: 꽃잎이 뒤집히듯 납작해졌다 펴지며 왼쪽 아래로 팔랑인다. */
@@ -213,7 +232,7 @@ function Firefly({ q, time, width, height }: PieceProps) {
 const PIECE: Record<Kind, (props: PieceProps) => React.JSX.Element> = {
   rain: RainDrop,
   snow: SnowFlake,
-  wind: WindLeaf,
+  wind: WindGust,
   petal: Petal,
   leaf: FallLeaf,
   firefly: Firefly,
@@ -302,6 +321,12 @@ const styles = StyleSheet.create({
   splashDot: { position: 'absolute', top: -1, width: 2, height: 2, borderRadius: 1, backgroundColor: RAIN_COLOR },
   flake: { position: 'absolute', left: 0, top: 0, backgroundColor: '#FFFFFF', opacity: 0.85 },
   piece: { position: 'absolute', left: 0, top: 0, opacity: 0.9 },
+  gust: { position: 'absolute', left: 0, top: 0, flexDirection: 'row', alignItems: 'flex-start' },
+  gustLine: { height: 2, marginTop: 8, borderRadius: 1, backgroundColor: '#FFFFFF' },
+  gustCurl: {
+    width: 10, height: 10, marginLeft: -2, borderTopWidth: 2, borderRightWidth: 2, borderColor: '#FFFFFF',
+    borderTopRightRadius: 5, borderBottomRightRadius: 5, transform: [{ translateY: -0.5 }],
+  },
   firefly: { position: 'absolute', left: -6, top: -6, width: 12, height: 12, alignItems: 'center', justifyContent: 'center' },
   fireflyHalo: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: 'rgba(255, 236, 140, 0.25)' },
   fireflyDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#FFF4AA' },

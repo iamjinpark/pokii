@@ -29,7 +29,7 @@ import { useToday } from '@/hooks/use-today';
 import { noticeKeyFor } from '@/utils/bird';
 import { setDevSkyMinutes, skyAt, skyBackground, skyTimeFor } from '@/utils/sky';
 import { setDevWeather, type Weather, weatherNow } from '@/utils/weather';
-import { WeatherLayer } from '@/components/weather-layer';
+import { useWindSway, WeatherLayer } from '@/components/weather-layer';
 import { STAGE_H, STAGE_W, stageScale } from '@/utils/stage';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
@@ -192,6 +192,11 @@ export default function TreeScreen() {
     height: win.height - top - HEADER_HEIGHT - bottom - TAB_BAR_HEIGHT,
   };
   const scale = stageScale(area.width, area.height);
+  // 바람 부는 날 덤불과 송이가 밑동(무대 아래 끝)을 축으로 살랑 기운다.
+  const sway = useWindSway(weather === 'wind');
+  const groundSway = useAnimatedStyle(() => ({
+    transform: [{ scale }, { translateY: STAGE_H }, { skewX: `${sway.value}deg` }, { translateY: -STAGE_H }],
+  }));
   // 하늘은 세로로 맞출 것이 없어 폭만 따른다. 해·달·별의 위치와 크기가 화면 폭에 비례한다.
   const skyScale = area.width / STAGE_W;
 
@@ -236,7 +241,7 @@ export default function TreeScreen() {
   };
   const treeBody = (
     <>
-            <View style={[styles.ground, { transform: [{ scale }] }]}>
+            <Animated.View style={[styles.ground, groundSway]}>
               {/* 구름은 덤불에 걸쳐 있어야 해서 하늘이 아니라 덤불과 같은 무대에, 덤불 뒤에 둔다. */}
               {time === 'night' || wet ? null : (
                 <>
@@ -290,7 +295,7 @@ export default function TreeScreen() {
                   </View>
                 );
               })}
-            </View>
+            </Animated.View>
 
             {/* 덤불 위로 겹치므로 빈 곳 터치는 아래 송이로 흘려보낸다. */}
             <View style={[styles.right, { transform: [{ scale }] }]}>

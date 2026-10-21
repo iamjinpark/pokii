@@ -63,7 +63,7 @@ const WEATHER_SKY: Record<Weather, { day: string; night: string; amount: number;
   firefly: { day: '#FFFFFF', night: '#000000', amount: 0, glow: 1 },
   rain: { day: '#C4C4C4', night: '#26303F', amount: 0.8, glow: 0 },
   snow: { day: '#D6DCE4', night: '#2E3848', amount: 0.8, glow: 0 },
-  cloudy: { day: '#D3D8DC', night: '#28323F', amount: 0.45, glow: 0.4 },
+  cloudy: { day: '#B8BEC4', night: '#222A35', amount: 0.75, glow: 0.1 },
   fog: { day: '#ECEEEE', night: '#3A4556', amount: 0.35, glow: 0.5 },
 };
 
