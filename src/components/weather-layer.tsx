@@ -232,13 +232,14 @@ export function SnowCap({ points }: { points: readonly (readonly [number, number
   return (
     <>
       {points.map(([x, y], i) => {
-        // 바닥 눈 더미와 같은 크기 범위(14~24). 이웃끼리 크기를 달리해 위쪽이 울퉁불퉁하다.
-        const d = 14 + ((i * 7) % 11);
+        // 바닥 눈 더미(최대 14)보다 얇게 얹히도록 지름 8~13으로 작게, 가장자리에 반쯤 걸친다.
+        // 이웃끼리 크기를 달리해 위쪽이 울퉁불퉁하다.
+        const d = 8 + ((i * 7) % 6);
         return (
           <Animated.View
             key={i}
             pointerEvents="none"
-            style={[styles.mound, { left: x - d / 2, top: y - d * 0.55, width: d, height: d, borderRadius: d / 2, transformOrigin: 'bottom' }, style]}
+            style={[styles.mound, { left: x - d / 2, top: y - d * 0.5, width: d, height: d, borderRadius: d / 2, transformOrigin: 'bottom' }, style]}
           />
         );
       })}
