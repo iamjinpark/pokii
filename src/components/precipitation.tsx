@@ -101,25 +101,64 @@ function splashDot(p: number, side: number) {
   };
 }
 
-/** 눈송이: 가장자리가 흰 빛으로 번진 솜뭉치처럼, 천천히 내려오며 좌우로 살랑인다. */
+/** 눈송이 하나를 이루는 동그라미 셋: [가로, 세로, 지름] (눈송이 지름 대비). 겹쳐서 울퉁불퉁한 솜뭉치가 된다. */
+const PUFFS = [
+  [0, 0.15, 0.8],
+  [0.35, 0, 0.75],
+  [0.2, 0.35, 0.7],
+] as const;
+
+/** 눈송이: 작은 동그라미 셋이 뭉친 솜뭉치. 천천히 내려오며 좌우로 살랑인다. */
 function SnowFlake({ q, time, width, height }: { q: Particle; time: SharedValue<number>; width: number; height: number }) {
   const style = useAnimatedStyle(() => {
     const { p, x } = progress(time.value, q, width);
     const sway = Math.sin(p * Math.PI * 3 + q.seed) * 16;
     return { transform: [{ translateX: x + sway }, { translateY: -q.size + p * (height + q.size * 2) }] };
   });
-  const fluff = {
-    width: q.size,
-    height: q.size,
-    borderRadius: q.size / 2,
-    boxShadow: `0 0 ${q.size * 0.7}px ${q.size * 0.3}px rgba(255, 255, 255, 0.6)`,
-  };
-  return <Animated.View style={[styles.flake, fluff, style]} />;
+  return (
+    <Animated.View style={[styles.flake, { width: q.size, height: q.size }, style]}>
+      {PUFFS.map(([x, y, d]) => (
+        <View
+          key={`${x},${y}`}
+          style={[styles.puff, { left: x * q.size, top: y * q.size, width: d * q.size, height: d * q.size, borderRadius: (d * q.size) / 2 }]}
+        />
+      ))}
+    </Animated.View>
+  );
+}
+
+/** 바닥 눈 더미가 다 쌓이기까지 걸리는 시간과 최대 높이(dp). */
+const PILE_MS = 60000;
+const PILE_H = 14;
+
+/** 바닥에 쌓이는 눈 더미. 크기가 다른 동그라미를 이어 붙여 위쪽이 울퉁불퉁하고, 눈이 내리는 동안 천천히 올라온다. */
+function SnowPile({ time, width, height, grown }: { time: SharedValue<number>; width: number; height: number; grown: boolean }) {
+  const [mounds] = useState(() => {
+    const out: { x: number; d: number }[] = [];
+    for (let x = -10; x < width + 10; x += 10 + Math.random() * 8) out.push({ x, d: 14 + Math.random() * 10 });
+    return out;
+  });
+  const rise = useAnimatedStyle(() => {
+    const g = grown ? 1 : Math.min(1, time.value / PILE_MS);
+    return { transform: [{ translateY: (1 - g) * PILE_H }] };
+  });
+  // 화면 밖으로 삐져나가지 않게 바깥 칸에서 자르고, 안쪽을 아래에서 밀어 올린다.
+  return (
+    <View style={[styles.pile, { top: height - PILE_H, width, height: PILE_H }]}>
+      <Animated.View style={[StyleSheet.absoluteFill, rise]}>
+        {mounds.map((m, i) => (
+          <View key={i} style={[styles.puff, { left: m.x - m.d / 2, top: PILE_H - m.d * 0.55, width: m.d, height: m.d, borderRadius: m.d / 2 }]} />
+        ))}
+        <View style={[styles.pileBase, { top: PILE_H * 0.6 }]} />
+      </Animated.View>
+    </View>
+  );
 }
 
 /**
  * 화면 전체에 비나 눈이 내린다. 알갱이마다 속도·크기·시작 높이가 다르고 떨어질 때마다 자리를 새로 뽑아
- * 고르게 흩뿌려진다. 모든 알갱이가 프레임 시계 하나를 같이 쓴다. 동작 줄이기 설정이면 멈춘 채로 둔다.
+ * 고르게 흩뿌려진다. 눈은 바닥에 소복이 쌓인다. 모든 알갱이가 프레임 시계 하나를 같이 쓴다.
+ * 동작 줄이기 설정이면 멈춘 채로 두고 눈 더미는 다 쌓인 모습으로 보인다.
  */
 export function Precipitation({ kind, width, height }: { kind: PrecipitationKind; width: number; height: number }) {
   // ponytail: 크기가 바뀌어도 처음 만든 알갱이를 그대로 쓴다. 화면 회전을 지원하면 다시 만들 것.
@@ -135,6 +174,7 @@ export function Precipitation({ kind, width, height }: { kind: PrecipitationKind
       {particles.map((q, i) => (
         <Piece key={i} q={q} time={time} width={width} height={height} />
       ))}
+      {kind === 'snow' ? <SnowPile time={time} width={width} height={height} grown={reduceMotion} /> : null}
     </View>
   );
 }
@@ -144,5 +184,8 @@ const styles = StyleSheet.create({
   splash: { position: 'absolute', left: 0, top: 0, width: 12, height: 4, alignItems: 'center', justifyContent: 'center' },
   ring: { position: 'absolute', width: 12, height: 4, borderRadius: 6, borderWidth: 1, borderColor: RAIN_COLOR },
   splashDot: { position: 'absolute', top: -1, width: 2, height: 2, borderRadius: 1, backgroundColor: RAIN_COLOR },
-  flake: { position: 'absolute', left: 0, top: 0, backgroundColor: '#FFFFFF', opacity: 0.85 },
+  flake: { position: 'absolute', left: 0, top: 0, opacity: 0.9 },
+  puff: { position: 'absolute', backgroundColor: '#FFFFFF' },
+  pile: { position: 'absolute', left: 0, overflow: 'hidden' },
+  pileBase: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF' },
 });
