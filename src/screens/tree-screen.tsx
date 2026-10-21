@@ -20,7 +20,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HEADER_HEIGHT, TAB_BAR_HEIGHT } from '@/components/app-header';
 import { Text } from '@/components/text';
 import { BirdScene } from '@/components/tree-bird';
+import { BunchSheet } from '@/components/bunch-sheet';
 import { BUNCH_H, BUNCH_W, TreeBunch } from '@/components/tree-bunch';
+import type { Goal } from '@/hooks/use-goals';
 import { SLOTS, useGoals } from '@/hooks/use-goals';
 import { useSession } from '@/hooks/use-session';
 import { isBunchEnded, treeSignals } from '@/utils/bunch';
@@ -198,6 +200,8 @@ export default function TreeScreen() {
   const skyBg = skyBackground(sky, 0.5);
   // 화면을 열 때마다 구름 2종을 새로 고르고, 화면이 떠 있는 동안은 그대로 둔다.
   const [clouds] = useState(pickClouds);
+  // 송이를 누르면 그 송이의 시트를 띄운다 (스펙 7.1). 들어가기로 상세·결과 화면에 간다.
+  const [sheetGoal, setSheetGoal] = useState<Goal | null>(null);
   /** 고르지 않은 나머지 구름 한 종. 흐린 날 해 앞에 건다. */
   const spare = 3 - clouds[0] - clouds[1];
 
@@ -291,15 +295,7 @@ export default function TreeScreen() {
                       <TreeBunch
                         goal={goal}
                         today={today}
-                        onPress={() =>
-                          // 끝난 송이는 결과 화면으로 간다. 거기서만 끝내기·한 송이 더를 고를 수
-                          // 있고, 그러지 않으면 그 가지가 영영 막힌다 (설계 7.1).
-                          router.push(
-                            isBunchEnded({ ...goal.bunch, today })
-                              ? { pathname: '/goal/[id]/done', params: { id: goal.id } }
-                              : { pathname: '/goal/[id]', params: { id: goal.id } },
-                          )
-                        }
+                        onPress={() => setSheetGoal(goal)}
                       />
                     ) : (
                       <Pressable
@@ -370,6 +366,23 @@ export default function TreeScreen() {
             {treeBody}
           </BirdScene>
           <WeatherLayer weather={weather} night={sky.dark} width={area.width} height={area.height} />
+          {sheetGoal ? (
+            <BunchSheet
+              goal={sheetGoal}
+              today={today}
+              onClose={() => setSheetGoal(null)}
+              onEnter={() => {
+                setSheetGoal(null);
+                // 끝난 송이는 결과 화면으로 간다. 거기서만 끝내기·한 송이 더를 고를 수
+                // 있고, 그러지 않으면 그 가지가 영영 막힌다 (설계 7.1).
+                router.push(
+                  isBunchEnded({ ...sheetGoal.bunch, today })
+                    ? { pathname: '/goal/[id]/done', params: { id: sheetGoal.id } }
+                    : { pathname: '/goal/[id]', params: { id: sheetGoal.id } },
+                );
+              }}
+            />
+          ) : null}
         </>
       ) : null}
       {/* 개발 빌드 전용: 막대를 눌러 끌면 하늘 시각이 바뀌고, 글자를 누르면 지금으로 돌아간다. */}

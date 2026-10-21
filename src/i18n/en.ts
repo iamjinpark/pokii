@@ -63,6 +63,13 @@ export const en = {
   'settings.account': 'account',
   'settings.signOut': 'sign out',
   'settings.signOut.failed': "couldn't sign out. try again.",
+  'sheet.today.todo': "today's pokii is waiting",
+  'sheet.today.done': 'harvested today',
+  'sheet.ended': 'this bunch is done',
+  'sheet.enter': 'open',
+  'sheet.result': 'see result',
+  'sheet.days': '10 days',
+  'sheet.close': 'close',
   'common.retry': 'retry',
   'common.error.network': "couldn't reach your tree.",
 } as const;
