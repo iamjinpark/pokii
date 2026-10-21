@@ -382,11 +382,13 @@ function SnowPile({ time, width, height, grown }: { time: SharedValue<number>; w
   );
 }
 
-/** 바닥에 쌓이는 낙엽 수와 한 장이 더 내려앉는 간격(ms). */
+/** 바닥에 쌓이는 낙엽 수, 한 장씩 떨어지기 시작하는 간격, 위에서 바닥까지 걸리는 시간, 내려앉아 톡 튀는 시간(ms). */
 const LEAF_PILE = 28;
 const LEAF_PILE_MS = 1500;
+const LEAF_DROP_MS = 5000;
+const LEAF_LAND_MS = 300;
 
-/** 바닥에 낙엽이 한 장씩 내려앉아 쌓인다. 자리·각도·색은 처음에 정하고, 시간이 지나며 하나씩 보인다. */
+/** 바닥에 낙엽이 한 장씩 떨어져 내려앉아 쌓인다. 내려앉을 자리·각도·색은 처음에 정한다. */
 function LeafPile({ time, width, height, grown }: { time: SharedValue<number>; width: number; height: number; grown: boolean }) {
   const [leaves] = useState(() =>
     Array.from({ length: LEAF_PILE }, () => ({
@@ -395,6 +397,7 @@ function LeafPile({ time, width, height, grown }: { time: SharedValue<number>; w
       size: 8 + Math.random() * 4,
       rotate: (Math.random() < 0.5 ? -1 : 1) * (60 + Math.random() * 50),
       color: FALL_LEAVES[Math.floor(Math.random() * FALL_LEAVES.length)],
+      phase: Math.random() * Math.PI * 2,
     })),
   );
   return (
@@ -406,23 +409,37 @@ function LeafPile({ time, width, height, grown }: { time: SharedValue<number>; w
   );
 }
 
+/** 쌓일 잎 하나: 위에서 좌우로 흔들리며 떨어지다 제자리에 툭 내려앉아 머문다. */
 function PiledLeaf({ index, leaf, time, grown }: {
   index: number;
-  leaf: { x: number; y: number; size: number; rotate: number; color: string };
+  leaf: { x: number; y: number; size: number; rotate: number; color: string; phase: number };
   time: SharedValue<number>;
   grown: boolean;
 }) {
-  const style = useAnimatedStyle(() => ({ opacity: grown || time.value > (index + 1) * LEAF_PILE_MS ? 1 : 0 }));
-  return (
-    <Animated.View
-      style={[
-        styles.piece,
-        leafShape(leaf.size, leaf.color),
-        { transform: [{ translateX: leaf.x - leaf.size / 2 }, { translateY: leaf.y - leaf.size / 2 }, { rotate: `${leaf.rotate}deg` }] },
-        style,
-      ]}
-    />
-  );
+  const style = useAnimatedStyle(() => {
+    const rest = { x: leaf.x - leaf.size / 2, y: leaf.y - leaf.size / 2 };
+    const t = grown ? 2 : (time.value - index * LEAF_PILE_MS) / LEAF_DROP_MS;
+    if (t <= 0) return { opacity: 0, transform: [{ translateX: rest.x }, { translateY: -leaf.size * 2 }] };
+    if (t < 1) {
+      // 흔들림이 바닥에 가까울수록 줄어 정확히 제자리에 내려앉는다.
+      const swing = Math.sin(t * Math.PI * 3 + leaf.phase) * (1 - t);
+      return {
+        opacity: 1,
+        transform: [
+          { translateX: rest.x + swing * 24 },
+          { translateY: -leaf.size * 2 + t * (rest.y + leaf.size * 2) },
+          { rotate: `${leaf.rotate * t + swing * 70}deg` },
+        ],
+      };
+    }
+    // 내려앉은 직후 살짝 튀었다 가라앉는다.
+    const land = Math.min(1, ((t - 1) * LEAF_DROP_MS) / LEAF_LAND_MS);
+    return {
+      opacity: 1,
+      transform: [{ translateX: rest.x }, { translateY: rest.y - Math.sin(Math.PI * land) * 3 }, { rotate: `${leaf.rotate}deg` }],
+    };
+  });
+  return <Animated.View style={[styles.piece, leafShape(leaf.size, leaf.color), style]} />;
 }
 
 /**
