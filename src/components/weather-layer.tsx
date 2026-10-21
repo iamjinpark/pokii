@@ -7,7 +7,6 @@ import Animated, {
   useReducedMotion,
   useSharedValue,
 } from 'react-native-reanimated';
-import { backgroundImage } from '@/utils/sky';
 import type { Weather } from '@/utils/weather';
 
 type Kind = 'rain' | 'snow' | 'wind' | 'petal' | 'leaf' | 'firefly';
@@ -291,24 +290,11 @@ function Particles({ kind, width, height }: { kind: Kind; width: number; height:
   );
 }
 
-/** 안개: 화면 아래쪽부터 뿌옇게 덮는다. 밤에는 푸르스름하게 옅게. */
-function Fog({ night }: { night: boolean }) {
-  const c = night ? '200, 210, 225' : '255, 255, 255';
-  const a = night ? 0.3 : 0.55;
-  return (
-    <View
-      style={[StyleSheet.absoluteFill, backgroundImage(`linear-gradient(180deg, rgba(${c}, 0) 25%, rgba(${c}, ${a}) 100%)`)]}
-      pointerEvents="none"
-    />
-  );
-}
-
 /**
  * 날씨에 따라 화면 위에 얹는 효과 (스펙 8.6). 흐림·맑음은 하늘색만 바뀌어 얹을 것이 없고,
  * 반딧불은 밤에만 뜬다. 터치는 아래로 흘려보낸다.
  */
 export function WeatherLayer({ weather, night, width, height }: { weather: Weather; night: boolean; width: number; height: number }) {
-  if (weather === 'fog') return <Fog night={night} />;
   if (weather === 'clear' || weather === 'cloudy') return null;
   if (weather === 'firefly' && !night) return null;
   return <Particles key={weather} kind={weather} width={width} height={height} />;

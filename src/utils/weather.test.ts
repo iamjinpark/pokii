@@ -31,13 +31,11 @@ test('10년 동안 날씨별 비율이 정한 확률 근처다', () => {
   const rate = (w: string) => (count[w] ?? 0) / 3650;
   expect(rate('cloudy')).toBeGreaterThan(0.08);
   expect(rate('cloudy')).toBeLessThan(0.12);
-  expect(rate('fog')).toBeGreaterThan(0.035);
-  expect(rate('fog')).toBeLessThan(0.065);
   expect(rate('wind')).toBeGreaterThan(0.035);
   expect(rate('wind')).toBeLessThan(0.065);
   const fair = rate('clear') + rate('petal') + rate('leaf') + rate('firefly');
-  expect(fair).toBeGreaterThan(0.66);
-  expect(fair).toBeLessThan(0.74);
+  expect(fair).toBeGreaterThan(0.71);
+  expect(fair).toBeLessThan(0.79);
 });
 
 test.each([

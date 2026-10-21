@@ -64,12 +64,11 @@ const WEATHER_SKY: Record<Weather, { day: string; night: string; amount: number;
   rain: { day: '#C4C4C4', night: '#26303F', amount: 0.8, glow: 0 },
   snow: { day: '#D6DCE4', night: '#2E3848', amount: 0.8, glow: 0 },
   cloudy: { day: '#B8BEC4', night: '#222A35', amount: 0.75, glow: 0.1 },
-  fog: { day: '#ECEEEE', night: '#3A4556', amount: 0.35, glow: 0.5 },
 };
 
 /**
  * 하루 중 분(0–1439)의 하늘. 가운데 색이 어두우면 밝은 글자를 쓴다.
- * 흐리거나 비·눈·안개인 날은 그 시각 하늘을 회색·남색 쪽으로 눌러 시각 변화는 은은하게 남기고, 해·달빛 번짐을 줄인다.
+ * 흐리거나 비·눈 오는 날은 그 시각 하늘을 회색·남색 쪽으로 눌러 시각 변화는 은은하게 남기고, 해·달빛 번짐을 줄인다.
  */
 export function skyAt(minutes: number, weather: Weather = 'clear'): Sky {
   const h = (((minutes / 60) % 24) + 24) % 24;
@@ -116,7 +115,7 @@ export function skyBackground(sky: Sky, glow: number): ViewStyle {
 }
 
 /** CSS 그라데이션을 배경으로. */
-export function backgroundImage(image: string): ViewStyle {
+function backgroundImage(image: string): ViewStyle {
   // react-native-web은 experimental_backgroundImage를 모르고, CSS backgroundImage는 그대로 넘긴다.
   // RN 타입에 backgroundImage가 없어 캐스트한다.
   return Platform.OS === 'web'

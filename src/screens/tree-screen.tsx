@@ -139,9 +139,9 @@ function firstName(meta: Record<string, unknown> | undefined): string | null {
 const WET_SUN = '#B2B2B2';
 const WET_MOON = '#4F5A66';
 /** 개발 빌드 날씨 버튼이 차례로 보여 주는 날씨. */
-const DEV_WEATHERS: Weather[] = ['clear', 'rain', 'snow', 'cloudy', 'fog', 'wind', 'petal', 'leaf', 'firefly'];
+const DEV_WEATHERS: Weather[] = ['clear', 'rain', 'snow', 'cloudy', 'wind', 'petal', 'leaf', 'firefly'];
 const DEV_WEATHER_LABEL: Record<Weather, string> = {
-  clear: '맑음', rain: '비', snow: '눈', cloudy: '흐림', fog: '안개', wind: '바람', petal: '벚꽃', leaf: '낙엽', firefly: '반딧불',
+  clear: '맑음', rain: '비', snow: '눈', cloudy: '흐림', wind: '바람', petal: '벚꽃', leaf: '낙엽', firefly: '반딧불',
 };
 
 const DEV_BAR_W = 240;
@@ -174,9 +174,9 @@ export default function TreeScreen() {
     setDevWeatherState(next);
   };
   const weather = devWeather ?? weatherNow(today);
-  // 비·눈 오는 날: 해·달이 흐려지고 구름·별이 숨는다. 흐리거나 안개 낀 밤에도 별은 숨는다.
+  // 비·눈 오는 날: 해·달이 흐려지고 구름·별이 숨는다. 흐린 밤에도 별은 숨는다.
   const wet = weather === 'rain' || weather === 'snow';
-  const starless = wet || weather === 'cloudy' || weather === 'fog';
+  const starless = wet || weather === 'cloudy';
   // 흐린 날은 구름도 회색이다.
   const cloudTint = weather === 'cloudy' ? CLOUDY_CLOUD : undefined;
   // 바람 부는 날은 구름이 더 크게, 빨리 오간다.
