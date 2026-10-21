@@ -11,7 +11,6 @@ import Animated, {
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Image as RNImage,
   Pressable,
   StyleSheet,
   useWindowDimensions,
@@ -134,10 +133,6 @@ function firstName(meta: Record<string, unknown> | undefined): string | null {
   const raw = meta?.full_name ?? meta?.name ?? meta?.nickname;
   return typeof raw === 'string' && raw.trim() ? raw.trim().split(/\s+/)[0] : null;
 }
-
-/** 덤불 왼쪽 메움 폭: 줄기 무늬 타일 9.6, bush.svg 무늬 타일 약 9.571(=336x0.0284866)의 9칸. */
-const TRUNK_PAD = 9.6 * 9;
-const BUSH_PAD = 336 * 0.0284866 * 9;
 
 /** 젖은 덤불: 덤불 위에 이 색을 옅게 한 겹 더 칠한다. */
 const WET_TINT = '#001914';
@@ -282,24 +277,10 @@ export default function TreeScreen() {
                   ))}
                 </>
               )}
-              <View style={styles.trunk}>
-                {/* expo-image는 타일 반복이 없어 RN Image의 repeat를 쓴다. */}
-                <RNImage
-                  source={require('../../assets/tree/bush-texture.png')}
-                  resizeMode="repeat"
-                  style={styles.trunkTexture}
-                />
-              </View>
-              {/* 바람에 기울면 왼쪽 끝이 화면 안으로 들어와 틈이 생긴다. 같은 덤불을 왼쪽으로 옮겨 한 장 더 깔아 메운다. */}
-              <Image source={require('../../assets/tree/bush.svg')} style={[styles.bush, styles.bushBackfill]} />
               <Image source={require('../../assets/tree/bush.svg')} style={styles.bush} />
               {/* 비 오는 날은 덤불이 한 톤 짙어져 젖어 보인다. */}
               {weather === 'rain' ? (
-                <>
-                  <Image source={require('../../assets/tree/bush.svg')} style={[styles.bush, styles.wet]} tintColor={WET_TINT} />
-                  {/* 덤불 그림 아래로 이어지는 줄기도 같이 젖는다. 덤불 그림과 겹쳐 두 번 칠해지지 않게 그림이 끝나는 곳부터. */}
-                  <View style={[styles.trunk, styles.wetTrunk]} />
-                </>
+                <Image source={require('../../assets/tree/bush.svg')} style={[styles.bush, styles.wet]} tintColor={WET_TINT} />
               ) : null}
               {weather === 'snow' ? <SnowCap key={weather} points={BUSH_SNOW} /> : null}
               {SLOTS.map((slot) => {
@@ -446,21 +427,12 @@ const styles = StyleSheet.create({
     transformOrigin: 'bottom right',
     pointerEvents: 'box-none',
   },
-  /** 시안보다 긴 화면에서 덤불 줄기(svg 아래 끝, x -1~109)를 화면 끝까지 잇는다. */
   /**
-   * 바람에 기울어도(최대 약 3.3도) 화면 왼쪽 끝이 비지 않게 왼쪽으로 넓힌다. 오른쪽 끝(109)은 그대로다.
-   * 넓히는 양은 무늬 타일(9.6)의 정수배여야 무늬가 덤불 그림과 이어진다. 아니면 만나는 곳에 선이 생긴다.
+   * 덤불 한 장. 시안(x 0~336, 높이 725)보다 왼쪽으로 90, 줄기를 아래로 1100까지 늘려 그려 두었다.
+   * 바람에 기울어도 왼쪽이 비지 않고, 시안보다 긴 화면에서도 줄기가 화면 끝까지 이어진다. 겹쳐 덧대지 않아 무늬가 끊기지 않는다.
    */
-  trunk: { position: 'absolute', left: -1 - TRUNK_PAD, top: 700, width: 110 + TRUNK_PAD, height: 2000, overflow: 'hidden' },
-  /** bush.svg의 패턴은 16px 타일을 약 9.6px로 깐다. */
-  trunkTexture: {
-    width: (110 + TRUNK_PAD) / 0.6, height: 2000 / 0.6, transform: [{ scale: 0.6 }], transformOrigin: 'top left',
-  },
-  bush: { position: 'absolute', left: -1, top: -15, width: 336, height: 725 },
-  bushBackfill: { left: -1 - BUSH_PAD },
+  bush: { position: 'absolute', left: -91, top: -15, width: 426, height: 1100 },
   wet: { opacity: 0.28 },
-  /** 덤불 그림 아래 끝(top -15 + 높이 725)부터 줄기 위에 젖은 색을 칠한다. */
-  wetTrunk: { top: 710, backgroundColor: WET_TINT, opacity: 0.28 },
   slot: {
     position: 'absolute', width: BUNCH_W, height: BUNCH_H, justifyContent: 'center',
     transform: [{ scale: BUNCH_ZOOM }],
