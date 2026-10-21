@@ -11,7 +11,6 @@ import Animated, {
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Image as RNImage,
   Pressable,
   StyleSheet,
   useWindowDimensions,
@@ -28,6 +27,8 @@ import { isBunchEnded, treeSignals } from '@/utils/bunch';
 import { useToday } from '@/hooks/use-today';
 import { noticeKeyFor } from '@/utils/bird';
 import { setDevSkyMinutes, skyAt, skyBackground, skyTimeFor } from '@/utils/sky';
+import { setDevWeather, type Weather, weatherNow } from '@/utils/weather';
+import { SnowCap, useWindSway, WeatherLayer } from '@/components/weather-layer';
 import { STAGE_H, STAGE_W, stageScale } from '@/utils/stage';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
@@ -88,6 +89,12 @@ function pickClouds(): [number, number] {
   return [first, (first + 1 + Math.floor(Math.random() * 2)) % 3];
 }
 
+/** 흐린 날 구름 색. 우중충한 하늘보다 한 톤 어둡게 둬 구름이 묻히지 않게 한다. */
+const CLOUDY_CLOUD = '#A4AAB1';
+
+/** 흐린 날 해 앞을 가리는 구름 자리 (하늘 무대 좌표). 해(left 311, top -17)의 아래 왼쪽에 걸친다. */
+const SUN_CLOUD = { left: 280, top: 50, width: 150 };
+
 const STARS = [
   { left: 235, top: 34 },
   { left: 372, top: 41 },
@@ -100,11 +107,13 @@ function DriftingCloud({
   style,
   drift,
   ms,
+  tint,
 }: {
   source: number;
   style: object;
   drift: number;
   ms: number;
+  tint?: string;
 }) {
   const x = useSharedValue(0);
   useEffect(() => {
@@ -114,7 +123,7 @@ function DriftingCloud({
   const move = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
   return (
     <Animated.View style={[styles.cloud, style, move]}>
-      <Image source={source} style={styles.cloudImage} />
+      <Image source={source} style={styles.cloudImage} tintColor={tint} />
     </Animated.View>
   );
 }
@@ -124,6 +133,29 @@ function firstName(meta: Record<string, unknown> | undefined): string | null {
   const raw = meta?.full_name ?? meta?.name ?? meta?.nickname;
   return typeof raw === 'string' && raw.trim() ? raw.trim().split(/\s+/)[0] : null;
 }
+
+/** 젖은 덤불: 덤불 위에 이 색을 옅게 한 겹 더 칠한다. */
+const WET_TINT = '#001914';
+
+/**
+ * 눈이 얹히는 덤불 가장자리: [x, y, 위를 향한 정도]. bush.svg 윤곽에서 바깥 법선이 위를 향하는 점을
+ * 약 9 간격으로 뽑아 무대 좌표로 옮겼다 (덤불 left -1, top -15). 덤불 그림이 바뀌면 다시 뽑는다.
+ */
+const BUSH_SNOW = [
+  [320.1, 184.9, 0.36], [315.8, 175.5, 0.47], [310.2, 166.9, 0.58], [304.2, 158.8, 0.64], [296.7, 151.4, 0.77],
+  [286.9, 144.8, 0.89], [278.0, 140.6, 0.91], [268.6, 136.6, 0.93], [258.5, 133.0, 0.95], [247.7, 129.5, 0.96],
+  [236.2, 126.2, 0.96], [224.0, 123.1, 0.97], [207.9, 48.1, 0.35], [203.2, 38.7, 0.54], [197.2, 31.6, 0.75],
+  [190.2, 24.7, 0.71], [182.9, 18.1, 0.77], [174.5, 11.7, 0.82], [166.2, 6.4, 0.86],
+] as const;
+
+/** 비·눈 오는 날 흐려진 해·달 (시안 main-rainy-*). */
+const WET_SUN = '#B2B2B2';
+const WET_MOON = '#4F5A66';
+/** 개발 빌드 날씨 버튼이 차례로 보여 주는 날씨. */
+const DEV_WEATHERS: Weather[] = ['clear', 'rain', 'snow', 'cloudy', 'wind', 'petal', 'leaf', 'firefly'];
+const DEV_WEATHER_LABEL: Record<Weather, string> = {
+  clear: '맑음', rain: '비', snow: '눈', cloudy: '흐림', wind: '바람', petal: '벚꽃', leaf: '낙엽', firefly: '반딧불',
+};
 
 const DEV_BAR_W = 240;
 const barMinutes = (x: number) =>
@@ -147,10 +179,27 @@ export default function TreeScreen() {
   const now = new Date();
   const minutes = devMinutes ?? now.getHours() * 60 + now.getMinutes();
   const time = skyTimeFor(Math.floor(minutes / 60));
-  const sky = skyAt(minutes);
+  // 개발 빌드에서 고른 날씨. null이면 오늘 날짜의 포키 날씨.
+  const [devWeather, setDevWeatherState] = useState<Weather | null>(null);
+  const cycleDevWeather = () => {
+    const next = DEV_WEATHERS[(DEV_WEATHERS.indexOf(weatherNow(today)) + 1) % DEV_WEATHERS.length];
+    setDevWeather(next);
+    setDevWeatherState(next);
+  };
+  const weather = devWeather ?? weatherNow(today);
+  // 비·눈 오는 날: 해·달이 흐려지고 구름·별이 숨는다. 흐린 밤에도 별은 숨는다.
+  const wet = weather === 'rain' || weather === 'snow';
+  const starless = wet || weather === 'cloudy';
+  // 흐린 날은 구름도 회색이다.
+  const cloudTint = weather === 'cloudy' ? CLOUDY_CLOUD : undefined;
+  // 바람 부는 날은 구름이 더 크게, 빨리 오간다.
+  const gust = weather === 'wind' ? 3 : 1;
+  const sky = skyAt(minutes, weather);
   const skyBg = skyBackground(sky, 0.5);
   // 화면을 열 때마다 구름 2종을 새로 고르고, 화면이 떠 있는 동안은 그대로 둔다.
   const [clouds] = useState(pickClouds);
+  /** 고르지 않은 나머지 구름 한 종. 흐린 날 해 앞에 건다. */
+  const spare = 3 - clouds[0] - clouds[1];
 
   const byPosition = new Map((goals ?? []).map((g) => [g.position as number, g]));
   const full = byPosition.size === SLOTS.length;
@@ -163,6 +212,11 @@ export default function TreeScreen() {
     height: win.height - top - HEADER_HEIGHT - bottom - TAB_BAR_HEIGHT,
   };
   const scale = stageScale(area.width, area.height);
+  // 바람 부는 날 덤불과 송이가 밑동(무대 아래 끝)을 축으로 기운다. 낙엽 지는 날은 아주 약하게.
+  const sway = useWindSway(weather === 'wind' ? 1 : weather === 'leaf' ? 0.3 : 0);
+  const groundSway = useAnimatedStyle(() => ({
+    transform: [{ scale }, { translateY: STAGE_H }, { skewX: `${sway.value}deg` }, { translateY: -STAGE_H }],
+  }));
   // 하늘은 세로로 맞출 것이 없어 폭만 따른다. 해·달·별의 위치와 크기가 화면 폭에 비례한다.
   const skyScale = area.width / STAGE_W;
 
@@ -207,30 +261,28 @@ export default function TreeScreen() {
   };
   const treeBody = (
     <>
-            <View style={[styles.ground, { transform: [{ scale }] }]}>
+            <Animated.View style={[styles.ground, groundSway]}>
               {/* 구름은 덤불에 걸쳐 있어야 해서 하늘이 아니라 덤불과 같은 무대에, 덤불 뒤에 둔다. */}
-              {time === 'night' ? null : (
+              {time === 'night' || wet ? null : (
                 <>
                   {clouds.map((c, i) => (
                     <DriftingCloud
                       key={i}
                       source={CLOUDS[time][c]}
                       style={{ ...CLOUD_SPOTS[i](CLOUD_SIZE[c].width), height: CLOUD_SIZE[c].height }}
-                      drift={i === 0 ? 10 : -8}
-                      ms={i === 0 ? 7000 : 9000}
+                      drift={(i === 0 ? 10 : -8) * gust}
+                      ms={(i === 0 ? 7000 : 9000) / gust}
+                      tint={cloudTint}
                     />
                   ))}
                 </>
               )}
-              <View style={styles.trunk}>
-                {/* expo-image는 타일 반복이 없어 RN Image의 repeat를 쓴다. */}
-                <RNImage
-                  source={require('../../assets/tree/bush-texture.png')}
-                  resizeMode="repeat"
-                  style={styles.trunkTexture}
-                />
-              </View>
               <Image source={require('../../assets/tree/bush.svg')} style={styles.bush} />
+              {/* 비 오는 날은 덤불이 한 톤 짙어져 젖어 보인다. */}
+              {weather === 'rain' ? (
+                <Image source={require('../../assets/tree/bush.svg')} style={[styles.bush, styles.wet]} tintColor={WET_TINT} />
+              ) : null}
+              {weather === 'snow' ? <SnowCap key={weather} points={BUSH_SNOW} /> : null}
               {SLOTS.map((slot) => {
                 const goal = byPosition.get(slot);
                 return (
@@ -261,7 +313,7 @@ export default function TreeScreen() {
                   </View>
                 );
               })}
-            </View>
+            </Animated.View>
 
             {/* 덤불 위로 겹치므로 빈 곳 터치는 아래 송이로 흘려보낸다. */}
             <View style={[styles.right, { transform: [{ scale }] }]}>
@@ -281,13 +333,30 @@ export default function TreeScreen() {
           <View style={[styles.sky, { transform: [{ scale: skyScale }] }]}>
             {time === 'night' ? (
               <>
-                <Image source={require('../../assets/tree/moon.svg')} style={styles.moon} />
-                {STARS.map((p, i) => (
+                {/* 비 오는 밤은 흐린 달만 (시안 main-rainy-night). */}
+                <Image
+                  source={require('../../assets/tree/moon.svg')}
+                  style={[styles.moon, weather === 'cloudy' && styles.hazyMoon]}
+                  tintColor={wet ? WET_MOON : undefined}
+                />
+                {starless ? null : STARS.map((p, i) => (
                   <Image key={i} source={require('../../assets/tree/star.svg')} style={[styles.star, p]} />
                 ))}
               </>
             ) : (
-              <Image source={SUN[time]} style={styles.sun} />
+              <>
+                <Image source={SUN[time]} style={styles.sun} tintColor={wet ? WET_SUN : undefined} />
+                {/* 흐린 낮: 남은 구름 한 장이 해 앞을 가린다. */}
+                {weather === 'cloudy' ? (
+                  <DriftingCloud
+                    source={CLOUDS[time][spare]}
+                    style={{ ...SUN_CLOUD, height: (SUN_CLOUD.width * CLOUD_SIZE[spare].height) / CLOUD_SIZE[spare].width }}
+                    drift={-6}
+                    ms={8000}
+                    tint={cloudTint}
+                  />
+                ) : null}
+              </>
             )}
           </View>
 
@@ -300,16 +369,22 @@ export default function TreeScreen() {
           >
             {treeBody}
           </BirdScene>
+          <WeatherLayer weather={weather} night={sky.dark} width={area.width} height={area.height} />
         </>
       ) : null}
       {/* 개발 빌드 전용: 막대를 눌러 끌면 하늘 시각이 바뀌고, 글자를 누르면 지금으로 돌아간다. */}
       {__DEV__ ? (
         <View style={styles.devSky}>
-          <Pressable onPress={() => setDevMinutes(null)}>
-            <Text style={styles.devSkyLabel}>
-              {devMinutes === null ? '하늘: 지금' : `하늘: ${hhmm(devMinutes)} (지금으로)`}
-            </Text>
-          </Pressable>
+          <View style={styles.devRow}>
+            <Pressable onPress={() => setDevMinutes(null)}>
+              <Text style={styles.devSkyLabel}>
+                {devMinutes === null ? '하늘: 지금' : `하늘: ${hhmm(devMinutes)} (지금으로)`}
+              </Text>
+            </Pressable>
+            <Pressable onPress={cycleDevWeather}>
+              <Text style={styles.devSkyLabel}>{DEV_WEATHER_LABEL[weather]}</Text>
+            </Pressable>
+          </View>
           <View
             style={styles.devBar}
             onStartShouldSetResponder={() => true}
@@ -340,6 +415,7 @@ const styles = StyleSheet.create({
   sun: { position: 'absolute', left: 311, top: -17, width: 132, height: 125 },
   cloud: { position: 'absolute' },
   cloudImage: { width: '100%', height: '100%' },
+  hazyMoon: { opacity: 0.55 },
   moon: { position: 'absolute', left: 289, top: 13, width: 96, height: 114 },
   star: { position: 'absolute', width: 13, height: 15 },
   ground: {
@@ -351,13 +427,12 @@ const styles = StyleSheet.create({
     transformOrigin: 'bottom right',
     pointerEvents: 'box-none',
   },
-  /** 시안보다 긴 화면에서 덤불 줄기(svg 아래 끝, x -1~109)를 화면 끝까지 잇는다. */
-  trunk: { position: 'absolute', left: -1, top: 700, width: 110, height: 2000, overflow: 'hidden' },
-  /** bush.svg의 패턴은 16px 타일을 약 9.6px로 깐다. */
-  trunkTexture: {
-    width: 110 / 0.6, height: 2000 / 0.6, transform: [{ scale: 0.6 }], transformOrigin: 'top left',
-  },
-  bush: { position: 'absolute', left: -1, top: -15, width: 336, height: 725 },
+  /**
+   * 덤불 한 장. 시안(x 0~336, 높이 725)보다 왼쪽으로 90, 줄기를 아래로 1100까지 늘려 그려 두었다.
+   * 바람에 기울어도 왼쪽이 비지 않고, 시안보다 긴 화면에서도 줄기가 화면 끝까지 이어진다. 겹쳐 덧대지 않아 무늬가 끊기지 않는다.
+   */
+  bush: { position: 'absolute', left: -91, top: -15, width: 426, height: 1100 },
+  wet: { opacity: 0.28 },
   slot: {
     position: 'absolute', width: BUNCH_W, height: BUNCH_H, justifyContent: 'center',
     transform: [{ scale: BUNCH_ZOOM }],
@@ -377,6 +452,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, backgroundColor: 'rgba(0,0,0,0.45)',
   },
   devSkyLabel: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  devRow: { flexDirection: 'row', gap: 14 },
   devBar: {
     width: DEV_BAR_W, height: 24, justifyContent: 'center',
     borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.25)',

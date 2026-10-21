@@ -1,5 +1,7 @@
 import { Platform, type ViewStyle } from 'react-native';
 import { theme } from '@/theme';
+import type { IsoDate } from '@/utils/date';
+import { type Weather, weatherNow } from '@/utils/weather';
 
 export type SkyTime = 'morning' | 'afternoon' | 'night';
 
@@ -49,18 +51,38 @@ export type Sky = {
   dark: boolean;
 };
 
-/** 하루 중 분(0–1439)의 하늘. 가운데 색이 어두우면 밝은 글자를 쓴다. */
-export function skyAt(minutes: number): Sky {
+/**
+ * 날씨별로 그 시각 하늘을 얼마나 어느 색 쪽으로 누를지와 해·달빛 번짐을 얼마나 남길지 (스펙 8.6).
+ * 비는 시안 main-rainy-*의 회색·남색, 눈은 그보다 밝은 회청색. 바람·계절 날씨는 맑은 하늘 그대로다.
+ */
+const WEATHER_SKY: Record<Weather, { day: string; night: string; amount: number; glow: number }> = {
+  clear: { day: '#FFFFFF', night: '#000000', amount: 0, glow: 1 },
+  wind: { day: '#FFFFFF', night: '#000000', amount: 0, glow: 1 },
+  petal: { day: '#FFFFFF', night: '#000000', amount: 0, glow: 1 },
+  leaf: { day: '#FFFFFF', night: '#000000', amount: 0, glow: 1 },
+  firefly: { day: '#FFFFFF', night: '#000000', amount: 0, glow: 1 },
+  rain: { day: '#C4C4C4', night: '#26303F', amount: 0.8, glow: 0 },
+  snow: { day: '#D6DCE4', night: '#2E3848', amount: 0.8, glow: 0 },
+  cloudy: { day: '#B8BEC4', night: '#222A35', amount: 0.75, glow: 0.1 },
+};
+
+/**
+ * 하루 중 분(0–1439)의 하늘. 가운데 색이 어두우면 밝은 글자를 쓴다.
+ * 흐리거나 비·눈 오는 날은 그 시각 하늘을 회색·남색 쪽으로 눌러 시각 변화는 은은하게 남기고, 해·달빛 번짐을 줄인다.
+ */
+export function skyAt(minutes: number, weather: Weather = 'clear'): Sky {
   const h = (((minutes / 60) % 24) + 24) % 24;
   const i = KEYS.findIndex((k) => k[0] > h) - 1;
   const [h0, ...a] = KEYS[i];
   const [h1, ...b] = KEYS[i + 1];
   const t = (h - h0) / (h1 - h0);
   const s = t * t * (3 - 2 * t);
-  const stops = a.map((c, j) => mix(c, b[j], s)) as Stops;
-  const dark = luminance(stops[1]) < 0.5;
+  const clear = a.map((c, j) => mix(c, b[j], s)) as Stops;
+  const dark = luminance(clear[1]) < 0.5;
+  const stops =
+    clear.map((c) => mix(c, dark ? WEATHER_SKY[weather].night : WEATHER_SKY[weather].day, WEATHER_SKY[weather].amount)) as Stops;
   // 오른쪽 위 모서리에서 번지는 빛. 낮엔 해 색(스펙 8.6), 밤엔 달빛.
-  const glow = { rgb: rgb(dark ? LIGHT : h < 12 ? '#FFC187' : '#FF9987'), alpha: dark ? 0.18 : 0.45 };
+  const glow = { rgb: rgb(dark ? LIGHT : h < 12 ? '#FFC187' : '#FF9987'), alpha: WEATHER_SKY[weather].glow * (dark ? 0.18 : 0.45) };
   return {
     stops,
     glow,
@@ -78,10 +100,10 @@ export function setDevSkyMinutes(minutes: number | null) {
   devMinutes = minutes;
 }
 
-/** 지금(또는 개발 막대가 고른 시각)의 하늘. */
-export function skyNow(): Sky {
+/** 지금(또는 개발 막대가 고른 시각)의 하늘. 오늘 날씨를 반영한다. */
+export function skyNow(today: IsoDate): Sky {
   const now = new Date();
-  return skyAt(devMinutes ?? now.getHours() * 60 + now.getMinutes());
+  return skyAt(devMinutes ?? now.getHours() * 60 + now.getMinutes(), weatherNow(today));
 }
 
 /** 하늘을 화면 배경 스타일로. glow(0–1)만큼 오른쪽 위 모서리 빛 번짐을 위에 얹는다. */
@@ -89,9 +111,14 @@ export function skyBackground(sky: Sky, glow: number): ViewStyle {
   const [r, g, b] = sky.glow.rgb;
   const a = sky.glow.alpha * glow;
   const image = `radial-gradient(circle at 100% 0%, rgba(${r}, ${g}, ${b}, ${a}) 0%, rgba(${r}, ${g}, ${b}, 0) 65%), ${sky.gradient}`;
+  return { backgroundColor: sky.stops[1], ...backgroundImage(image) };
+}
+
+/** CSS 그라데이션을 배경으로. */
+function backgroundImage(image: string): ViewStyle {
   // react-native-web은 experimental_backgroundImage를 모르고, CSS backgroundImage는 그대로 넘긴다.
   // RN 타입에 backgroundImage가 없어 캐스트한다.
   return Platform.OS === 'web'
-    ? ({ backgroundColor: sky.stops[1], backgroundImage: image } as ViewStyle)
-    : { backgroundColor: sky.stops[1], experimental_backgroundImage: image };
+    ? ({ backgroundImage: image } as ViewStyle)
+    : { experimental_backgroundImage: image };
 }

@@ -10,7 +10,9 @@ import { BERRIES, berryBox, BERRY_D, BUNCH_EXTENT, STEM_LEAF } from '@/component
 import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useDeleteGoal, useGoalFootprint } from '@/hooks/use-goal-mutations';
 import { useToday } from '@/hooks/use-today';
+import { WeatherLayer } from '@/components/weather-layer';
 import { skyBackground, skyNow } from '@/utils/sky';
+import { weatherNow } from '@/utils/weather';
 import { STAGE_W } from '@/utils/stage';
 import { t } from '@/i18n';
 import { theme } from '@/theme';
@@ -85,7 +87,8 @@ export default function BunchDetailScreen() {
     height: win.height - top - HEADER_HEIGHT - bottom - TAB_BAR_HEIGHT,
   };
   // ponytail: 렌더 시점 시각. Tree와 같은 한계다.
-  const sky = skyNow();
+  const weather = weatherNow(today);
+  const sky = skyNow(today);
   const skyBg = skyBackground(sky, 1);
   // 송이 칸(제목 아래 ~ 안내 문구 위)의 크기. 재기 전(0)에는 송이를 그리지 않는다.
   const [slot, setSlot] = useState({ y: 0, width: 0, height: 0 });
@@ -145,6 +148,15 @@ export default function BunchDetailScreen() {
         contentFit="fill"
         style={[styles.canopy, { width }, canopyBox]}
       />
+      {/* 비 오는 날은 덤불이 한 톤 짙어져 젖어 보인다 (나무 화면과 같은 색·세기). */}
+      {weather === 'rain' ? (
+        <Image
+          source={require('../../assets/detail/canopy.svg')}
+          contentFit="fill"
+          style={[styles.canopy, { width, opacity: 0.28 }, canopyBox]}
+          tintColor="#001914"
+        />
+      ) : null}
 
       <View style={styles.column}>
         <View style={styles.top}>
@@ -214,6 +226,9 @@ export default function BunchDetailScreen() {
           <Text style={styles.toastLabel}>{t(key)}</Text>
         </View>
       ) : null}
+
+      {/* 메뉴·삭제 확인은 날씨 효과 위에 뜬다. */}
+      <WeatherLayer weather={weather} night={sky.dark} width={area.width} height={area.height} />
 
       {menu === 'open' ? (
         <View style={[styles.menu, styles.overlay]}>
