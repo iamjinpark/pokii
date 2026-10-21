@@ -209,7 +209,7 @@ export function useWindSway(strength: number): SharedValue<number> {
 }
 
 /** 쌓이는 것(덤불 위 눈)이 다 쌓이기까지(ms). 처음엔 빠르게, 점점 느리게. */
-const SETTLE_MS = 30000;
+const SETTLE_MS = 12000;
 
 /** 0에서 1로 천천히 차오르는 값. 동작 줄이기 설정이면 처음부터 1이다. */
 function useSettle(): SharedValue<number> {
@@ -221,28 +221,65 @@ function useSettle(): SharedValue<number> {
   return g;
 }
 
+/** 덤불 위 눈의 바탕 띠 두께와 위쪽 혹 간격·지름 범위. 바닥 눈 더미(띠 + 겹친 동그라미)를 작게 줄인 모양이다. */
+const CAP_BAND = 5;
+const CAP_STEP = 5;
+const CAP_MOUND = [7, 12] as const;
+
+type CapPiece = { kind: 'band'; x: number; y: number; length: number; angle: number } | { kind: 'mound'; x: number; y: number; d: number };
+
+/** 가장자리 점들을 이어 바탕 띠 조각과 위쪽 혹 자리를 만든다. 15 넘게 떨어진 점 사이는 다른 가장자리라 잇지 않는다. */
+function capPieces(points: readonly (readonly [number, number, number])[]): CapPiece[] {
+  const out: CapPiece[] = [];
+  let m = 0;
+  for (let i = 1; i < points.length; i++) {
+    const [ax, ay] = points[i - 1];
+    const [bx, by] = points[i];
+    const length = Math.hypot(bx - ax, by - ay);
+    if (length > 15) continue;
+    // 위를 향한 법선 (y가 작아지는 쪽).
+    let nx = -(by - ay) / length;
+    let ny = (bx - ax) / length;
+    if (ny > 0) [nx, ny] = [-nx, -ny];
+    const lift = CAP_BAND / 2 - 1;
+    out.push({ kind: 'band', x: (ax + bx) / 2 + nx * lift, y: (ay + by) / 2 + ny * lift, length: length + 2, angle: Math.atan2(by - ay, bx - ax) });
+    for (let t = 0; t < length; t += CAP_STEP, m++) {
+      const d = CAP_MOUND[0] + ((m * 7) % (CAP_MOUND[1] - CAP_MOUND[0] + 1));
+      out.push({ kind: 'mound', x: ax + ((bx - ax) * t) / length + nx * (CAP_BAND - 1), y: ay + ((by - ay) * t) / length + ny * (CAP_BAND - 1), d });
+    }
+  }
+  return out;
+}
+
 /**
- * 덤불 위로 향한 가장자리에 소복이 얹히는 눈. 바닥 눈 더미처럼 크기가 다른 동그라미가 서로 겹쳐
- * 울퉁불퉁한 띠가 된다. points는 [x, y, 위를 향한 정도(0~1)] (덤불과 같은 좌표).
+ * 덤불 위로 향한 가장자리에 소복이 얹히는 눈. 바닥 눈 더미처럼 흰 띠 위로 크기가 다른 동그라미가 겹쳐
+ * 울퉁불퉁하다. points는 [x, y, 위를 향한 정도(0~1)] (덤불과 같은 좌표).
  * 덤불과 같은 무대에 그려 바람에 함께 기운다.
  */
 export function SnowCap({ points }: { points: readonly (readonly [number, number, number])[] }) {
   const grow = useSettle();
+  const [pieces] = useState(() => capPieces(points));
   const style = useAnimatedStyle(() => ({ opacity: grow.value > 0.02 ? 1 : 0, transform: [{ scale: grow.value }] }));
   return (
     <>
-      {points.map(([x, y], i) => {
-        // 바닥 눈 더미(최대 14)보다 얇게 얹히도록 지름 8~13으로 작게, 가장자리에 반쯤 걸친다.
-        // 이웃끼리 크기를 달리해 위쪽이 울퉁불퉁하다.
-        const d = 8 + ((i * 7) % 6);
-        return (
+      {pieces.map((p, i) =>
+        p.kind === 'band' ? (
+          <View
+            key={i}
+            pointerEvents="none"
+            // 바깥은 자리·회전만, 안쪽 흰 띠가 커지며 쌓인다.
+            style={[styles.capBand, { left: p.x - p.length / 2, top: p.y - CAP_BAND / 2, width: p.length, height: CAP_BAND, borderRadius: CAP_BAND / 2, transform: [{ rotate: `${p.angle}rad` }] }]}
+          >
+            <Animated.View style={[StyleSheet.absoluteFill, styles.mound, { borderRadius: CAP_BAND / 2 }, style]} />
+          </View>
+        ) : (
           <Animated.View
             key={i}
             pointerEvents="none"
-            style={[styles.mound, { left: x - d / 2, top: y - d * 0.5, width: d, height: d, borderRadius: d / 2, transformOrigin: 'bottom' }, style]}
+            style={[styles.mound, { left: p.x - p.d / 2, top: p.y - p.d / 2, width: p.d, height: p.d, borderRadius: p.d / 2 }, style]}
           />
-        );
-      })}
+        ),
+      )}
     </>
   );
 }
@@ -317,7 +354,7 @@ const PIECE: Record<Kind, (props: PieceProps) => React.JSX.Element> = {
 };
 
 /** 바닥 눈 더미가 다 쌓이기까지 걸리는 시간과 최대 높이(dp). */
-const PILE_MS = 30000;
+const PILE_MS = 12000;
 const PILE_H = 14;
 
 /** 바닥에 쌓이는 눈 더미. 크기가 다른 동그라미를 이어 붙여 위쪽이 울퉁불퉁하고, 눈이 내리는 동안 천천히 올라온다. */
@@ -445,6 +482,7 @@ const styles = StyleSheet.create({
   fireflyHalo: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: 'rgba(255, 236, 140, 0.25)' },
   fireflyDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#FFF4AA' },
   mound: { position: 'absolute', backgroundColor: '#FFFFFF' },
+  capBand: { position: 'absolute' },
   pile: { position: 'absolute', left: 0, overflow: 'hidden' },
   pileBase: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF' },
 });
