@@ -122,3 +122,20 @@ function backgroundImage(image: string): ViewStyle {
     ? ({ backgroundImage: image } as ViewStyle)
     : { experimental_backgroundImage: image };
 }
+
+/** 떠 있는 면(드롭다운·모달·토스트) 바탕의 기준이 되는 어두운 초록. */
+const GLASS_BASE = '#0A1E14';
+/** 하늘 위쪽 색을 섞는 몫. 이만큼만 섞어야 크림 글씨가 어느 시각·배경에서도 4.5:1 넘게 읽힌다 (sky.test). */
+const GLASS_SKY = 0.2;
+export const GLASS_ALPHA = 0.74;
+
+/** 그 시각 하늘을 조금 머금은 어두운 유리 색 (#RRGGBB). 아침엔 푸른 초록, 노을엔 보랏빛, 밤엔 남빛이 돈다. */
+export function glassColor(sky: Sky): string {
+  return mix(GLASS_BASE, sky.stops[0], GLASS_SKY);
+}
+
+/** 떠 있는 면 바탕. */
+export function glassBackground(sky: Sky): string {
+  const [r, g, b] = rgb(glassColor(sky));
+  return `rgba(${r}, ${g}, ${b}, ${GLASS_ALPHA})`;
+}

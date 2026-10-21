@@ -11,7 +11,7 @@ import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useDeleteGoal, useGoalFootprint } from '@/hooks/use-goal-mutations';
 import { useToday } from '@/hooks/use-today';
 import { WeatherLayer } from '@/components/weather-layer';
-import { skyBackground, skyNow } from '@/utils/sky';
+import { glassBackground, skyBackground, skyNow } from '@/utils/sky';
 import { weatherNow } from '@/utils/weather';
 import { STAGE_W } from '@/utils/stage';
 import { t } from '@/i18n';
@@ -67,11 +67,10 @@ const HEADER_TITLE_GAP = 16;
 /** 덤불 위 글자색. */
 const CANOPY_TEXT = '#FFFFFF';
 /**
- * 떠 있는 면(드롭다운·삭제 확인·토스트)은 모두 어두운 초록 유리 한 가지다. 불투명도 60%는 하늘 위에서도
- * 크림 글씨 대비가 4.5:1을 넘는 가장 옅은 값이다. 뒤를 흐리는 효과는 웹만 된다(CSS backdrop-filter).
+ * 떠 있는 면(드롭다운·삭제 확인·토스트)의 테두리와 블러. 바탕은 그 시각 하늘을 조금 머금은 어두운 초록 유리라
+ * 렌더할 때 glassBackground(sky)로 얹는다. 뒤를 흐리는 효과는 웹만 된다(CSS backdrop-filter).
  */
 const GLASS = {
-  backgroundColor: 'rgba(10, 30, 20, 0.6)',
   borderWidth: 1,
   borderColor: 'rgba(247, 255, 227, 0.16)',
   ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(10px)' } as object) : {}),
@@ -102,6 +101,7 @@ export default function BunchDetailScreen() {
   const weather = weatherNow(today);
   const sky = skyNow(today);
   const skyBg = skyBackground(sky, 1);
+  const glass = { backgroundColor: glassBackground(sky) };
   // 송이 칸(제목 아래 ~ 안내 문구 위)의 크기. 재기 전(0)에는 송이를 그리지 않는다.
   const [slot, setSlot] = useState({ y: 0, width: 0, height: 0 });
 
@@ -235,7 +235,7 @@ export default function BunchDetailScreen() {
 
       {/* 안내 문구는 토스트처럼 반투명 배경에 띄운다. 송이와 겹쳐도 읽힌다. */}
       {key ? (
-        <View style={styles.toast}>
+        <View style={[styles.toast, glass]}>
           <Text style={styles.toastLabel}>{t(key)}</Text>
         </View>
       ) : null}
@@ -253,7 +253,7 @@ export default function BunchDetailScreen() {
       ) : null}
 
       {menu === 'open' ? (
-        <View style={[styles.menu, styles.overlay]}>
+        <View style={[styles.menu, styles.overlay, glass]}>
           <Pressable
             onPress={() => router.push({ pathname: '/goal/[id]/edit', params: { id } })}
             style={styles.menuItem}
@@ -273,7 +273,7 @@ export default function BunchDetailScreen() {
       ) : null}
 
       {menu === 'confirm' ? (
-        <View style={[styles.menu, styles.overlay]}>
+        <View style={[styles.menu, styles.overlay, glass]}>
           <Text style={styles.confirmText}>
             {footprint.data
               ? t('goal.delete.confirm', {
