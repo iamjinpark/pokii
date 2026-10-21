@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HEADER_HEIGHT, TAB_BAR_HEIGHT } from '@/components/app-header';
 import { Text } from '@/components/text';
@@ -66,6 +66,9 @@ const CANOPY_EDGE_AT_CENTER = 0.7477;
 const HEADER_TITLE_GAP = 16;
 /** 덤불 위 글자색. */
 const CANOPY_TEXT = '#FFFFFF';
+/** 떠 있는 면의 글씨와 삭제 글씨 (놀이터에서 고른 값: 둘 다 흰색). */
+const SURFACE_TEXT = '#FFFFFF';
+const SURFACE_DANGER = '#FFFFFF';
 
 
 export default function BunchDetailScreen() {
@@ -316,30 +319,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   headerSide: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  /** 떠 있는 면(드롭다운·삭제 확인·토스트): 무난한 흰 면에 아주 옅은 윤곽선과 부드러운 그림자. */
+  /**
+   * 떠 있는 면(드롭다운·삭제 확인·토스트). 사용자가 놀이터에서 고른 값 (2026-10-21):
+   * 하늘색 #DCF4FF 20%, 뒤 흐림 24, 테두리 없음, 부드러운 그림자 16%, 흰 글씨.
+   * 뒤를 흐리는 효과는 웹만 된다(CSS backdrop-filter). 앱에서는 블러 라이브러리가 없어 반투명하게만 보인다.
+   */
   surface: {
-    backgroundColor: '#FFFFFF',
-    boxShadow: '0 6px 18px rgba(53, 51, 100, 0.16), 0 0 0 0.5px rgba(53, 51, 100, 0.14)',
+    backgroundColor: 'rgba(220, 244, 255, 0.2)',
+    ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(24px)' } as object) : {}),
+    boxShadow: '0 6px 18px rgba(53, 51, 100, 0.16)',
   },
-  menu: { borderRadius: 10, paddingHorizontal: 22, paddingVertical: 4 },
+  menu: { borderRadius: 12, paddingHorizontal: 20, paddingVertical: 4 },
   /** 삭제 확인이 떠 있을 때 뒤 화면을 살짝 덮어 확인 창에 집중시킨다. */
   scrim: { backgroundColor: 'rgba(0, 0, 0, 0.25)' },
   /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. 너비는 글자에 맞추고, 긴 삭제 확인 문구만 최대 폭에서 줄바꿈한다. */
   overlay: { position: 'absolute', top: 64, right: 14, minWidth: 128, maxWidth: 280, zIndex: 2, elevation: 2 },
-  menuItem: { paddingVertical: 13 },
-  menuRule: { height: 1, marginHorizontal: -6, backgroundColor: 'rgba(53, 51, 100, 0.1)' },
-  menuLabel: { fontSize: 15, color: theme.ink },
-  danger: { color: theme.amber },
-  confirmText: { fontSize: 14, color: theme.ink, lineHeight: 20, paddingTop: 10 },
-  confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, paddingTop: 12, paddingBottom: 8 },
-  keep: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 6, backgroundColor: 'rgba(53, 51, 100, 0.07)' },
+  menuItem: { paddingVertical: 12 },
+  menuRule: { height: 1, marginHorizontal: -6, backgroundColor: 'rgba(255, 255, 255, 0.1)' },
+  menuLabel: { fontSize: 15, color: SURFACE_TEXT },
+  danger: { color: SURFACE_DANGER },
+  confirmText: { fontSize: 14, color: SURFACE_TEXT, lineHeight: 21, paddingTop: 14 },
+  confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, paddingTop: 14, paddingBottom: 10 },
+  keep: { paddingVertical: 9, paddingHorizontal: 15, borderRadius: 10, backgroundColor: 'rgba(255, 255, 255, 0.08)' },
   removeButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    backgroundColor: theme.amber,
+    paddingVertical: 9,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    backgroundColor: SURFACE_DANGER,
   },
-  removeLabel: { fontSize: 14, color: '#FFFFFF' },
+  removeLabel: { fontSize: 14, color: '#1F1F27' },
   off: { opacity: 0.4 },
   meta: { fontSize: 16, color: CANOPY_TEXT },
   title: { fontSize: 22, fontWeight: '700', lineHeight: 26, color: CANOPY_TEXT, paddingHorizontal: 22 },
@@ -347,7 +355,7 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: 16, alignSelf: 'center', maxWidth: '90%', pointerEvents: 'none',
     paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999,
   },
-  toastLabel: { fontSize: 14, color: theme.ink, textAlign: 'center' },
+  toastLabel: { fontSize: 14, color: SURFACE_TEXT, textAlign: 'center' },
   body: { fontSize: 15, fontWeight: '600', textAlign: 'center' },
   retry: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.ink },
   retryLabel: { color: '#fff', fontWeight: '700' },
