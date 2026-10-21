@@ -69,6 +69,8 @@ const CANOPY_TEXT = '#FFFFFF';
 /** 떠 있는 면의 글씨와 삭제 글씨 (놀이터에서 고른 값: 둘 다 흰색). */
 const SURFACE_TEXT = '#FFFFFF';
 const SURFACE_DANGER = '#FFFFFF';
+/** 드롭다운·삭제 확인·토스트와 그 안 버튼의 모서리. */
+const SURFACE_RADIUS = 8;
 
 
 export default function BunchDetailScreen() {
@@ -329,7 +331,7 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(24px)' } as object) : {}),
     boxShadow: '0 6px 18px rgba(53, 51, 100, 0.16)',
   },
-  menu: { borderRadius: 8, paddingHorizontal: 12, paddingVertical: 3 },
+  menu: { borderRadius: SURFACE_RADIUS, paddingHorizontal: 12, paddingVertical: 3 },
   /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. 너비는 글자에 맞추고, 긴 삭제 확인 문구만 최대 폭에서 줄바꿈한다. */
   overlay: { position: 'absolute', top: 64, right: 14, minWidth: 92, maxWidth: 280, zIndex: 2, elevation: 2 },
   menuItem: { paddingVertical: 8 },
@@ -337,11 +339,11 @@ const styles = StyleSheet.create({
   danger: { color: SURFACE_DANGER },
   confirmText: { fontSize: 13, color: SURFACE_TEXT, lineHeight: 20, paddingTop: 11 },
   confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, paddingTop: 12, paddingBottom: 7 },
-  keep: { paddingVertical: 9, paddingHorizontal: 15, borderRadius: 8, backgroundColor: 'rgba(255, 255, 255, 0.08)' },
+  keep: { paddingVertical: 9, paddingHorizontal: 15, borderRadius: SURFACE_RADIUS, backgroundColor: 'rgba(255, 255, 255, 0.08)' },
   removeButton: {
     paddingVertical: 9,
     paddingHorizontal: 15,
-    borderRadius: 8,
+    borderRadius: SURFACE_RADIUS,
     backgroundColor: SURFACE_DANGER,
   },
   removeLabel: { fontSize: 14, color: '#1F1F27' },
@@ -350,7 +352,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: '700', lineHeight: 26, color: CANOPY_TEXT, paddingHorizontal: 22 },
   toast: {
     position: 'absolute', bottom: 16, alignSelf: 'center', maxWidth: '90%', pointerEvents: 'none',
-    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999,
+    paddingHorizontal: 16, paddingVertical: 8, borderRadius: SURFACE_RADIUS,
   },
   toastLabel: { fontSize: 13, textAlign: 'center' },
   body: { fontSize: 15, fontWeight: '600', textAlign: 'center' },
