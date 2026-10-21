@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HEADER_HEIGHT, TAB_BAR_HEIGHT } from '@/components/app-header';
 import { Text } from '@/components/text';
@@ -314,13 +314,15 @@ const styles = StyleSheet.create({
   },
   headerSide: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   /**
-   * 메뉴·삭제 확인 카드: 뿌연 유리처럼. 거의 불투명한 흰 바탕이 아래로 살짝 회색으로 진해지고,
-   * 밝은 흰 테두리와 부드러운 그림자를 두른다. 블러 라이브러리 없이 비슷하게 낸 것이라 뒤가 비치지는 않는다.
+   * 메뉴·삭제 확인 카드: 뿌연 유리처럼. 반투명한 흰 바탕이 아래로 살짝 회색으로 진해지고, 밝은 흰 테두리와
+   * 부드러운 그림자를 두른다. 뒤를 흐리는 효과는 웹만 된다(CSS backdrop-filter). 앱에서는 블러 라이브러리가
+   * 없어 흐림 없이 반투명하게만 보인다.
    */
   menu: {
-    borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.95)',
-    backgroundColor: 'rgba(244, 244, 246, 0.94)',
-    ...backgroundImage('linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(236, 236, 240, 0.94) 100%)'),
+    borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: 'rgba(244, 244, 246, 0.6)',
+    ...backgroundImage('linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(232, 232, 238, 0.55) 100%)'),
+    ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(14px) saturate(1.3)' } as object) : {}),
     paddingHorizontal: 14, paddingVertical: 6,
     boxShadow: '0 8px 24px rgba(53, 51, 100, 0.18), 0 0 0 0.5px rgba(53, 51, 100, 0.12)',
   },
