@@ -90,6 +90,9 @@ function pickClouds(): [number, number] {
   return [first, (first + 1 + Math.floor(Math.random() * 2)) % 3];
 }
 
+/** 흐린 날 구름 색. 우중충한 하늘보다 한 톤 어둡게 둬 구름이 묻히지 않게 한다. */
+const CLOUDY_CLOUD = '#A4AAB1';
+
 /** 흐린 날 해 앞을 가리는 구름 자리 (하늘 무대 좌표). 해(left 311, top -17)의 아래 왼쪽에 걸친다. */
 const SUN_CLOUD = { left: 280, top: 50, width: 150 };
 
@@ -105,11 +108,13 @@ function DriftingCloud({
   style,
   drift,
   ms,
+  tint,
 }: {
   source: number;
   style: object;
   drift: number;
   ms: number;
+  tint?: string;
 }) {
   const x = useSharedValue(0);
   useEffect(() => {
@@ -119,7 +124,7 @@ function DriftingCloud({
   const move = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
   return (
     <Animated.View style={[styles.cloud, style, move]}>
-      <Image source={source} style={styles.cloudImage} />
+      <Image source={source} style={styles.cloudImage} tintColor={tint} />
     </Animated.View>
   );
 }
@@ -172,6 +177,8 @@ export default function TreeScreen() {
   // 비·눈 오는 날: 해·달이 흐려지고 구름·별이 숨는다. 흐리거나 안개 낀 밤에도 별은 숨는다.
   const wet = weather === 'rain' || weather === 'snow';
   const starless = wet || weather === 'cloudy' || weather === 'fog';
+  // 흐린 날은 구름도 회색이다.
+  const cloudTint = weather === 'cloudy' ? CLOUDY_CLOUD : undefined;
   // 바람 부는 날은 구름이 더 크게, 빨리 오간다.
   const gust = weather === 'wind' ? 3 : 1;
   const sky = skyAt(minutes, weather);
@@ -252,6 +259,7 @@ export default function TreeScreen() {
                       style={{ ...CLOUD_SPOTS[i](CLOUD_SIZE[c].width), height: CLOUD_SIZE[c].height }}
                       drift={(i === 0 ? 10 : -8) * gust}
                       ms={(i === 0 ? 7000 : 9000) / gust}
+                      tint={cloudTint}
                     />
                   ))}
                 </>
@@ -335,6 +343,7 @@ export default function TreeScreen() {
                     style={{ ...SUN_CLOUD, height: (SUN_CLOUD.width * CLOUD_SIZE[spare].height) / CLOUD_SIZE[spare].width }}
                     drift={-6}
                     ms={8000}
+                    tint={cloudTint}
                   />
                 ) : null}
               </>
