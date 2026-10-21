@@ -246,7 +246,6 @@ export default function BunchDetailScreen() {
             style={styles.menuItem}
             accessibilityLabel={t('goal.edit')}
           >
-            <Image source={require('../../assets/icons/pencil.svg')} style={styles.menuIcon} tintColor={GLASS_TEXT} />
             <Text style={styles.menuLabel}>{t('goal.edit')}</Text>
           </Pressable>
           <View style={styles.menuRule} />
@@ -255,7 +254,6 @@ export default function BunchDetailScreen() {
             style={styles.menuItem}
             accessibilityLabel={t('goal.delete')}
           >
-            <Image source={require('../../assets/icons/trash.svg')} style={styles.menuIcon} tintColor={GLASS_DANGER} />
             <Text style={[styles.menuLabel, styles.danger]}>{t('goal.delete')}</Text>
           </Pressable>
         </View>
@@ -327,10 +325,9 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(12px)' } as object) : {}),
     paddingHorizontal: 14, paddingVertical: 6,
   },
-  /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. */
-  overlay: { position: 'absolute', top: 64, right: 14, minWidth: 180, zIndex: 2, elevation: 2 },
-  menuItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12 },
-  menuIcon: { width: 20, height: 20 },
+  /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. 너비는 글자에 맞추고, 긴 삭제 확인 문구만 최대 폭에서 줄바꿈한다. */
+  overlay: { position: 'absolute', top: 64, right: 14, maxWidth: 280, zIndex: 2, elevation: 2 },
+  menuItem: { paddingVertical: 12 },
   menuRule: { height: 1, backgroundColor: 'rgba(255, 255, 255, 0.22)' },
   menuLabel: { fontSize: 15, color: GLASS_TEXT },
   danger: { color: GLASS_DANGER },
