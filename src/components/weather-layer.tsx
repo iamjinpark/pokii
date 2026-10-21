@@ -28,7 +28,7 @@ const LOOK: Record<Kind, { density: number; ms: [number, number]; size: [number,
   rain: { density: 4.5, ms: [900, 1600], size: [10, 20] },
   snow: { density: 2.2, ms: [8000, 13000], size: [5, 9] },
   wind: { density: 0.25, ms: [4000, 6500], size: [9, 14] },
-  windLeaf: { density: 0.12, ms: [3500, 5500], size: [7, 10] },
+  windLeaf: { density: 0.06, ms: [10000, 16000], size: [7, 10] },
   petal: { density: 1, ms: [7000, 11000], size: [6, 9] },
   leaf: { density: 0.6, ms: [7000, 10000], size: [8, 12] },
   firefly: { density: 0.5, ms: [3000, 6000], size: [3, 3] },
@@ -137,34 +137,40 @@ const leafShape = (size: number, color: string) => ({
 
 /** 바람이 한 번 지나가는 동안 보이는 몫. 나머지는 쉬어서 한 줄기씩 분다. */
 const GUST = 0.5;
-/** 나란히 흐르는 세 가닥 중 긴 줄 끝이 말린 흰 바람 (가로:세로 = 16:7). */
+/** 나란히 흐르는 세 가닥 중 긴 줄 끝이 말린 흰 바람 (그림 가로:세로 = 16:7, 가로로 늘여 그린다). */
 const WIND_GUST = require('../../assets/weather/wind-gust.svg');
 const WIND_LEAVES = ['#3F8A4A', '#5E9E4F', '#2F6B3A'];
 
 /** 바람: 아주 옅은 바람 그림이 천천히 나타나 왼쪽에서 오른쪽으로 스쳐 가고 사라진다. 느껴질 만큼만 보인다. */
 function WindGust({ q, time, width, height }: PieceProps) {
-  const w = q.size * 8;
+  const w = q.size * 11;
+  const h = q.size * 3.5;
   const style = useAnimatedStyle(() => {
     const { p, x: y } = progress(time.value, q, height * 0.7);
     const t = Math.min(1, p / GUST);
     return {
-      opacity: p < GUST ? 0.35 * Math.sin(Math.PI * t) : 0,
+      opacity: p < GUST ? 0.25 * Math.sin(Math.PI * t) : 0,
       transform: [{ translateX: -w + t * t * (3 - 2 * t) * (width + w) }, { translateY: y }],
     };
   });
   // SVG는 RN Image가 Android에서 그리지 못해 expo-image로 그린다.
   return (
-    <Animated.View style={[styles.piece, { width: w, height: (w * 7) / 16 }, style]}>
-      <Image source={WIND_GUST} style={styles.fill} />
+    <Animated.View style={[styles.piece, { width: w, height: h }, style]}>
+      <Image source={WIND_GUST} style={styles.fill} contentFit="fill" />
     </Animated.View>
   );
 }
 
-/** 바람에 날리는 잎: 꼭지 달린 초록 잎이 빙글 돌며 오른쪽으로 날아간다. */
+/** 바람에 날리는 잎이 한 번 지나가는 동안 보이는 몫. 나머지는 쉬어서 가끔만 날린다. */
+const LEAF_FLIGHT = 0.35;
+
+/** 바람에 날리는 잎: 꼭지 달린 초록 잎이 가끔 빙글 돌며 오른쪽으로 날아간다. */
 function WindLeaf({ q, time, width, height }: PieceProps) {
   const style = useAnimatedStyle(() => {
-    const { p, x: y0 } = progress(time.value, q, height * 0.8);
+    const { p: cycle, x: y0 } = progress(time.value, q, height * 0.8);
+    const p = Math.min(1, cycle / LEAF_FLIGHT);
     return {
+      opacity: cycle < LEAF_FLIGHT ? 1 : 0,
       transform: [
         { translateX: -q.size * 2 + p * (width + q.size * 4) },
         { translateY: y0 + Math.sin(p * Math.PI * 3 + q.seed) * 18 },
@@ -189,7 +195,7 @@ export function useWindSway(active: boolean): SharedValue<number> {
   const sway = useSharedValue(0);
   const clock = useFrameCallback((frame) => {
     const t = frame.timeSinceFirstFrame / 1000;
-    sway.value = Math.sin(t * 1.1) * 0.7 + Math.sin(t * 2.3) * 0.25;
+    sway.value = Math.sin(t * 1.1) * 1.5 + Math.sin(t * 2.3) * 0.5;
   }, false);
   // useFrameCallback의 시작 여부는 처음 한 번만 읽혀서, 화면이 떠 있는 동안 날씨가 바뀌면 직접 켜고 끈다.
   const on = active && !reduceMotion;
