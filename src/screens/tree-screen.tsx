@@ -291,7 +291,11 @@ export default function TreeScreen() {
               <Image source={require('../../assets/tree/bush.svg')} style={styles.bush} />
               {/* 비 오는 날은 덤불이 한 톤 짙어져 젖어 보인다. */}
               {weather === 'rain' ? (
-                <Image source={require('../../assets/tree/bush.svg')} style={[styles.bush, styles.wet]} tintColor={WET_TINT} />
+                <>
+                  <Image source={require('../../assets/tree/bush.svg')} style={[styles.bush, styles.wet]} tintColor={WET_TINT} />
+                  {/* 덤불 그림 아래로 이어지는 줄기도 같이 젖는다. 덤불 그림과 겹쳐 두 번 칠해지지 않게 그림이 끝나는 곳부터. */}
+                  <View style={[styles.trunk, styles.wetTrunk]} />
+                </>
               ) : null}
               {weather === 'snow' ? <SnowCap key={weather} points={BUSH_SNOW} /> : null}
               {SLOTS.map((slot) => {
@@ -448,6 +452,8 @@ const styles = StyleSheet.create({
   bush: { position: 'absolute', left: -1, top: -15, width: 336, height: 725 },
   bushBackfill: { left: -81 },
   wet: { opacity: 0.28 },
+  /** 덤불 그림 아래 끝(top -15 + 높이 725)부터 줄기 위에 젖은 색을 칠한다. */
+  wetTrunk: { top: 710, backgroundColor: WET_TINT, opacity: 0.28 },
   slot: {
     position: 'absolute', width: BUNCH_W, height: BUNCH_H, justifyContent: 'center',
     transform: [{ scale: BUNCH_ZOOM }],
