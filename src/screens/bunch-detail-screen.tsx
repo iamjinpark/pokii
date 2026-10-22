@@ -1,9 +1,10 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HEADER_HEIGHT, TAB_BAR_HEIGHT } from '@/components/app-header';
+import { SURFACE, SURFACE_RADIUS, SURFACE_TEXT } from '@/components/surface';
 import { Text } from '@/components/text';
 import { Grape } from '@/components/grape';
 import { BERRIES, berryBox, BERRY_D, BUNCH_EXTENT, STEM_LEAF } from '@/components/tree-bunch';
@@ -66,11 +67,8 @@ const CANOPY_EDGE_AT_CENTER = 0.7477;
 const HEADER_TITLE_GAP = 16;
 /** 덤불 위 글자색. */
 const CANOPY_TEXT = '#FFFFFF';
-/** 떠 있는 면의 글씨와 삭제 글씨 (놀이터에서 고른 값: 둘 다 흰색). */
-const SURFACE_TEXT = '#FFFFFF';
+/** 삭제 글씨 (놀이터에서 고른 값: 흰색). */
 const SURFACE_DANGER = '#FFFFFF';
-/** 드롭다운·삭제 확인·토스트와 그 안 버튼의 모서리. */
-const SURFACE_RADIUS = 8;
 
 
 export default function BunchDetailScreen() {
@@ -324,16 +322,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   headerSide: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  /**
-   * 떠 있는 면(드롭다운·삭제 확인·토스트). 사용자가 놀이터에서 고른 값 (2026-10-21):
-   * 흰색 20%, 뒤 흐림 24, 테두리·구분선·딤 없음, 부드러운 그림자 16%, 흰 글씨 14.
-   * 뒤를 흐리는 효과는 웹만 된다(CSS backdrop-filter). 앱에서는 블러 라이브러리가 없어 반투명하게만 보인다.
-   */
-  surface: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(24px)' } as object) : {}),
-    boxShadow: '0 6px 18px rgba(53, 51, 100, 0.16)',
-  },
+  /** 떠 있는 면(드롭다운·삭제 확인·토스트). 값은 components/surface. */
+  surface: SURFACE,
   menu: { borderRadius: SURFACE_RADIUS, paddingHorizontal: 16, paddingVertical: 3 },
   /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. 너비는 글자에 맞추고, 긴 삭제 확인 문구만 최대 폭에서 줄바꿈한다. */
   overlay: { position: 'absolute', top: 64, right: 14, minWidth: 100, maxWidth: 280, zIndex: 2, elevation: 2 },

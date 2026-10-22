@@ -63,6 +63,7 @@ export const en = {
   'settings.account': 'account',
   'settings.signOut': 'sign out',
   'settings.signOut.failed': "couldn't sign out. try again.",
+  'bubble.close': 'close',
   'common.retry': 'retry',
   'common.error.network': "couldn't reach your tree.",
 } as const;

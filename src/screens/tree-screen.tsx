@@ -20,7 +20,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HEADER_HEIGHT, TAB_BAR_HEIGHT } from '@/components/app-header';
 import { Text } from '@/components/text';
 import { BirdScene } from '@/components/tree-bird';
+import { BunchBubble } from '@/components/bunch-bubble';
 import { BUNCH_H, BUNCH_W, TreeBunch } from '@/components/tree-bunch';
+import type { Goal } from '@/hooks/use-goals';
 import { SLOTS, useGoals } from '@/hooks/use-goals';
 import { useSession } from '@/hooks/use-session';
 import { isBunchEnded, treeSignals } from '@/utils/bunch';
@@ -44,6 +46,9 @@ import { theme } from '@/theme';
  * 알 크기·간격은 상세 화면과 함께 쓰는 값(tree-bunch)이라 여기서는 송이 전체 배율만 바꾼다.
  */
 const BUNCH_ZOOM = 0.87;
+
+/** 송이 자리 위쪽 끝(줄기 꼭대기)까지의 거리. 자리를 BUNCH_ZOOM으로 줄여 위가 조금 내려온다. 말풍선 꼬리가 잎 꼭대기 바로 위에 오도록 18만큼 더 내린다. */
+const BUBBLE_DROP = (BUNCH_H * (1 - BUNCH_ZOOM)) / 2 + 18;
 
 const SLOT_AT: Record<1 | 2 | 3, { left: number; top: number }> = {
   2: { left: 43, top: 74 },
@@ -198,6 +203,8 @@ export default function TreeScreen() {
   const skyBg = skyBackground(sky, 0.5);
   // 화면을 열 때마다 구름 2종을 새로 고르고, 화면이 떠 있는 동안은 그대로 둔다.
   const [clouds] = useState(pickClouds);
+  // 송이를 누르면 그 송이 위에 목표 제목 말풍선을 띄운다 (스펙 7.1). 말풍선을 누르면 상세·결과 화면에 간다.
+  const [bubbleGoal, setBubbleGoal] = useState<Goal | null>(null);
   /** 고르지 않은 나머지 구름 한 종. 흐린 날 해 앞에 건다. */
   const spare = 3 - clouds[0] - clouds[1];
 
@@ -283,6 +290,8 @@ export default function TreeScreen() {
                 <Image source={require('../../assets/tree/bush.svg')} style={[styles.bush, styles.wet]} tintColor={WET_TINT} />
               ) : null}
               {weather === 'snow' ? <SnowCap key={weather} points={BUSH_SNOW} /> : null}
+              {/* 말풍선이 떠 있을 때 송이가 아닌 곳을 누르면 닫는다. 송이보다 아래에 깔아 다른 송이는 그대로 눌린다. */}
+              {bubbleGoal ? <Pressable style={StyleSheet.absoluteFill} onPress={() => setBubbleGoal(null)} accessibilityLabel={t('bubble.close')} /> : null}
               {SLOTS.map((slot) => {
                 const goal = byPosition.get(slot);
                 return (
@@ -291,15 +300,7 @@ export default function TreeScreen() {
                       <TreeBunch
                         goal={goal}
                         today={today}
-                        onPress={() =>
-                          // 끝난 송이는 결과 화면으로 간다. 거기서만 끝내기·한 송이 더를 고를 수
-                          // 있고, 그러지 않으면 그 가지가 영영 막힌다 (설계 7.1).
-                          router.push(
-                            isBunchEnded({ ...goal.bunch, today })
-                              ? { pathname: '/goal/[id]/done', params: { id: goal.id } }
-                              : { pathname: '/goal/[id]', params: { id: goal.id } },
-                          )
-                        }
+                        onPress={() => setBubbleGoal(goal)}
                       />
                     ) : (
                       <Pressable
@@ -313,6 +314,25 @@ export default function TreeScreen() {
                   </View>
                 );
               })}
+              {bubbleGoal ? (
+                <BunchBubble
+                  key={bubbleGoal.id}
+                  title={bubbleGoal.title}
+                  x={SLOT_AT[bubbleGoal.position].left + BUNCH_W / 2}
+                  y={SLOT_AT[bubbleGoal.position].top + BUBBLE_DROP}
+                  onPress={() => {
+                    const goal = bubbleGoal;
+                    setBubbleGoal(null);
+                    // 끝난 송이는 결과 화면으로 간다. 거기서만 끝내기·한 송이 더를 고를 수
+                    // 있고, 그러지 않으면 그 가지가 영영 막힌다 (설계 7.1).
+                    router.push(
+                      isBunchEnded({ ...goal.bunch, today })
+                        ? { pathname: '/goal/[id]/done', params: { id: goal.id } }
+                        : { pathname: '/goal/[id]', params: { id: goal.id } },
+                    );
+                  }}
+                />
+              ) : null}
             </Animated.View>
 
             {/* 덤불 위로 겹치므로 빈 곳 터치는 아래 송이로 흘려보낸다. */}
