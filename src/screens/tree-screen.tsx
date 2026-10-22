@@ -33,7 +33,7 @@ import { setDevWeather, type Weather, weatherNow } from '@/utils/weather';
 import { SnowCap, useWindSway, WeatherLayer } from '@/components/weather-layer';
 import { STAGE_H, STAGE_W, stageScale } from '@/utils/stage';
 import { t } from '@/i18n';
-import { theme } from '@/theme';
+import { fontSize, radius, space, theme } from '@/theme';
 
 
 /**
@@ -425,8 +425,8 @@ export default function TreeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, overflow: 'hidden' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  body: { fontSize: 15, fontWeight: '600' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg },
+  body: { fontSize: fontSize.sm, fontWeight: '600' },
   sky: {
     position: 'absolute', top: 0, right: 0, width: STAGE_W, height: 260,
     transformOrigin: 'top right',
@@ -458,24 +458,24 @@ const styles = StyleSheet.create({
     transform: [{ scale: BUNCH_ZOOM }],
   },
   empty: {
-    alignSelf: 'center', width: 76, height: 76, borderRadius: 38,
+    alignSelf: 'center', width: 76, height: 76, borderRadius: radius.round,
     borderWidth: 2.5, borderStyle: 'dashed', borderColor: theme.sky,
     alignItems: 'center', justifyContent: 'center',
   },
-  plus: { fontSize: 28, fontWeight: '800', color: theme.sky },
+  plus: { fontSize: fontSize.xl, fontWeight: '800', color: theme.sky },
   message: { position: 'absolute', right: 15, top: 606 },
-  line: { fontSize: 26 },
-  retry: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.ink },
-  retryLabel: { color: '#fff', fontWeight: '700' },
+  line: { fontSize: fontSize.xl },
+  retry: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
+  retryLabel: { color: theme.paper, fontWeight: '700' },
   devSky: {
-    position: 'absolute', top: 8, alignSelf: 'center', alignItems: 'center', gap: 6,
-    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, backgroundColor: 'rgba(0,0,0,0.45)',
+    position: 'absolute', top: 8, alignSelf: 'center', alignItems: 'center', gap: space.sm,
+    paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.lg, backgroundColor: 'rgba(0,0,0,0.45)',
   },
-  devSkyLabel: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  devRow: { flexDirection: 'row', gap: 14 },
+  devSkyLabel: { color: theme.paper, fontSize: fontSize.xs, fontWeight: '700' },
+  devRow: { flexDirection: 'row', gap: space.lg },
   devBar: {
     width: DEV_BAR_W, height: 24, justifyContent: 'center',
-    borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.25)',
+    borderRadius: radius.lg, backgroundColor: 'rgba(255,255,255,0.25)',
   },
-  devKnob: { position: 'absolute', width: 16, height: 16, borderRadius: 8, backgroundColor: '#fff' },
+  devKnob: { position: 'absolute', width: 16, height: 16, borderRadius: radius.round, backgroundColor: theme.paper },
 });

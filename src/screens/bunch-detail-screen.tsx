@@ -16,7 +16,7 @@ import { skyBackground, skyNow } from '@/utils/sky';
 import { weatherNow } from '@/utils/weather';
 import { STAGE_W } from '@/utils/stage';
 import { t } from '@/i18n';
-import { theme } from '@/theme';
+import { fontSize, radius, space, theme } from '@/theme';
 import {
   bunchDates,
   footerKey,
@@ -66,9 +66,9 @@ const CANOPY_EDGE_AT_CENTER = 0.7477;
 /** 헤더(← No · Start)와 제목 사이 간격. */
 const HEADER_TITLE_GAP = 16;
 /** 덤불 위 글자색. */
-const CANOPY_TEXT = '#FFFFFF';
+const CANOPY_TEXT = theme.paper;
 /** 삭제 글씨 (놀이터에서 고른 값: 흰색). */
-const SURFACE_DANGER = '#FFFFFF';
+const SURFACE_DANGER = theme.paper;
 
 
 export default function BunchDetailScreen() {
@@ -305,13 +305,13 @@ export default function BunchDetailScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, overflow: 'hidden' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg },
   canopy: { position: 'absolute', top: 0, left: 0 },
   bunch: { position: 'absolute', transformOrigin: 'top left' },
   /** 뒤로가기·메뉴 아이콘 버튼. 보이는 크기는 34, hitSlop으로 누르는 영역은 44다. */
   iconButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
   icon: { width: 22, height: 22 },
-  column: { flex: 1, gap: TITLE_BUNCH_GAP, paddingTop: 22 },
+  column: { flex: 1, gap: TITLE_BUNCH_GAP, paddingTop: space.xl },
   top: { gap: HEADER_TITLE_GAP },
   slot: { flex: 1 },
   header: {
@@ -319,38 +319,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     // 아이콘 버튼(34) 안쪽 여백만큼 줄여, 꺾쇠 끝이 제목(좌우 22)과 같은 선에 오게 한다.
-    paddingHorizontal: 12,
+    paddingHorizontal: space.lg,
   },
-  headerSide: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  headerSide: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   /** 떠 있는 면(드롭다운·삭제 확인·토스트). 값은 components/surface. */
   surface: SURFACE,
-  menu: { borderRadius: SURFACE_RADIUS, paddingHorizontal: 16, paddingVertical: 3 },
+  menu: { borderRadius: SURFACE_RADIUS, paddingHorizontal: space.lg, paddingVertical: space.xs },
   /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. 너비는 글자에 맞추고, 긴 삭제 확인 문구만 최대 폭에서 줄바꿈한다. */
   overlay: { position: 'absolute', top: 64, right: 14, minWidth: 100, maxWidth: 280, zIndex: 2, elevation: 2 },
   modalFrame: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
   modal: { width: '84%', maxWidth: 320 },
-  menuItem: { paddingVertical: 10 },
-  menuLabel: { fontSize: 14, color: SURFACE_TEXT },
+  menuItem: { paddingVertical: space.sm },
+  menuLabel: { fontSize: fontSize.sm, color: SURFACE_TEXT },
   danger: { color: SURFACE_DANGER },
-  confirmText: { fontSize: 13, color: SURFACE_TEXT, lineHeight: 20, paddingTop: 11 },
-  confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, paddingTop: 12, paddingBottom: 7 },
-  keep: { paddingVertical: 9, paddingHorizontal: 15, borderRadius: SURFACE_RADIUS, backgroundColor: 'rgba(255, 255, 255, 0.08)' },
+  confirmText: { fontSize: fontSize.xs, color: SURFACE_TEXT, lineHeight: 20, paddingTop: space.sm },
+  confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: space.sm, paddingTop: space.lg, paddingBottom: space.sm },
+  keep: { paddingVertical: space.sm, paddingHorizontal: space.lg, borderRadius: SURFACE_RADIUS, backgroundColor: 'rgba(255, 255, 255, 0.08)' },
   removeButton: {
-    paddingVertical: 9,
-    paddingHorizontal: 15,
+    paddingVertical: space.sm,
+    paddingHorizontal: space.lg,
     borderRadius: SURFACE_RADIUS,
     backgroundColor: SURFACE_DANGER,
   },
-  removeLabel: { fontSize: 14, color: '#1F1F27' },
+  removeLabel: { fontSize: fontSize.sm, color: theme.ink },
   off: { opacity: 0.4 },
-  meta: { fontSize: 16, color: CANOPY_TEXT },
-  title: { fontSize: 22, fontWeight: '700', lineHeight: 26, color: CANOPY_TEXT, paddingHorizontal: 22 },
+  meta: { fontSize: fontSize.md, color: CANOPY_TEXT },
+  title: { fontSize: fontSize.lg, fontWeight: '700', lineHeight: 26, color: CANOPY_TEXT, paddingHorizontal: space.xl },
   toast: {
     position: 'absolute', bottom: 16, alignSelf: 'center', maxWidth: '90%', pointerEvents: 'none',
-    paddingHorizontal: 16, paddingVertical: 8, borderRadius: SURFACE_RADIUS,
+    paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: SURFACE_RADIUS,
   },
-  toastLabel: { fontSize: 13, textAlign: 'center' },
-  body: { fontSize: 15, fontWeight: '600', textAlign: 'center' },
-  retry: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.ink },
-  retryLabel: { color: '#fff', fontWeight: '700' },
+  toastLabel: { fontSize: fontSize.xs, textAlign: 'center' },
+  body: { fontSize: fontSize.sm, fontWeight: '600', textAlign: 'center' },
+  retry: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
+  retryLabel: { color: theme.paper, fontWeight: '700' },
 });

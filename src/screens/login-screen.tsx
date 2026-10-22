@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/text';
 import { t } from '@/i18n';
-import { fonts, theme } from '@/theme';
+import { fonts, fontSize, radius, space, theme } from '@/theme';
 import { signInWith, type OAuthProvider } from '@/utils/sign-in';
 
 export default function LoginScreen() {
@@ -43,12 +43,12 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  mark: { fontSize: 48, fontFamily: fonts.en.display, color: theme.ink, marginBottom: 48 },
-  buttons: { alignSelf: 'stretch', gap: 12 },
-  button: { height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
+  root: { flex: 1, backgroundColor: theme.paper, alignItems: 'center', justifyContent: 'center', padding: space.xl },
+  mark: { fontSize: fontSize.number, fontFamily: fonts.en.display, color: theme.ink, marginBottom: space.xxl + space.lg },
+  buttons: { alignSelf: 'stretch', gap: space.lg },
+  button: { height: 52, borderRadius: radius.round, alignItems: 'center', justifyContent: 'center' },
   google: { backgroundColor: theme.ink },
-  googleLabel: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  googleLabel: { color: theme.paper, fontSize: fontSize.sm, fontWeight: '700' },
   kakao: { backgroundColor: '#FEE500' },
-  kakaoLabel: { color: theme.ink, fontSize: 15, fontWeight: '700' },
+  kakaoLabel: { color: theme.ink, fontSize: fontSize.sm, fontWeight: '700' },
 });

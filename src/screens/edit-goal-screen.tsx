@@ -5,7 +5,7 @@ import { Text, TextInput } from '@/components/text';
 import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useUpdateGoal } from '@/hooks/use-goal-mutations';
 import { t } from '@/i18n';
-import { theme } from '@/theme';
+import { fontSize, radius, space, theme } from '@/theme';
 import { canCreateGoal, charCount, TAG_MAX, TITLE_MAX } from '@/utils/goal';
 
 /**
@@ -104,60 +104,60 @@ export default function EditGoalScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.sky, padding: 20 },
+  root: { flex: 1, backgroundColor: theme.sky, padding: space.xl },
   center: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.sky,
-    gap: 12,
+    gap: space.lg,
   },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  heading: { fontSize: 20, fontWeight: '800', color: theme.ink },
-  close: { paddingVertical: 6, paddingHorizontal: 10 },
-  closeLabel: { fontSize: 20, fontWeight: '800', color: theme.ink },
+  heading: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
+  close: { paddingVertical: space.sm, paddingHorizontal: space.sm },
+  closeLabel: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
   title: {
-    marginTop: 24,
+    marginTop: space.xl,
     minHeight: 76,
-    borderRadius: 14,
-    backgroundColor: '#fff',
-    padding: 14,
-    fontSize: 17,
+    borderRadius: radius.lg,
+    backgroundColor: theme.paper,
+    padding: space.lg,
+    fontSize: fontSize.md,
     fontWeight: '600',
     color: theme.ink,
     textAlignVertical: 'top',
   },
-  label: { marginTop: 20, fontSize: 13, fontWeight: '700', color: theme.ink },
+  label: { marginTop: space.xl, fontSize: fontSize.xs, fontWeight: '700', color: theme.ink },
   tag: {
-    marginTop: 8,
+    marginTop: space.sm,
     height: 48,
-    borderRadius: 14,
-    backgroundColor: '#fff',
-    paddingHorizontal: 14,
-    fontSize: 16,
+    borderRadius: radius.lg,
+    backgroundColor: theme.paper,
+    paddingHorizontal: space.lg,
+    fontSize: fontSize.md,
     fontWeight: '700',
     color: theme.ink,
   },
   counter: {
-    marginTop: 6,
+    marginTop: space.sm,
     alignSelf: 'flex-end',
-    fontSize: 12,
+    fontSize: fontSize.xs,
     fontWeight: '700',
-    color: '#9AA0A6',
+    color: theme.hint,
   },
   counterOver: { color: theme.amber },
-  failed: { marginTop: 16, fontSize: 14, fontWeight: '700', color: theme.amber },
-  actions: { marginTop: 'auto', paddingBottom: 20 },
+  failed: { marginTop: space.lg, fontSize: fontSize.sm, fontWeight: '700', color: theme.amber },
+  actions: { marginTop: 'auto', paddingBottom: space.xl },
   save: {
     height: 52,
-    borderRadius: 26,
+    borderRadius: radius.round,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.ink,
   },
   off: { opacity: 0.35 },
-  saveLabel: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  body: { fontSize: 15, fontWeight: '600', color: theme.ink },
-  retry: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.ink },
-  retryLabel: { color: '#fff', fontWeight: '700' },
+  saveLabel: { color: theme.paper, fontSize: fontSize.sm, fontWeight: '700' },
+  body: { fontSize: fontSize.sm, fontWeight: '600', color: theme.ink },
+  retry: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
+  retryLabel: { color: theme.paper, fontWeight: '700' },
 });

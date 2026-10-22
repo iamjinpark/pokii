@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/text';
 import { useSession } from '@/hooks/use-session';
 import { type Locale, setLocale, t, useLocale } from '@/i18n';
-import { theme } from '@/theme';
+import { fontSize, radius, space, theme } from '@/theme';
 import { signOut } from '@/utils/sign-in';
 
 /** 언어 이름은 그 언어로 적는다. 잘못 고른 사용자도 돌아갈 곳을 읽을 수 있어야 한다. */
@@ -62,34 +62,34 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.sky, padding: 20 },
-  label: { marginTop: 20, fontSize: 13, fontWeight: '700', color: theme.ink },
-  row: { marginTop: 8, flexDirection: 'row', gap: 8 },
+  root: { flex: 1, backgroundColor: theme.sky, padding: space.xl },
+  label: { marginTop: space.xl, fontSize: fontSize.xs, fontWeight: '700', color: theme.ink },
+  row: { marginTop: space.sm, flexDirection: 'row', gap: space.sm },
   option: {
     minWidth: 96,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 14,
-    backgroundColor: '#fff',
+    paddingHorizontal: space.lg,
+    paddingVertical: space.sm,
+    borderRadius: radius.lg,
+    backgroundColor: theme.paper,
     alignItems: 'center',
   },
   optionOn: { backgroundColor: theme.ink },
-  optionLabel: { fontSize: 15, fontWeight: '600', color: theme.ink },
-  optionLabelOn: { color: '#fff' },
-  card: { marginTop: 8, borderRadius: 14, backgroundColor: '#fff', padding: 14, gap: 4 },
-  provider: { fontSize: 13, color: theme.ink, opacity: 0.6 },
-  email: { fontSize: 15, fontWeight: '600', color: theme.ink },
+  optionLabel: { fontSize: fontSize.sm, fontWeight: '600', color: theme.ink },
+  optionLabelOn: { color: theme.paper },
+  card: { marginTop: space.sm, borderRadius: radius.lg, backgroundColor: theme.paper, padding: space.lg, gap: space.xs },
+  provider: { fontSize: fontSize.xs, color: theme.ink, opacity: 0.6 },
+  email: { fontSize: fontSize.sm, fontWeight: '600', color: theme.ink },
   signOut: {
-    marginTop: 32,
+    marginTop: space.xxl,
     alignSelf: 'center',
     minWidth: 140,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 22,
+    paddingHorizontal: space.xl,
+    paddingVertical: space.lg,
+    borderRadius: radius.round,
     borderWidth: 1.5,
     borderColor: theme.ink,
     alignItems: 'center',
   },
-  signOutLabel: { fontSize: 15, fontWeight: '700', color: theme.ink },
-  error: { marginTop: 10, textAlign: 'center', fontSize: 13, color: theme.amber },
+  signOutLabel: { fontSize: fontSize.sm, fontWeight: '700', color: theme.ink },
+  error: { marginTop: space.sm, textAlign: 'center', fontSize: fontSize.xs, color: theme.amber },
 });
