@@ -21,7 +21,7 @@ export function BunchBubble({ title, x, y, onPress }: { title: string; x: number
           <Text style={styles.title} numberOfLines={2}>
             {title}
           </Text>
-          <View style={styles.chevron} />
+          <Image source={require('../../assets/tree/bubble-button.svg')} style={styles.button} />
         </Pressable>
         <Image source={require('../../assets/tree/bubble-cut-tail.svg')} style={styles.tail} />
       </Animated.View>
@@ -37,11 +37,8 @@ const styles = StyleSheet.create({
     paddingLeft: 15, paddingRight: 14, paddingVertical: 11,
   },
   title: { flexShrink: 1, fontSize: 14, lineHeight: 18, color: '#FFFFFF' },
-  /** 누를 수 있다는 옅은 꺾쇠. */
-  chevron: {
-    width: 7, height: 7, borderTopWidth: 1.6, borderRightWidth: 1.6, borderColor: '#FFFFFF',
-    opacity: 0.85, transform: [{ rotate: '45deg' }],
-  },
+  /** 누를 수 있다는 흰 동그라미 단추. */
+  button: { width: 14, height: 14 },
   /** 아래로 뾰족한 꼬리. 몸통 그림 아래 끝에 살짝 겹쳐 붙인다. */
   tail: { width: 14, height: 13, marginTop: -2 },
 });
