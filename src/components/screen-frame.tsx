@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
-import { CircleButton } from '@/components/circle-button';
+import { IconButton } from '@/components/icon-button';
 import { Text } from '@/components/text';
 import { fontSize, space, theme } from '@/theme';
 
@@ -30,7 +30,7 @@ export function ScreenFrame({ title, eyebrow, onClose, footer, children }: Props
             {title}
           </Text>
         </View>
-        {onClose ? <CircleButton icon="close" onPress={onClose} label="닫기" /> : <View style={styles.closeSpace} />}
+        {onClose ? <IconButton icon="close" color={theme.ink} onPress={onClose} label="닫기" /> : <View style={styles.closeSpace} />}
       </View>
       <KeyboardAwareScrollView
         style={styles.scroll}
