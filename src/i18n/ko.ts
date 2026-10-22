@@ -65,10 +65,7 @@ export const ko: Record<TranslationKey, string> = {
   'settings.account': '계정',
   'settings.signOut': '로그아웃',
   'settings.signOut.failed': '로그아웃하지 못했어요. 다시 시도해주세요.',
-  'sheet.start': '시작',
-  'sheet.result': '결과',
-  'sheet.rate': '달성률',
-  'sheet.close': '닫기',
+  'bubble.close': '닫기',
   'common.retry': '다시 시도',
   'common.error.network': '나무에 닿지 못했어요.',
 };
