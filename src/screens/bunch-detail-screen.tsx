@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HEADER_HEIGHT, TAB_BAR_HEIGHT } from '@/components/app-header';
 import { SURFACE, SURFACE_RADIUS, SURFACE_TEXT } from '@/components/surface';
 import { Text } from '@/components/text';
+import { IconButton } from '@/components/icon-button';
 import { Grape } from '@/components/grape';
 import { BERRIES, berryBox, BERRY_D, BUNCH_EXTENT, STEM_LEAF } from '@/components/tree-bunch';
 import { useCurrentBunch } from '@/hooks/use-current-bunch';
@@ -168,21 +169,17 @@ export default function BunchDetailScreen() {
         <View style={styles.top}>
           <View style={styles.header}>
             <View style={styles.headerSide}>
-              <Pressable onPress={back} style={styles.iconButton} accessibilityLabel="뒤로" hitSlop={5}>
-                <Image source={require('../../assets/icons/back.svg')} style={styles.icon} tintColor={CANOPY_TEXT} />
-              </Pressable>
+              <IconButton icon="back" color={CANOPY_TEXT} onPress={back} label="뒤로" />
               <Text style={styles.meta}>{`No.${bunch.sequence}`}</Text>
             </View>
             <View style={styles.headerSide}>
               <Text style={styles.meta}>{startLabel(bunch.startedOn)}</Text>
-              <Pressable
+              <IconButton
+                icon="more"
+                color={CANOPY_TEXT}
                 onPress={() => setMenu(menu === 'closed' ? 'open' : 'closed')}
-                style={styles.iconButton}
-                accessibilityLabel={t('goal.menu')}
-                hitSlop={5}
-              >
-                <Image source={require('../../assets/icons/more.svg')} style={styles.icon} tintColor={CANOPY_TEXT} />
-              </Pressable>
+                label={t('goal.menu')}
+              />
             </View>
           </View>
           <Text style={styles.title}>{bunch.title}</Text>
@@ -312,8 +309,6 @@ const styles = StyleSheet.create({
   canopy: { position: 'absolute', top: 0, left: 0 },
   bunch: { position: 'absolute', transformOrigin: 'top left' },
   /** 뒤로가기·메뉴 아이콘 버튼. 보이는 크기는 34, hitSlop으로 누르는 영역은 44다. */
-  iconButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
-  icon: { width: 22, height: 22 },
   column: { flex: 1, gap: TITLE_BUNCH_GAP, paddingTop: space.xl },
   top: { gap: HEADER_TITLE_GAP },
   slot: { flex: 1 },

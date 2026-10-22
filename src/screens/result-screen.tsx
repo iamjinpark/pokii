@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ScreenFrame } from '@/components/screen-frame';
 import { Text } from '@/components/text';
 import { Container } from '@/components/container';
 import { useFinishGoal, useStartNextBunch } from '@/hooks/use-close-bunch';
@@ -78,20 +79,34 @@ export default function ResultScreen() {
   const failed = finish.isError || oneMore.isError;
 
   return (
-    <View style={styles.root}>
-      <View style={styles.header}>
-        <Text style={styles.meta}>{`No.${bunch.sequence}`}</Text>
-        {busy ? null : (
-          <Pressable onPress={back} style={styles.close} accessibilityLabel="닫기">
-            <Text style={styles.closeLabel}>✕</Text>
+    <ScreenFrame
+      eyebrow={`No.${bunch.sequence}`}
+      title={complete ? t('done.title.complete') : t('done.title.ended')}
+      onClose={busy ? undefined : back}
+      footer={
+        <>
+          <Pressable
+            onPress={() => oneMore.mutate(undefined, { onSuccess: toTree })}
+            disabled={busy}
+            accessibilityLabel={t('done.oneMore')}
+            accessibilityState={{ disabled: busy, busy }}
+            style={[styles.primary, busy && styles.off]}
+          >
+            <Text style={styles.primaryLabel}>{t('done.oneMore')}</Text>
           </Pressable>
-        )}
-      </View>
 
-      <Text style={styles.title}>
-        {complete ? t('done.title.complete') : t('done.title.ended')}
-      </Text>
-
+          <Pressable
+            onPress={() => finish.mutate(undefined, { onSuccess: toTree })}
+            disabled={busy}
+            accessibilityLabel={t('done.finish')}
+            accessibilityState={{ disabled: busy, busy }}
+            style={[styles.secondary, busy && styles.off]}
+          >
+            <Text style={styles.secondaryLabel}>{t('done.finish')}</Text>
+          </Pressable>
+        </>
+      }
+    >
       <View style={styles.result}>
         <Container grade={grade} />
         {filled >= SHOW_COUNT_FROM ? (
@@ -105,34 +120,11 @@ export default function ResultScreen() {
       </View>
 
       {failed ? <Text style={styles.failed}>{t('done.failed')}</Text> : null}
-
-      <View style={styles.actions}>
-        <Pressable
-          onPress={() => oneMore.mutate(undefined, { onSuccess: toTree })}
-          disabled={busy}
-          accessibilityLabel={t('done.oneMore')}
-          accessibilityState={{ disabled: busy, busy }}
-          style={[styles.primary, busy && styles.off]}
-        >
-          <Text style={styles.primaryLabel}>{t('done.oneMore')}</Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => finish.mutate(undefined, { onSuccess: toTree })}
-          disabled={busy}
-          accessibilityLabel={t('done.finish')}
-          accessibilityState={{ disabled: busy, busy }}
-          style={[styles.secondary, busy && styles.off]}
-        >
-          <Text style={styles.secondaryLabel}>{t('done.finish')}</Text>
-        </Pressable>
-      </View>
-    </View>
+    </ScreenFrame>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.sky, padding: space.xl },
   center: {
     flex: 1,
     alignItems: 'center',
@@ -140,17 +132,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.sky,
     gap: space.lg,
   },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  meta: { fontSize: fontSize.xs, fontWeight: '700', color: theme.ink, letterSpacing: 0.5 },
-  close: { paddingVertical: space.sm, paddingHorizontal: space.sm },
-  closeLabel: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
-  title: { marginTop: space.sm, fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
   result: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg },
   count: { fontSize: fontSize.xl, fontWeight: '800', color: theme.ink },
   grade: { fontSize: fontSize.sm, fontWeight: '700', color: theme.vine },
   encourage: { fontSize: fontSize.md, fontWeight: '700', color: theme.ink, textAlign: 'center' },
   failed: { fontSize: fontSize.sm, fontWeight: '700', color: theme.amber, textAlign: 'center' },
-  actions: { gap: space.lg, paddingBottom: space.xl, marginTop: space.xl },
   primary: {
     height: 52,
     borderRadius: radius.round,

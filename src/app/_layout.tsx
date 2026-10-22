@@ -7,6 +7,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { useAutoRefresh } from '@/hooks/use-auto-refresh';
 import { useSession } from '@/hooks/use-session';
 import { loadLocale } from '@/i18n';
@@ -56,8 +57,10 @@ function Routes() {
 
 export default function RootLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Routes />
-    </QueryClientProvider>
+    <KeyboardProvider>
+      <QueryClientProvider client={queryClient}>
+        <Routes />
+      </QueryClientProvider>
+    </KeyboardProvider>
   );
 }
