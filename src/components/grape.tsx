@@ -10,7 +10,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { BerryLook, type BerryShape } from '@/components/tree-bunch';
-import { theme, type Mood } from '@/theme';
+import { radius, type Mood } from '@/theme';
 import type { GrapeState, WiltLevel } from '@/utils/bunch';
 
 const STATE_LABEL: Record<GrapeState, string> = {
@@ -42,7 +42,7 @@ export function Grape({ day, state, mood = null, wilt = null, onPress, floating 
   useEffect(() => {
     if (!floating) return;
     pulse.value = withRepeat(
-      withTiming(1, { duration: 1400, easing: Easing.inOut(Easing.quad) }),
+      withTiming(1, { duration: 2400, easing: Easing.inOut(Easing.quad) }),
       -1,
       true,
     );
@@ -70,14 +70,10 @@ export function Grape({ day, state, mood = null, wilt = null, onPress, floating 
 
   const lift = useAnimatedStyle(() => ({
     transform: [
-      { translateY: -5 * pulse.value },
-      { scale: 1 + 0.04 * pulse.value + 0.22 * landing.value },
+      { scale: 1 + 0.08 * pulse.value + 0.22 * landing.value },
     ],
   }));
-  const halo = useAnimatedStyle(() => ({
-    opacity: 0.2 + 0.3 * pulse.value,
-    transform: [{ scale: 1.15 + 0.15 * pulse.value }],
-  }));
+  const halo = useAnimatedStyle(() => ({ opacity: 0.55 + 0.45 * pulse.value }));
 
   // 놓친 날과 미래 날짜는 탭해도 아무 일이 없다 (스펙 7.4). onPress가 없으면 누를 수
   // 없는 상태라는 뜻이라 Pressable로 감싸지 않는다.
@@ -101,6 +97,7 @@ export function Grape({ day, state, mood = null, wilt = null, onPress, floating 
 
 const styles = StyleSheet.create({
   wrap: { position: 'absolute' },
-  halo: { ...StyleSheet.absoluteFill, borderRadius: 999, backgroundColor: theme.vine },
+  /** 숨쉬듯 커졌다 작아지는 알 둘레의 은은한 흰 빛 (스펙 8.5). */
+  halo: { ...StyleSheet.absoluteFill, borderRadius: radius.round, boxShadow: '0 0 18px 6px rgba(255, 255, 255, 0.55)' },
   fill: { width: '100%', height: '100%' },
 });
