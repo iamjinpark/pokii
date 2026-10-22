@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
-import { BackButton } from '@/components/back-button';
+import { CircleButton } from '@/components/circle-button';
 import { Text } from '@/components/text';
 import { fontSize, space, theme } from '@/theme';
 
@@ -17,20 +17,20 @@ type Props = {
 };
 
 /**
- * 탭을 덮는 입력·결과 화면의 공통 틀 (스펙 8.7): 윗줄(닫기·제목) → 스크롤되는 내용 → 아래 버튼.
+ * 탭을 덮는 입력·결과 화면의 공통 틀 (스펙 8.7): 윗줄(제목·닫기) → 스크롤되는 내용 → 아래 버튼.
  * 웹에서는 키보드 라이브러리가 일반 ScrollView·View로 동작한다.
  */
 export function ScreenFrame({ title, eyebrow, onClose, footer, children }: Props) {
   return (
     <View style={styles.root}>
       <View style={styles.top}>
-        {onClose ? <BackButton onPress={onClose} label="닫기" /> : <View style={styles.closeSpace} />}
         <View style={styles.titles}>
           {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
           <Text style={styles.title} accessibilityRole="header">
             {title}
           </Text>
         </View>
+        {onClose ? <CircleButton icon="close" onPress={onClose} label="닫기" /> : <View style={styles.closeSpace} />}
       </View>
       <KeyboardAwareScrollView
         style={styles.scroll}
