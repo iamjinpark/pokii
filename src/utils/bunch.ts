@@ -30,6 +30,15 @@ export function grapeStateFor(args: {
   return offset < 0 ? 'missed' : 'future';
 }
 
+/**
+ * 떠 있는 알 하나의 자리. 어제 칸이 비어 있으면 어제 알이 먼저 뜨고, 채우면 오늘 알이 뜬다 (스펙 7.3).
+ * 둘 다 없으면 -1.
+ */
+export function floatingDay(states: readonly GrapeState[]): number {
+  const yesterday = states.indexOf('yesterday');
+  return yesterday >= 0 ? yesterday : states.indexOf('today');
+}
+
 export type WiltLevel = 1 | 2 | 3;
 
 /**

@@ -1,6 +1,6 @@
 import {
   BUNCH_SIZE, bunchDates, isBunchOpen, grapeStateFor, canFill, containerFor,
-  startLabel, footerKey, isBunchEnded, treeSignals, wiltLevels,
+  startLabel, footerKey, isBunchEnded, treeSignals, wiltLevels, floatingDay,
 } from './bunch';
 
 const START = '2026-09-01';
@@ -228,5 +228,20 @@ describe('wiltLevels', () => {
 
   test('놓친 알이 없으면 모두 null', () => {
     expect(wiltLevels(['filled', 'today', 'future'])).toEqual([null, null, null]);
+  });
+});
+
+describe('floatingDay', () => {
+  it('어제 칸이 비어 있으면 오늘보다 어제 알이 뜬다', () => {
+    expect(floatingDay(['filled', 'yesterday', 'today', 'future'])).toBe(1);
+  });
+  it('어제를 채우면 오늘 알이 뜬다', () => {
+    expect(floatingDay(['filled', 'filled', 'today', 'future'])).toBe(2);
+  });
+  it('유예일엔 어제(10일차)만 뜬다', () => {
+    expect(floatingDay([...Array(9).fill('filled'), 'yesterday'])).toBe(9);
+  });
+  it('채울 알이 없으면 -1', () => {
+    expect(floatingDay(['filled', 'missed', 'filled'])).toBe(-1);
   });
 });
