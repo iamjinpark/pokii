@@ -7,7 +7,7 @@ import { useFinishGoal, useStartNextBunch } from '@/hooks/use-close-bunch';
 import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useToday } from '@/hooks/use-today';
 import { t, type TranslationKey } from '@/i18n';
-import { theme } from '@/theme';
+import { fontSize, radius, space, theme } from '@/theme';
 import {
   BUNCH_SIZE,
   containerFor,
@@ -132,37 +132,37 @@ export default function ResultScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.sky, padding: 20 },
+  root: { flex: 1, backgroundColor: theme.sky, padding: space.lg },
   center: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.sky,
-    gap: 12,
+    gap: space.md,
   },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  meta: { fontSize: 13, fontWeight: '700', color: theme.ink, letterSpacing: 0.5 },
-  close: { paddingVertical: 6, paddingHorizontal: 10 },
-  closeLabel: { fontSize: 20, fontWeight: '800', color: theme.ink },
-  title: { marginTop: 8, fontSize: 22, fontWeight: '800', color: theme.ink },
-  result: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  count: { fontSize: 28, fontWeight: '800', color: theme.ink },
-  grade: { fontSize: 15, fontWeight: '700', color: theme.vine },
-  encourage: { fontSize: 16, fontWeight: '700', color: theme.ink, textAlign: 'center' },
-  failed: { fontSize: 14, fontWeight: '700', color: theme.amber, textAlign: 'center' },
-  actions: { gap: 12, paddingBottom: 20, marginTop: 20 },
+  meta: { fontSize: fontSize.xs, fontWeight: '700', color: theme.ink, letterSpacing: 0.5 },
+  close: { paddingVertical: space.sm, paddingHorizontal: space.sm },
+  closeLabel: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
+  title: { marginTop: space.sm, fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
+  result: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md },
+  count: { fontSize: fontSize.xl, fontWeight: '800', color: theme.ink },
+  grade: { fontSize: fontSize.sm, fontWeight: '700', color: theme.vine },
+  encourage: { fontSize: fontSize.md, fontWeight: '700', color: theme.ink, textAlign: 'center' },
+  failed: { fontSize: fontSize.sm, fontWeight: '700', color: theme.amber, textAlign: 'center' },
+  actions: { gap: space.md, paddingBottom: space.lg, marginTop: space.lg },
   primary: {
     height: 52,
-    borderRadius: 26,
+    borderRadius: radius.round,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.ink,
   },
-  primaryLabel: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  primaryLabel: { color: theme.paper, fontSize: fontSize.sm, fontWeight: '700' },
   secondary: { height: 48, alignItems: 'center', justifyContent: 'center' },
-  secondaryLabel: { color: theme.ink, fontSize: 15, fontWeight: '700', opacity: 0.8 },
+  secondaryLabel: { color: theme.ink, fontSize: fontSize.sm, fontWeight: '700', opacity: 0.8 },
   off: { opacity: 0.35 },
-  body: { fontSize: 15, fontWeight: '600', color: theme.ink },
-  retry: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.ink },
-  retryLabel: { color: '#fff', fontWeight: '700' },
+  body: { fontSize: fontSize.sm, fontWeight: '600', color: theme.ink },
+  retry: { paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
+  retryLabel: { color: theme.paper, fontWeight: '700' },
 });

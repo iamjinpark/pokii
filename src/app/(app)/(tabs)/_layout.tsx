@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BORDER_WIDTH, TAB_BAR_HEIGHT } from '@/components/app-header';
 import { Text } from '@/components/text';
 import { useLocale } from '@/i18n';
-import { fonts, theme } from '@/theme';
+import { fonts, fontSize, theme } from '@/theme';
 
 export default function TabsLayout() {
   const locale = useLocale();
@@ -38,8 +38,8 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   // 기본 탭 바는 Android 그림자(elevation 8)와 borderColor를 깐다. 헤더 선과 맞추려면 둘 다 덮어야 한다.
-  bar: { backgroundColor: '#fff', borderTopWidth: BORDER_WIDTH, borderColor: theme.ink, elevation: 0 },
+  bar: { backgroundColor: theme.paper, borderTopWidth: BORDER_WIDTH, borderColor: theme.ink, elevation: 0 },
   noIcon: { display: 'none' },
-  label: { fontFamily: fonts.en.display, fontSize: 20, color: theme.ink },
+  label: { fontFamily: fonts.en.display, fontSize: fontSize.lg, color: theme.ink },
   idle: { opacity: 0.4 },
 });

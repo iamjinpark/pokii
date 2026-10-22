@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components/text';
-import { fonts, theme } from '@/theme';
+import { fonts, fontSize, theme } from '@/theme';
 
 /** 헤더 아래 선과 탭 바 위 선의 굵기. */
 export const BORDER_WIDTH = 1;
@@ -23,10 +23,10 @@ export function AppHeader() {
 
 const styles = StyleSheet.create({
   bar: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.paper,
     borderBottomWidth: BORDER_WIDTH,
     borderBottomColor: theme.ink,
     alignItems: 'center',
   },
-  title: { color: theme.ink, fontFamily: fonts.en.display, fontSize: 26, lineHeight: HEADER_HEIGHT - BORDER_WIDTH },
+  title: { color: theme.ink, fontFamily: fonts.en.display, fontSize: fontSize.xl, lineHeight: HEADER_HEIGHT - BORDER_WIDTH },
 });

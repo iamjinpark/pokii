@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { ZoomIn, ZoomOut } from 'react-native-reanimated';
 import { Text } from '@/components/text';
+import { fontSize, space, theme } from '@/theme';
 
 /** 말풍선 최대 폭. 두 줄을 넘는 제목은 줄바꿈한다. */
 const MAX_W = 170;
@@ -33,10 +34,10 @@ const styles = StyleSheet.create({
   anchor: { position: 'absolute', width: 0, height: 0, alignItems: 'center' },
   lift: { position: 'absolute', bottom: 6, alignItems: 'center', width: MAX_W },
   bubble: {
-    maxWidth: MAX_W, flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingLeft: 15, paddingRight: 14, paddingVertical: 11,
+    maxWidth: MAX_W, flexDirection: 'row', alignItems: 'center', gap: space.sm,
+    paddingLeft: space.md, paddingRight: space.md, paddingVertical: space.sm,
   },
-  title: { flexShrink: 1, fontSize: 14, lineHeight: 18, color: '#FFFFFF' },
+  title: { flexShrink: 1, fontSize: fontSize.sm, lineHeight: 18, color: theme.paper },
   /** 누를 수 있다는 흰 동그라미 단추. */
   button: { width: 14, height: 14 },
   /** 아래로 뾰족한 꼬리. 몸통 그림 아래 끝에 살짝 겹쳐 붙인다. */

@@ -18,7 +18,7 @@ import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useRemoveGrape, useSaveGrape } from '@/hooks/use-grape-mutations';
 import { useToday } from '@/hooks/use-today';
 import { t, type TranslationKey } from '@/i18n';
-import { MOODS, theme, type Mood } from '@/theme';
+import { fontSize, type Mood, MOODS, radius, space, theme } from '@/theme';
 import { canFill } from '@/utils/bunch';
 import type { IsoDate } from '@/utils/date';
 
@@ -216,64 +216,64 @@ export default function DayRecordScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.sky, padding: 20 },
+  root: { flex: 1, backgroundColor: theme.sky, padding: space.lg },
   center: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.sky,
-    gap: 12,
+    gap: space.md,
   },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: 20, fontWeight: '800', color: theme.ink },
-  close: { paddingVertical: 6, paddingHorizontal: 10 },
-  closeLabel: { fontSize: 20, fontWeight: '800', color: theme.ink },
-  preview: { alignItems: 'center', gap: 10, marginTop: 36 },
+  title: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
+  close: { paddingVertical: space.sm, paddingHorizontal: space.sm },
+  closeLabel: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
+  preview: { alignItems: 'center', gap: space.sm, marginTop: space.xl },
   berry: {
     width: 84,
     height: 84,
-    borderRadius: 42,
+    borderRadius: radius.round,
     backgroundColor: theme.empty,
     overflow: 'hidden',
     justifyContent: 'flex-end',
   },
   paint: { width: '100%' },
   cheer: {
-    marginTop: 20,
+    marginTop: space.lg,
     textAlign: 'center',
-    fontSize: 15,
+    fontSize: fontSize.sm,
     fontWeight: '700',
     color: theme.vine,
     minHeight: 20,
   },
-  moodName: { fontSize: 15, fontWeight: '700', color: theme.ink, minHeight: 20 },
-  moods: { flexDirection: 'row', justifyContent: 'center', gap: 14, marginTop: 32 },
-  swatch: { width: 40, height: 40, borderRadius: 20 },
+  moodName: { fontSize: fontSize.sm, fontWeight: '700', color: theme.ink, minHeight: 20 },
+  moods: { flexDirection: 'row', justifyContent: 'center', gap: space.md, marginTop: space.xl },
+  swatch: { width: 40, height: 40, borderRadius: radius.round },
   picked: { borderWidth: 3, borderColor: theme.ink },
   note: {
-    marginTop: 32,
+    marginTop: space.xl,
     minHeight: 84,
-    borderRadius: 14,
-    backgroundColor: '#fff',
-    padding: 14,
-    fontSize: 15,
+    borderRadius: radius.lg,
+    backgroundColor: theme.paper,
+    padding: space.md,
+    fontSize: fontSize.sm,
     color: theme.ink,
     textAlignVertical: 'top',
   },
-  actions: { marginTop: 'auto', alignItems: 'center', gap: 14, paddingBottom: 20 },
+  actions: { marginTop: 'auto', alignItems: 'center', gap: space.md, paddingBottom: space.lg },
   save: {
     alignSelf: 'stretch',
     height: 52,
-    borderRadius: 26,
+    borderRadius: radius.round,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.ink,
   },
   saveOff: { opacity: 0.35 },
-  saveLabel: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  remove: { paddingVertical: 8 },
-  removeLabel: { fontSize: 14, fontWeight: '700', color: theme.amber },
-  body: { fontSize: 15, fontWeight: '600', color: theme.ink },
-  retry: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.ink },
-  retryLabel: { color: '#fff', fontWeight: '700' },
+  saveLabel: { color: theme.paper, fontSize: fontSize.sm, fontWeight: '700' },
+  remove: { paddingVertical: space.sm },
+  removeLabel: { fontSize: fontSize.sm, fontWeight: '700', color: theme.amber },
+  body: { fontSize: fontSize.sm, fontWeight: '600', color: theme.ink },
+  retry: { paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
+  retryLabel: { color: theme.paper, fontWeight: '700' },
 });
