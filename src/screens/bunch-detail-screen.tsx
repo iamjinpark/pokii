@@ -20,6 +20,7 @@ import { fontSize, radius, space, theme } from '@/theme';
 import {
   bunchDates,
   footerKey,
+  floatingDay,
   grapeStateFor,
   startLabel,
   wiltLevels,
@@ -120,6 +121,7 @@ export default function BunchDetailScreen() {
   const filled = new Set(bunch.grapes.map((g) => g.grapeDate));
   const moodOf = new Map(bunch.grapes.map((g) => [g.grapeDate, g.mood]));
   const states = dates.map((date) => grapeStateFor({ date, today, filled }));
+  const floating = floatingDay(states);
   const wilts = wiltLevels(states);
 
   const key = footerKey({ startedOn: bunch.startedOn, today, filled });
@@ -198,9 +200,9 @@ export default function BunchDetailScreen() {
                   height: STEM_LEAF.height * BIG,
                 }}
               />
-              {/* 오늘 알은 채웠든 아니든 맨 앞에 그린다. 뒤에 겹친 자리여도 가려지지 않는다. */}
+              {/* 떠 있는 알은 맨 앞에 그린다. 뒤에 겹친 자리여도 가려지지 않는다. */}
               {[...BERRIES]
-                .sort((a, b) => Number(dates[a.day] === today) - Number(dates[b.day] === today))
+                .sort((a, b) => Number(a.day === floating) - Number(b.day === floating))
                 .map(({ day, cx, cy, shape }) => {
                 const date = dates[day];
                 return (
@@ -208,6 +210,7 @@ export default function BunchDetailScreen() {
                     key={date}
                     day={day + 1}
                     state={states[day]}
+                    floating={day === floating}
                     mood={moodOf.get(date) ?? null}
                     wilt={wilts[day]}
                     shape={shape}

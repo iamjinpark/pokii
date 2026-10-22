@@ -1,4 +1,3 @@
-import { Image } from 'expo-image';
 import { useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, {
@@ -29,14 +28,15 @@ type Props = {
   /** 놓친 알일 때만 준다. */
   wilt?: WiltLevel | null;
   onPress?: () => void;
+  /** 둥실 떠서 지금 채울 알이라고 알린다. 송이마다 하나뿐이다 (floatingDay). */
+  floating?: boolean;
   shape: BerryShape;
   /** 송이 안의 자리와 크기. */
   box: Pick<ViewStyle, 'left' | 'top' | 'width' | 'height'>;
 };
 
 /** 진한 보라면 채운 날, 연회색이면 안 채운 날 (스펙 8.1). 채운 알에는 광택을 얹는다. */
-export function Grape({ day, state, mood = null, wilt = null, onPress, shape, box }: Props) {
-  const floating = state === 'today';
+export function Grape({ day, state, mood = null, wilt = null, onPress, floating = false, shape, box }: Props) {
   const pulse = useSharedValue(0);
 
   useEffect(() => {
@@ -94,8 +94,7 @@ export function Grape({ day, state, mood = null, wilt = null, onPress, shape, bo
         style={styles.fill}
       >
         <BerryLook shape={shape} mood={state === 'filled' ? mood : null} wilt={wilt} />
-        {state === 'yesterday' ? <Image source={require('../../assets/grape/yesterday-ring.svg')} style={styles.yesterday} /> : null}
-      </Wrapper>
+              </Wrapper>
     </Animated.View>
   );
 }
@@ -104,6 +103,4 @@ const styles = StyleSheet.create({
   wrap: { position: 'absolute' },
   halo: { ...StyleSheet.absoluteFill, borderRadius: 999, backgroundColor: theme.vine },
   fill: { width: '100%', height: '100%' },
-  /** 어제 칸은 아직 채울 수 있다는 표시. 가위로 오린 흰 종이 고리를 알보다 조금 크게 두른다 (스펙 7.3). */
-  yesterday: { position: 'absolute', left: '-13.6%', top: '-13.6%', width: '127.2%', height: '127.2%' },
 });
