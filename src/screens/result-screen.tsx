@@ -132,25 +132,25 @@ export default function ResultScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.sky, padding: space.lg },
+  root: { flex: 1, backgroundColor: theme.sky, padding: space.xl },
   center: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.sky,
-    gap: space.md,
+    gap: space.lg,
   },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   meta: { fontSize: fontSize.xs, fontWeight: '700', color: theme.ink, letterSpacing: 0.5 },
   close: { paddingVertical: space.sm, paddingHorizontal: space.sm },
   closeLabel: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
   title: { marginTop: space.sm, fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
-  result: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md },
+  result: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg },
   count: { fontSize: fontSize.xl, fontWeight: '800', color: theme.ink },
   grade: { fontSize: fontSize.sm, fontWeight: '700', color: theme.vine },
   encourage: { fontSize: fontSize.md, fontWeight: '700', color: theme.ink, textAlign: 'center' },
   failed: { fontSize: fontSize.sm, fontWeight: '700', color: theme.amber, textAlign: 'center' },
-  actions: { gap: space.md, paddingBottom: space.lg, marginTop: space.lg },
+  actions: { gap: space.lg, paddingBottom: space.xl, marginTop: space.xl },
   primary: {
     height: 52,
     borderRadius: radius.round,
@@ -163,6 +163,6 @@ const styles = StyleSheet.create({
   secondaryLabel: { color: theme.ink, fontSize: fontSize.sm, fontWeight: '700', opacity: 0.8 },
   off: { opacity: 0.35 },
   body: { fontSize: fontSize.sm, fontWeight: '600', color: theme.ink },
-  retry: { paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
+  retry: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
   retryLabel: { color: theme.paper, fontWeight: '700' },
 });

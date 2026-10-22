@@ -305,13 +305,13 @@ export default function BunchDetailScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, overflow: 'hidden' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg },
   canopy: { position: 'absolute', top: 0, left: 0 },
   bunch: { position: 'absolute', transformOrigin: 'top left' },
   /** 뒤로가기·메뉴 아이콘 버튼. 보이는 크기는 34, hitSlop으로 누르는 영역은 44다. */
   iconButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
   icon: { width: 22, height: 22 },
-  column: { flex: 1, gap: TITLE_BUNCH_GAP, paddingTop: space.lg },
+  column: { flex: 1, gap: TITLE_BUNCH_GAP, paddingTop: space.xl },
   top: { gap: HEADER_TITLE_GAP },
   slot: { flex: 1 },
   header: {
@@ -319,12 +319,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     // 아이콘 버튼(34) 안쪽 여백만큼 줄여, 꺾쇠 끝이 제목(좌우 22)과 같은 선에 오게 한다.
-    paddingHorizontal: space.md,
+    paddingHorizontal: space.lg,
   },
   headerSide: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   /** 떠 있는 면(드롭다운·삭제 확인·토스트). 값은 components/surface. */
   surface: SURFACE,
-  menu: { borderRadius: SURFACE_RADIUS, paddingHorizontal: space.md, paddingVertical: space.xs },
+  menu: { borderRadius: SURFACE_RADIUS, paddingHorizontal: space.lg, paddingVertical: space.xs },
   /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. 너비는 글자에 맞추고, 긴 삭제 확인 문구만 최대 폭에서 줄바꿈한다. */
   overlay: { position: 'absolute', top: 64, right: 14, minWidth: 100, maxWidth: 280, zIndex: 2, elevation: 2 },
   modalFrame: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
@@ -333,24 +333,24 @@ const styles = StyleSheet.create({
   menuLabel: { fontSize: fontSize.sm, color: SURFACE_TEXT },
   danger: { color: SURFACE_DANGER },
   confirmText: { fontSize: fontSize.xs, color: SURFACE_TEXT, lineHeight: 20, paddingTop: space.sm },
-  confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: space.sm, paddingTop: space.md, paddingBottom: space.sm },
-  keep: { paddingVertical: space.sm, paddingHorizontal: space.md, borderRadius: SURFACE_RADIUS, backgroundColor: 'rgba(255, 255, 255, 0.08)' },
+  confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: space.sm, paddingTop: space.lg, paddingBottom: space.sm },
+  keep: { paddingVertical: space.sm, paddingHorizontal: space.lg, borderRadius: SURFACE_RADIUS, backgroundColor: 'rgba(255, 255, 255, 0.08)' },
   removeButton: {
     paddingVertical: space.sm,
-    paddingHorizontal: space.md,
+    paddingHorizontal: space.lg,
     borderRadius: SURFACE_RADIUS,
     backgroundColor: SURFACE_DANGER,
   },
   removeLabel: { fontSize: fontSize.sm, color: theme.ink },
   off: { opacity: 0.4 },
   meta: { fontSize: fontSize.md, color: CANOPY_TEXT },
-  title: { fontSize: fontSize.lg, fontWeight: '700', lineHeight: 26, color: CANOPY_TEXT, paddingHorizontal: space.lg },
+  title: { fontSize: fontSize.lg, fontWeight: '700', lineHeight: 26, color: CANOPY_TEXT, paddingHorizontal: space.xl },
   toast: {
     position: 'absolute', bottom: 16, alignSelf: 'center', maxWidth: '90%', pointerEvents: 'none',
-    paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: SURFACE_RADIUS,
+    paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: SURFACE_RADIUS,
   },
   toastLabel: { fontSize: fontSize.xs, textAlign: 'center' },
   body: { fontSize: fontSize.sm, fontWeight: '600', textAlign: 'center' },
-  retry: { paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
+  retry: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
   retryLabel: { color: theme.paper, fontWeight: '700' },
 });

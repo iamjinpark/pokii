@@ -425,7 +425,7 @@ export default function TreeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, overflow: 'hidden' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg },
   body: { fontSize: fontSize.sm, fontWeight: '600' },
   sky: {
     position: 'absolute', top: 0, right: 0, width: STAGE_W, height: 260,
@@ -465,14 +465,14 @@ const styles = StyleSheet.create({
   plus: { fontSize: fontSize.xl, fontWeight: '800', color: theme.sky },
   message: { position: 'absolute', right: 15, top: 606 },
   line: { fontSize: fontSize.xl },
-  retry: { paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
+  retry: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
   retryLabel: { color: theme.paper, fontWeight: '700' },
   devSky: {
     position: 'absolute', top: 8, alignSelf: 'center', alignItems: 'center', gap: space.sm,
-    paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: radius.lg, backgroundColor: 'rgba(0,0,0,0.45)',
+    paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.lg, backgroundColor: 'rgba(0,0,0,0.45)',
   },
   devSkyLabel: { color: theme.paper, fontSize: fontSize.xs, fontWeight: '700' },
-  devRow: { flexDirection: 'row', gap: space.md },
+  devRow: { flexDirection: 'row', gap: space.lg },
   devBar: {
     width: DEV_BAR_W, height: 24, justifyContent: 'center',
     borderRadius: radius.lg, backgroundColor: 'rgba(255,255,255,0.25)',

@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   lift: { position: 'absolute', bottom: 6, alignItems: 'center', width: MAX_W },
   bubble: {
     maxWidth: MAX_W, flexDirection: 'row', alignItems: 'center', gap: space.sm,
-    paddingLeft: space.md, paddingRight: space.md, paddingVertical: space.sm,
+    paddingLeft: space.lg, paddingRight: space.lg, paddingVertical: space.md,
   },
   title: { flexShrink: 1, fontSize: fontSize.sm, lineHeight: 18, color: theme.paper },
   /** 누를 수 있다는 흰 동그라미 단추. */

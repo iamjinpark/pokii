@@ -216,19 +216,19 @@ export default function DayRecordScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.sky, padding: space.lg },
+  root: { flex: 1, backgroundColor: theme.sky, padding: space.xl },
   center: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.sky,
-    gap: space.md,
+    gap: space.lg,
   },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
   close: { paddingVertical: space.sm, paddingHorizontal: space.sm },
   closeLabel: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
-  preview: { alignItems: 'center', gap: space.sm, marginTop: space.xl },
+  preview: { alignItems: 'center', gap: space.sm, marginTop: space.xxl },
   berry: {
     width: 84,
     height: 84,
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
   },
   paint: { width: '100%' },
   cheer: {
-    marginTop: space.lg,
+    marginTop: space.xl,
     textAlign: 'center',
     fontSize: fontSize.sm,
     fontWeight: '700',
@@ -247,20 +247,20 @@ const styles = StyleSheet.create({
     minHeight: 20,
   },
   moodName: { fontSize: fontSize.sm, fontWeight: '700', color: theme.ink, minHeight: 20 },
-  moods: { flexDirection: 'row', justifyContent: 'center', gap: space.md, marginTop: space.xl },
+  moods: { flexDirection: 'row', justifyContent: 'center', gap: space.lg, marginTop: space.xxl },
   swatch: { width: 40, height: 40, borderRadius: radius.round },
   picked: { borderWidth: 3, borderColor: theme.ink },
   note: {
-    marginTop: space.xl,
+    marginTop: space.xxl,
     minHeight: 84,
     borderRadius: radius.lg,
     backgroundColor: theme.paper,
-    padding: space.md,
+    padding: space.lg,
     fontSize: fontSize.sm,
     color: theme.ink,
     textAlignVertical: 'top',
   },
-  actions: { marginTop: 'auto', alignItems: 'center', gap: space.md, paddingBottom: space.lg },
+  actions: { marginTop: 'auto', alignItems: 'center', gap: space.lg, paddingBottom: space.xl },
   save: {
     alignSelf: 'stretch',
     height: 52,
@@ -274,6 +274,6 @@ const styles = StyleSheet.create({
   remove: { paddingVertical: space.sm },
   removeLabel: { fontSize: fontSize.sm, fontWeight: '700', color: theme.amber },
   body: { fontSize: fontSize.sm, fontWeight: '600', color: theme.ink },
-  retry: { paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
+  retry: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
   retryLabel: { color: theme.paper, fontWeight: '700' },
 });

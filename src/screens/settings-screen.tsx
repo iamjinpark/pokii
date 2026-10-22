@@ -62,12 +62,12 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.sky, padding: space.lg },
-  label: { marginTop: space.lg, fontSize: fontSize.xs, fontWeight: '700', color: theme.ink },
+  root: { flex: 1, backgroundColor: theme.sky, padding: space.xl },
+  label: { marginTop: space.xl, fontSize: fontSize.xs, fontWeight: '700', color: theme.ink },
   row: { marginTop: space.sm, flexDirection: 'row', gap: space.sm },
   option: {
     minWidth: 96,
-    paddingHorizontal: space.md,
+    paddingHorizontal: space.lg,
     paddingVertical: space.sm,
     borderRadius: radius.lg,
     backgroundColor: theme.paper,
@@ -76,15 +76,15 @@ const styles = StyleSheet.create({
   optionOn: { backgroundColor: theme.ink },
   optionLabel: { fontSize: fontSize.sm, fontWeight: '600', color: theme.ink },
   optionLabelOn: { color: theme.paper },
-  card: { marginTop: space.sm, borderRadius: radius.lg, backgroundColor: theme.paper, padding: space.md, gap: space.xs },
+  card: { marginTop: space.sm, borderRadius: radius.lg, backgroundColor: theme.paper, padding: space.lg, gap: space.xs },
   provider: { fontSize: fontSize.xs, color: theme.ink, opacity: 0.6 },
   email: { fontSize: fontSize.sm, fontWeight: '600', color: theme.ink },
   signOut: {
-    marginTop: space.xl,
+    marginTop: space.xxl,
     alignSelf: 'center',
     minWidth: 140,
-    paddingHorizontal: space.lg,
-    paddingVertical: space.md,
+    paddingHorizontal: space.xl,
+    paddingVertical: space.lg,
     borderRadius: radius.round,
     borderWidth: 1.5,
     borderColor: theme.ink,

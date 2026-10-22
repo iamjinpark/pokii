@@ -23,13 +23,13 @@ export const theme = {
 } as const;
 
 /** 글자 크기 5단계 + 큰 숫자 (스펙 8.7). */
-export const fontSize = { xs: 13, sm: 15, md: 17, lg: 22, xl: 28, number: 48 } as const;
+export const fontSize = { xs: 12, sm: 14, md: 16, lg: 20, xl: 28, number: 48 } as const;
 
 /** 모서리 (스펙 8.7). 원은 지름의 절반 대신 999. */
 export const radius = { sm: 6, lg: 14, round: 999 } as const;
 
-/** 간격 8 단위, 아주 좁은 곳만 xs (스펙 8.7). */
-export const space = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 } as const;
+/** 간격 (스펙 8.7). */
+export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
 
 export type Mood = keyof typeof theme.mood;
 export const MOODS: readonly Mood[] = ['excited', 'happy', 'calm', 'tired', 'sad'];

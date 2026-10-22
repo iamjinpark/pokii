@@ -43,9 +43,9 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.paper, alignItems: 'center', justifyContent: 'center', padding: space.lg },
-  mark: { fontSize: fontSize.number, fontFamily: fonts.en.display, color: theme.ink, marginBottom: space.xl + space.md },
-  buttons: { alignSelf: 'stretch', gap: space.md },
+  root: { flex: 1, backgroundColor: theme.paper, alignItems: 'center', justifyContent: 'center', padding: space.xl },
+  mark: { fontSize: fontSize.number, fontFamily: fonts.en.display, color: theme.ink, marginBottom: space.xxl + space.lg },
+  buttons: { alignSelf: 'stretch', gap: space.lg },
   button: { height: 52, borderRadius: radius.round, alignItems: 'center', justifyContent: 'center' },
   google: { backgroundColor: theme.ink },
   googleLabel: { color: theme.paper, fontSize: fontSize.sm, fontWeight: '700' },
