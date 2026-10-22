@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, {
@@ -93,7 +94,7 @@ export function Grape({ day, state, mood = null, wilt = null, onPress, shape, bo
         style={styles.fill}
       >
         <BerryLook shape={shape} mood={state === 'filled' ? mood : null} wilt={wilt} />
-        {state === 'yesterday' ? <View style={styles.yesterday} /> : null}
+        {state === 'yesterday' ? <Image source={require('../../assets/grape/yesterday-ring.svg')} style={styles.yesterday} /> : null}
       </Wrapper>
     </Animated.View>
   );
@@ -103,8 +104,6 @@ const styles = StyleSheet.create({
   wrap: { position: 'absolute' },
   halo: { ...StyleSheet.absoluteFill, borderRadius: 999, backgroundColor: theme.vine },
   fill: { width: '100%', height: '100%' },
-  yesterday: {
-    ...StyleSheet.absoluteFill, borderRadius: 999,
-    borderWidth: 3, borderStyle: 'dashed', borderColor: theme.amber,
-  },
+  /** 어제 칸은 아직 채울 수 있다는 표시. 가위로 오린 흰 종이 고리를 알보다 조금 크게 두른다 (스펙 7.3). */
+  yesterday: { position: 'absolute', left: '-13.6%', top: '-13.6%', width: '127.2%', height: '127.2%' },
 });
