@@ -47,8 +47,8 @@ import { theme } from '@/theme';
  */
 const BUNCH_ZOOM = 0.87;
 
-/** 송이 자리 위쪽 끝(줄기 꼭대기)까지의 거리. 자리를 BUNCH_ZOOM으로 줄여 위가 조금 내려온다. 말풍선 꼬리가 여기에 닿는다. */
-const BUBBLE_DROP = (BUNCH_H * (1 - BUNCH_ZOOM)) / 2 + 4;
+/** 송이 자리 위쪽 끝(줄기 꼭대기)까지의 거리. 자리를 BUNCH_ZOOM으로 줄여 위가 조금 내려온다. 말풍선 꼬리가 잎 꼭대기 바로 위에 오도록 18만큼 더 내린다. */
+const BUBBLE_DROP = (BUNCH_H * (1 - BUNCH_ZOOM)) / 2 + 18;
 
 const SLOT_AT: Record<1 | 2 | 3, { left: number; top: number }> = {
   2: { left: 43, top: 74 },
