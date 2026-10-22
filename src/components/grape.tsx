@@ -70,7 +70,7 @@ export function Grape({ day, state, mood = null, wilt = null, onPress, floating 
 
   const lift = useAnimatedStyle(() => ({
     transform: [
-      { scale: 1 + 0.08 * pulse.value + 0.22 * landing.value },
+      { scale: 1 + 0.03 * pulse.value + 0.22 * landing.value },
     ],
   }));
   const halo = useAnimatedStyle(() => ({ opacity: 0.55 + 0.45 * pulse.value }));
