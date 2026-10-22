@@ -41,10 +41,19 @@ export function Grape({ day, state, mood = null, wilt = null, onPress, floating 
 
   useEffect(() => {
     if (!floating) return;
+    // 일정하게 부풀기만 하면 기계 같아서, 작아졌다 커졌다를 폭과 빠르기를 바꿔 가며 되풀이한다.
+    // 값 1이 1.03배, -1이 0.97배다.
+    const ease = Easing.inOut(Easing.quad);
     pulse.value = withRepeat(
-      withTiming(1, { duration: 2400, easing: Easing.inOut(Easing.quad) }),
+      withSequence(
+        withTiming(-1, { duration: 900, easing: ease }),
+        withTiming(1, { duration: 1100, easing: ease }),
+        withTiming(-0.4, { duration: 700, easing: ease }),
+        withTiming(0.6, { duration: 800, easing: ease }),
+        withTiming(-0.7, { duration: 1000, easing: ease }),
+        withTiming(0, { duration: 900, easing: ease }),
+      ),
       -1,
-      true,
     );
     // 자정을 넘겨 다시 그려지거나 알이 채워지면 '오늘'이 아니게 된다. 멈추지 않으면
     // 그 알이 계속 떠다니고 들린 채로 남는다.
@@ -73,7 +82,7 @@ export function Grape({ day, state, mood = null, wilt = null, onPress, floating 
       { scale: 1 + 0.03 * pulse.value + 0.22 * landing.value },
     ],
   }));
-  const halo = useAnimatedStyle(() => ({ opacity: 0.55 + 0.45 * pulse.value }));
+  const halo = useAnimatedStyle(() => ({ opacity: 0.775 + 0.225 * pulse.value }));
 
   // 놓친 날과 미래 날짜는 탭해도 아무 일이 없다 (스펙 7.4). onPress가 없으면 누를 수
   // 없는 상태라는 뜻이라 Pressable로 감싸지 않는다.
