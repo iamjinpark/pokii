@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { ZoomIn, ZoomOut } from 'react-native-reanimated';
 import { Text } from '@/components/text';
@@ -8,6 +9,7 @@ const MAX_W = 170;
 
 /**
  * 송이를 누르면 그 송이 바로 위에 뜨는 흰 말풍선 (스펙 7.1). 목표 제목만 보여 주고, 누르면 들어간다.
+ * 가위로 오린 듯 가장자리가 울퉁불퉁한 종이다. 몸통 그림은 글자 크기만큼 늘리고, 꼬리는 따로 붙여 찌그러지지 않게 한다.
  * x·y는 꼬리 끝이 닿을 자리(송이 위 가운데)다. 덤불과 같은 무대 좌표로 둔다.
  */
 export function BunchBubble({ title, x, y, onPress }: { title: string; x: number; y: number; onPress: () => void }) {
@@ -16,12 +18,13 @@ export function BunchBubble({ title, x, y, onPress }: { title: string; x: number
     <View style={[styles.anchor, { left: x, top: y }]} pointerEvents="box-none">
       <Animated.View entering={ZoomIn.duration(220)} exiting={ZoomOut.duration(140)} style={styles.lift}>
         <Pressable onPress={onPress} style={styles.bubble} accessibilityRole="button" accessibilityLabel={title}>
+          <Image source={require('../../assets/tree/bubble-cut.svg')} contentFit="fill" style={StyleSheet.absoluteFill} />
           <Text style={styles.title} numberOfLines={2}>
             {title}
           </Text>
           <View style={styles.chevron} />
         </Pressable>
-        <View style={styles.tail} />
+        <Image source={require('../../assets/tree/bubble-cut-tail.svg')} style={styles.tail} />
       </Animated.View>
     </View>
   );
@@ -32,8 +35,7 @@ const styles = StyleSheet.create({
   lift: { position: 'absolute', bottom: 6, alignItems: 'center', width: MAX_W },
   bubble: {
     maxWidth: MAX_W, flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingLeft: 13, paddingRight: 12, paddingVertical: 9, borderRadius: 8, backgroundColor: '#FFFFFF',
-    boxShadow: '0 4px 12px rgba(53, 51, 100, 0.18)',
+    paddingLeft: 15, paddingRight: 14, paddingVertical: 11,
   },
   title: { flexShrink: 1, fontSize: 14, lineHeight: 18, color: theme.ink },
   /** 누를 수 있다는 옅은 꺾쇠. */
@@ -41,6 +43,6 @@ const styles = StyleSheet.create({
     width: 7, height: 7, borderTopWidth: 1.6, borderRightWidth: 1.6, borderColor: theme.ink,
     opacity: 0.7, transform: [{ rotate: '45deg' }],
   },
-  /** 아래로 향한 작은 삼각 꼬리. 흰 정사각형을 돌려 말풍선 아래로 반만 내민다. */
-  tail: { width: 10, height: 10, marginTop: -5, backgroundColor: '#FFFFFF', transform: [{ rotate: '45deg' }] },
+  /** 아래로 뾰족한 꼬리. 몸통 그림 아래 끝에 살짝 겹쳐 붙인다. */
+  tail: { width: 14, height: 13, marginTop: -2 },
 });
