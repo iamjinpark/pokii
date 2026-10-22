@@ -42,7 +42,7 @@ export function Grape({ day, state, mood = null, wilt = null, onPress, floating 
   useEffect(() => {
     if (!floating) return;
     // 일정하게 부풀기만 하면 기계 같아서, 작아졌다 커졌다를 폭과 빠르기를 바꿔 가며 되풀이한다.
-    // 값 1이 1.03배, -1이 0.97배다.
+    // 값 1이 1.03배, -1이 0.95배다.
     const ease = Easing.inOut(Easing.quad);
     pulse.value = withRepeat(
       withSequence(
@@ -79,7 +79,7 @@ export function Grape({ day, state, mood = null, wilt = null, onPress, floating 
 
   const lift = useAnimatedStyle(() => ({
     transform: [
-      { scale: 1 + 0.03 * pulse.value + 0.22 * landing.value },
+      { scale: 1 + (pulse.value < 0 ? 0.05 : 0.03) * pulse.value + 0.22 * landing.value },
     ],
   }));
   const halo = useAnimatedStyle(() => ({ opacity: 0.775 + 0.225 * pulse.value }));
