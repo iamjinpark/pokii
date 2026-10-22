@@ -339,8 +339,8 @@ export default function TreeScreen() {
             <View style={[styles.right, { transform: [{ scale }] }]}>
 
               <View style={styles.message}>
-                <Text display style={[styles.line, { color: sky.text }]}>{greeting}</Text>
-                <Text display style={[styles.line, { color: sky.text }]}>{line}</Text>
+                <Text style={[styles.line, { color: sky.text }]}>{greeting}</Text>
+                <Text style={[styles.line, { color: sky.text }]}>{line}</Text>
               </View>
             </View>
     </>

@@ -19,7 +19,7 @@ export function BunchBubble({ title, x, y, onPress }: { title: string; x: number
       <Animated.View entering={ZoomIn.duration(220)} exiting={ZoomOut.duration(140)} style={styles.lift}>
         <Pressable onPress={onPress} style={styles.bubble} accessibilityRole="button" accessibilityLabel={title}>
           <Image source={require('../../assets/tree/bubble-cut.svg')} contentFit="fill" style={StyleSheet.absoluteFill} />
-          <Text style={styles.title} numberOfLines={2}>
+          <Text user style={styles.title} numberOfLines={2}>
             {title}
           </Text>
           <Image source={require('../../assets/tree/bubble-button.svg')} style={styles.button} />

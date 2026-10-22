@@ -182,7 +182,7 @@ export default function BunchDetailScreen() {
               />
             </View>
           </View>
-          <Text style={styles.title}>{bunch.title}</Text>
+          <Text user style={styles.title}>{bunch.title}</Text>
         </View>
         <View style={styles.slot} onLayout={(e) => setSlot(e.nativeEvent.layout)}>
           {bigScale > 0 ? (

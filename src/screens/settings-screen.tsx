@@ -50,7 +50,7 @@ export default function SettingsScreen() {
       <Text style={styles.label}>{t('settings.account')}</Text>
       <View style={styles.card}>
         {provider ? <Text style={styles.provider}>{provider}</Text> : null}
-        {user?.email ? <Text style={styles.email}>{user.email}</Text> : null}
+        {user?.email ? <Text user style={styles.email}>{user.email}</Text> : null}
       </View>
 
       <Pressable accessibilityRole="button" onPress={onSignOut} style={styles.signOut}>

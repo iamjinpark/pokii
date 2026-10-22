@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import { ScreenFrame } from '@/components/screen-frame';
-import { Text, TextInput } from '@/components/text';
+import { Text, TextInput, withAppFont } from '@/components/text';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -204,7 +204,7 @@ export default function DayRecordScreen() {
           onSubmitEditing={save}
         />
 
-        <Animated.Text style={[styles.cheer, cheerStyle]}>
+        <Animated.Text style={[withAppFont(styles.cheer), cheerStyle]}>
           {playing ? t('day.saved') : ' '}
         </Animated.Text>
       </ScreenFrame>
