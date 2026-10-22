@@ -24,31 +24,25 @@ const goal = (startedOn: string, dates: string[]): Goal => ({
   },
 });
 
-test('오늘 아직 안 채운 송이는 기다린다고 말하고, 들어가기를 누르면 onEnter를 부른다', async () => {
+test('제목과 달성률·채운 칸 수를 보여 주고, 시작을 누르면 onEnter를 부른다', async () => {
   const onEnter = jest.fn();
   await render(
     <BunchSheet goal={goal('2026-10-16', ['2026-10-16', '2026-10-17'])} today="2026-10-21" onEnter={onEnter} onClose={jest.fn()} />,
   );
-  expect(screen.getByText('sheet.today.todo')).toBeTruthy();
+  expect(screen.getByText('아침마다 스트레칭')).toBeTruthy();
   expect(screen.getByText('20%')).toBeTruthy();
-  await fireEvent.press(screen.getByText('sheet.enter'));
+  expect(screen.getByText('2/10')).toBeTruthy();
+  await fireEvent.press(screen.getByText('sheet.start'));
   expect(onEnter).toHaveBeenCalledTimes(1);
 });
 
-test('오늘 채운 송이는 수확했다고 말한다', async () => {
-  await render(
-    <BunchSheet goal={goal('2026-10-16', ['2026-10-21'])} today="2026-10-21" onEnter={jest.fn()} onClose={jest.fn()} />,
-  );
-  expect(screen.getByText('sheet.today.done')).toBeTruthy();
-});
-
-test('끝난 송이는 결과 보기다', async () => {
+test('끝난 송이는 시작 대신 결과다', async () => {
   const tenDays = Array.from({ length: 10 }, (_, i) => `2026-10-${String(10 + i).padStart(2, '0')}`);
   await render(
     <BunchSheet goal={goal('2026-10-10', tenDays)} today="2026-10-21" onEnter={jest.fn()} onClose={jest.fn()} />,
   );
-  expect(screen.getByText('sheet.ended')).toBeTruthy();
   expect(screen.getByText('sheet.result')).toBeTruthy();
+  expect(screen.getByText('100%')).toBeTruthy();
 });
 
 test('바깥을 누르면 닫힌다', async () => {
