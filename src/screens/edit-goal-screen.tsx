@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, type TextInput as RNTextInput, View } from 'react-native';
+import { ScreenFrame } from '@/components/screen-frame';
 import { Text, TextInput } from '@/components/text';
 import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useUpdateGoal } from '@/hooks/use-goal-mutations';
@@ -21,6 +22,7 @@ export default function EditGoalScreen() {
   // 서버 값이 늦게 와도 고친 것이 덮이지 않도록, 고친 값만 상태로 들고 나머지는 원본에서 읽는다.
   const [editedTitle, setEditedTitle] = useState<string | null>(null);
   const [editedTag, setEditedTag] = useState<string | null>(null);
+  const tagInput = useRef<RNTextInput>(null);
 
   const back = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
@@ -51,23 +53,37 @@ export default function EditGoalScreen() {
   const saving = update.isPending;
   const ready = canCreateGoal(title, tag) && changed && !saving;
 
-  return (
-    <View style={styles.root}>
-      <View style={styles.header}>
-        <Text style={styles.heading}>{t('goal.edit.title')}</Text>
-        {saving ? null : (
-          <Pressable onPress={back} style={styles.close} accessibilityLabel="닫기">
-            <Text style={styles.closeLabel}>✕</Text>
-          </Pressable>
-        )}
-      </View>
+  const save = () => {
+    if (!ready) return;
+    update.mutate({ title: title.trim(), tag: tag.trim() }, { onSuccess: back });
+  };
 
+  return (
+    <ScreenFrame
+      title={t('goal.edit.title')}
+      onClose={saving ? undefined : back}
+      footer={
+        <Pressable
+          onPress={save}
+          disabled={!ready}
+          accessibilityLabel={t('goal.edit.save')}
+          accessibilityState={{ disabled: !ready, busy: saving }}
+          style={[styles.save, !ready && styles.off]}
+        >
+          <Text style={styles.saveLabel}>{t('goal.edit.save')}</Text>
+        </Pressable>
+      }
+    >
       <TextInput
         value={title}
         onChangeText={setEditedTitle}
         style={styles.title}
         editable={!saving}
         multiline
+        // 여러 줄 칸이지만 완료 키는 줄을 바꾸지 않고 짧은 이름 칸으로 넘어간다.
+        returnKeyType="next"
+        submitBehavior="submit"
+        onSubmitEditing={() => tagInput.current?.focus()}
         accessibilityLabel={t('goal.new.titlePlaceholder')}
       />
       <Text style={[styles.counter, over.title && styles.counterOver]}>
@@ -76,10 +92,13 @@ export default function EditGoalScreen() {
 
       <Text style={styles.label}>{t('goal.new.tagLabel')}</Text>
       <TextInput
+        ref={tagInput}
         value={tag}
         onChangeText={setEditedTag}
         style={styles.tag}
         editable={!saving}
+        returnKeyType="done"
+        onSubmitEditing={save}
         accessibilityLabel={t('goal.new.tagLabel')}
       />
       <Text style={[styles.counter, over.tag && styles.counterOver]}>
@@ -87,24 +106,11 @@ export default function EditGoalScreen() {
       </Text>
 
       {update.isError ? <Text style={styles.failed}>{t('goal.edit.failed')}</Text> : null}
-
-      <View style={styles.actions}>
-        <Pressable
-          onPress={() => update.mutate({ title: title.trim(), tag: tag.trim() }, { onSuccess: back })}
-          disabled={!ready}
-          accessibilityLabel={t('goal.edit.save')}
-          accessibilityState={{ disabled: !ready, busy: saving }}
-          style={[styles.save, !ready && styles.off]}
-        >
-          <Text style={styles.saveLabel}>{t('goal.edit.save')}</Text>
-        </Pressable>
-      </View>
-    </View>
+    </ScreenFrame>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.sky, padding: space.xl },
   center: {
     flex: 1,
     alignItems: 'center',
@@ -112,12 +118,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.sky,
     gap: space.lg,
   },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  heading: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
-  close: { paddingVertical: space.sm, paddingHorizontal: space.sm },
-  closeLabel: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
   title: {
-    marginTop: space.xl,
     minHeight: 76,
     borderRadius: radius.lg,
     backgroundColor: theme.paper,
@@ -147,7 +148,6 @@ const styles = StyleSheet.create({
   },
   counterOver: { color: theme.amber },
   failed: { marginTop: space.lg, fontSize: fontSize.sm, fontWeight: '700', color: theme.amber },
-  actions: { marginTop: 'auto', paddingBottom: space.xl },
   save: {
     height: 52,
     borderRadius: radius.round,

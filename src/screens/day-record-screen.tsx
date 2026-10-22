@@ -6,6 +6,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { ScreenFrame } from '@/components/screen-frame';
 import { Text, TextInput } from '@/components/text';
 import Animated, {
   Easing,
@@ -138,71 +139,75 @@ export default function DayRecordScreen() {
   };
 
   return (
+    // 연출을 건너뛰는 덮개가 아래 버튼까지 덮도록 틀 바깥에 겹친다.
     <View style={styles.root}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t('day.title')}</Text>
-        <Pressable onPress={close} style={styles.close} accessibilityLabel="닫기">
-          <Text style={styles.closeLabel}>✕</Text>
-        </Pressable>
-      </View>
+      <ScreenFrame
+        title={t('day.title')}
+        onClose={close}
+        footer={
+          <View style={styles.actions}>
+            <Pressable
+              onPress={save}
+              disabled={!mood}
+              accessibilityLabel={t('day.save')}
+              accessibilityState={{ disabled: !mood }}
+              style={[styles.save, !mood && styles.saveOff]}
+            >
+              <Text style={styles.saveLabel}>{t('day.save')}</Text>
+            </Pressable>
 
-      <View style={styles.preview}>
-        <View
-          style={styles.berry}
-          accessibilityLabel={mood ? `미리보기 ${t(MOOD_KEY[mood])}` : '미리보기 비어 있음'}
-        >
-          {mood ? (
-            <Animated.View
-              style={[styles.paint, { backgroundColor: theme.mood[mood] }, paintStyle]}
-            />
-          ) : null}
+            {existing && !playing ? (
+              <Pressable onPress={remove} style={styles.remove} accessibilityLabel={t('day.remove')}>
+                <Text style={styles.removeLabel}>{t('day.remove')}</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        }
+      >
+        <View style={styles.preview}>
+          <View
+            style={styles.berry}
+            accessibilityLabel={mood ? `미리보기 ${t(MOOD_KEY[mood])}` : '미리보기 비어 있음'}
+          >
+            {mood ? (
+              <Animated.View
+                style={[styles.paint, { backgroundColor: theme.mood[mood] }, paintStyle]}
+              />
+            ) : null}
+          </View>
+          <Text style={styles.moodName}>{mood ? t(MOOD_KEY[mood]) : ' '}</Text>
         </View>
-        <Text style={styles.moodName}>{mood ? t(MOOD_KEY[mood]) : ' '}</Text>
-      </View>
 
-      <View style={styles.moods}>
-        {MOODS.map((m) => (
-          <Pressable
-            key={m}
-            onPress={() => setPickedMood(m)}
-            accessibilityLabel={t(MOOD_KEY[m])}
-            accessibilityState={{ selected: mood === m }}
-            style={[styles.swatch, { backgroundColor: theme.mood[m] }, mood === m && styles.picked]}
-          />
-        ))}
-      </View>
+        <View style={styles.moods}>
+          {MOODS.map((m) => (
+            <Pressable
+              key={m}
+              onPress={() => setPickedMood(m)}
+              accessibilityLabel={t(MOOD_KEY[m])}
+              accessibilityState={{ selected: mood === m }}
+              style={[styles.swatch, { backgroundColor: theme.mood[m] }, mood === m && styles.picked]}
+            />
+          ))}
+        </View>
 
-      <TextInput
-        value={note}
-        onChangeText={setTypedNote}
-        maxLength={NOTE_MAX}
-        placeholder={t('day.note.placeholder')}
-        placeholderTextColor="#9AA0A6"
-        style={styles.note}
-        multiline
-      />
+        <TextInput
+          value={note}
+          onChangeText={setTypedNote}
+          maxLength={NOTE_MAX}
+          placeholder={t('day.note.placeholder')}
+          placeholderTextColor={theme.hint}
+          style={styles.note}
+          multiline
+          // 마지막 칸이라 완료 키로 바로 저장한다. 기분을 안 골랐으면 키보드만 내려간다.
+          returnKeyType="done"
+          submitBehavior="blurAndSubmit"
+          onSubmitEditing={save}
+        />
 
-      <Animated.Text style={[styles.cheer, cheerStyle]}>
-        {playing ? t('day.saved') : ' '}
-      </Animated.Text>
-
-      <View style={styles.actions}>
-        <Pressable
-          onPress={save}
-          disabled={!mood}
-          accessibilityLabel={t('day.save')}
-          accessibilityState={{ disabled: !mood }}
-          style={[styles.save, !mood && styles.saveOff]}
-        >
-          <Text style={styles.saveLabel}>{t('day.save')}</Text>
-        </Pressable>
-
-        {existing && !playing ? (
-          <Pressable onPress={remove} style={styles.remove} accessibilityLabel={t('day.remove')}>
-            <Text style={styles.removeLabel}>{t('day.remove')}</Text>
-          </Pressable>
-        ) : null}
-      </View>
+        <Animated.Text style={[styles.cheer, cheerStyle]}>
+          {playing ? t('day.saved') : ' '}
+        </Animated.Text>
+      </ScreenFrame>
 
       {playing ? (
         <Pressable
@@ -216,7 +221,7 @@ export default function DayRecordScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.sky, padding: space.xl },
+  root: { flex: 1 },
   center: {
     flex: 1,
     alignItems: 'center',
@@ -224,11 +229,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.sky,
     gap: space.lg,
   },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
-  close: { paddingVertical: space.sm, paddingHorizontal: space.sm },
-  closeLabel: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
-  preview: { alignItems: 'center', gap: space.sm, marginTop: space.xxl },
+  preview: { alignItems: 'center', gap: space.sm, marginTop: space.lg },
   berry: {
     width: 84,
     height: 84,
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
     color: theme.ink,
     textAlignVertical: 'top',
   },
-  actions: { marginTop: 'auto', alignItems: 'center', gap: space.lg, paddingBottom: space.xl },
+  actions: { alignItems: 'center', gap: space.lg },
   save: {
     alignSelf: 'stretch',
     height: 52,

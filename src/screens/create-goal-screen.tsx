@@ -1,7 +1,8 @@
 import { useNavigation, useRouter } from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
 import { useRef, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, type TextInput as RNTextInput, View } from 'react-native';
+import { ScreenFrame } from '@/components/screen-frame';
 import { Text, TextInput } from '@/components/text';
 import { useCreateGoal } from '@/hooks/use-create-goal';
 import { useToday } from '@/hooks/use-today';
@@ -27,6 +28,7 @@ export default function CreateGoalScreen() {
   const submitting = useRef(false);
   // 생성에 성공해서 나가는 길은 막지 않는다. ref라 같은 틱에서도 값이 보인다.
   const created = useRef(false);
+  const tagInput = useRef<RNTextInput>(null);
   const pending = useRef<Parameters<typeof navigation.dispatch>[0] | null>(null);
 
   // 제목의 첫 단어를 제안하되, 직접 고친 뒤에는 덮어쓰지 않는다.
@@ -82,25 +84,55 @@ export default function CreateGoalScreen() {
   const over = { title: count.title > TITLE_MAX, tag: count.tag > TAG_MAX };
 
   return (
-    <View style={styles.root}>
-      <View style={styles.header}>
-        <Text style={styles.heading}>{t('goal.new.title')}</Text>
-        {/* 저장 중에는 ✕를 감춘다 (설계 7.3). */}
-        {saving ? null : (
-          <Pressable onPress={back} style={styles.close} accessibilityLabel="닫기">
-            <Text style={styles.closeLabel}>✕</Text>
-          </Pressable>
-        )}
-      </View>
+    <ScreenFrame
+      title={t('goal.new.title')}
+      // 저장 중에는 닫기를 감춘다 (설계 7.3).
+      onClose={saving ? undefined : back}
+      footer={
+        <>
+          {confirming ? (
+            // Alert은 웹에서 동작하지 않는다. 확인을 화면 안에서 묻는다.
+            <View style={styles.confirm}>
+              <Text style={styles.confirmText}>{t('goal.new.discard')}</Text>
+              <View style={styles.confirmRow}>
+                <Pressable onPress={() => setConfirming(false)} style={styles.keep}>
+                  <Text style={styles.keepLabel}>{t('goal.new.keep')}</Text>
+                </Pressable>
+                <Pressable
+                  onPress={discard}
+                  style={styles.leave}
+                  accessibilityLabel={t('goal.new.leave')}
+                >
+                  <Text style={styles.leaveLabel}>{t('goal.new.leave')}</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : null}
 
+          <Pressable
+            onPress={submit}
+            disabled={!ready}
+            accessibilityLabel={t('goal.new.create')}
+            accessibilityState={{ disabled: !ready, busy: saving }}
+            style={[styles.create, !ready && styles.createOff]}
+          >
+            <Text style={styles.createLabel}>{t('goal.new.create')}</Text>
+          </Pressable>
+        </>
+      }
+    >
       <TextInput
         value={title}
         onChangeText={setTitle}
         placeholder={t('goal.new.titlePlaceholder')}
-        placeholderTextColor="#9AA0A6"
+        placeholderTextColor={theme.hint}
         style={styles.title}
         editable={!saving}
         multiline
+        // 여러 줄 칸이지만 완료 키는 줄을 바꾸지 않고 짧은 이름 칸으로 넘어간다.
+        returnKeyType="next"
+        submitBehavior="submit"
+        onSubmitEditing={() => tagInput.current?.focus()}
         accessibilityLabel={t('goal.new.titlePlaceholder')}
       />
       <Text style={[styles.counter, over.title && styles.counterOver]}>
@@ -109,10 +141,13 @@ export default function CreateGoalScreen() {
 
       <Text style={styles.label}>{t('goal.new.tagLabel')}</Text>
       <TextInput
+        ref={tagInput}
         value={tag}
         onChangeText={setTypedTag}
         style={styles.tag}
         editable={!saving}
+        returnKeyType="done"
+        onSubmitEditing={submit}
         accessibilityLabel={t('goal.new.tagLabel')}
       />
       <Text style={[styles.counter, over.tag && styles.counterOver]}>
@@ -122,49 +157,12 @@ export default function CreateGoalScreen() {
       <Text style={styles.hint}>{t('goal.new.hint')}</Text>
 
       {create.isError ? <Text style={styles.failed}>{t('goal.new.failed')}</Text> : null}
-
-      <View style={styles.actions}>
-        {confirming ? (
-          // Alert은 웹에서 동작하지 않는다. 확인을 화면 안에서 묻는다.
-          <View style={styles.confirm}>
-            <Text style={styles.confirmText}>{t('goal.new.discard')}</Text>
-            <View style={styles.confirmRow}>
-              <Pressable onPress={() => setConfirming(false)} style={styles.keep}>
-                <Text style={styles.keepLabel}>{t('goal.new.keep')}</Text>
-              </Pressable>
-              <Pressable
-                onPress={discard}
-                style={styles.leave}
-                accessibilityLabel={t('goal.new.leave')}
-              >
-                <Text style={styles.leaveLabel}>{t('goal.new.leave')}</Text>
-              </Pressable>
-            </View>
-          </View>
-        ) : null}
-
-        <Pressable
-          onPress={submit}
-          disabled={!ready}
-          accessibilityLabel={t('goal.new.create')}
-          accessibilityState={{ disabled: !ready, busy: saving }}
-          style={[styles.create, !ready && styles.createOff]}
-        >
-          <Text style={styles.createLabel}>{t('goal.new.create')}</Text>
-        </Pressable>
-      </View>
-    </View>
+    </ScreenFrame>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.sky, padding: space.xl },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  heading: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
-  close: { paddingVertical: space.sm, paddingHorizontal: space.sm },
-  closeLabel: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
   title: {
-    marginTop: space.xl,
     minHeight: 76,
     borderRadius: radius.lg,
     backgroundColor: theme.paper,
@@ -189,7 +187,6 @@ const styles = StyleSheet.create({
   counterOver: { color: theme.amber },
   hint: { marginTop: space.xl, fontSize: fontSize.xs, fontWeight: '600', color: theme.ink, opacity: 0.7 },
   failed: { marginTop: space.lg, fontSize: fontSize.sm, fontWeight: '700', color: theme.amber },
-  actions: { marginTop: 'auto', gap: space.lg, paddingBottom: space.xl },
   confirm: { gap: space.sm },
   confirmText: { fontSize: fontSize.sm, fontWeight: '700', color: theme.ink },
   confirmRow: { flexDirection: 'row', gap: space.sm },

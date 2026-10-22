@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import {
   StyleSheet,
   Text as RNText,
@@ -26,6 +27,6 @@ export function Text({ style, display, ...rest }: Props) {
   return <RNText {...rest} style={withAppFont(style, display)} />;
 }
 
-export function TextInput({ style, ...rest }: TextInputProps) {
+export function TextInput({ style, ...rest }: TextInputProps & { ref?: Ref<RNTextInput> }) {
   return <RNTextInput {...rest} style={withAppFont(style)} />;
 }

@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HEADER_HEIGHT, TAB_BAR_HEIGHT } from '@/components/app-header';
 import { SURFACE, SURFACE_RADIUS, SURFACE_TEXT } from '@/components/surface';
 import { Text } from '@/components/text';
+import { BackButton } from '@/components/back-button';
 import { Grape } from '@/components/grape';
 import { BERRIES, berryBox, BERRY_D, BUNCH_EXTENT, STEM_LEAF } from '@/components/tree-bunch';
 import { useCurrentBunch } from '@/hooks/use-current-bunch';
@@ -168,9 +169,7 @@ export default function BunchDetailScreen() {
         <View style={styles.top}>
           <View style={styles.header}>
             <View style={styles.headerSide}>
-              <Pressable onPress={back} style={styles.iconButton} accessibilityLabel="뒤로" hitSlop={5}>
-                <Image source={require('../../assets/icons/back.svg')} style={styles.icon} tintColor={CANOPY_TEXT} />
-              </Pressable>
+              <BackButton onPress={back} label="뒤로" />
               <Text style={styles.meta}>{`No.${bunch.sequence}`}</Text>
             </View>
             <View style={styles.headerSide}>
