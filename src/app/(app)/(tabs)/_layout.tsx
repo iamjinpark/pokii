@@ -40,6 +40,6 @@ const styles = StyleSheet.create({
   // 기본 탭 바는 Android 그림자(elevation 8)와 borderColor를 깐다. 헤더 선과 맞추려면 둘 다 덮어야 한다.
   bar: { backgroundColor: theme.paper, borderTopWidth: BORDER_WIDTH, borderColor: theme.ink, elevation: 0 },
   noIcon: { display: 'none' },
-  label: { fontFamily: fonts.en.display, fontSize: fontSize.lg, color: theme.ink },
+  label: { fontFamily: fonts.label.latin, fontSize: fontSize.lg, color: theme.ink },
   idle: { opacity: 0.4 },
 });

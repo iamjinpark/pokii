@@ -240,7 +240,7 @@ export default function TreeScreen() {
       <View style={[styles.center, skyBg]}>
         <Text style={[styles.body, { color: sky.text }]}>{t('common.error.network')}</Text>
         <Pressable onPress={() => refetch()} style={styles.retry}>
-          <Text style={styles.retryLabel}>{t('common.retry')}</Text>
+          <Text label style={styles.retryLabel}>{t('common.retry')}</Text>
         </Pressable>
       </View>
     );
@@ -308,7 +308,7 @@ export default function TreeScreen() {
                         accessibilityLabel={`빈 가지 ${slot}`}
                         onPress={() => router.push('/goal/new')}
                       >
-                        <Text style={styles.plus}>+</Text>
+                        <Text label style={styles.plus}>+</Text>
                       </Pressable>
                     )}
                   </View>
@@ -339,8 +339,8 @@ export default function TreeScreen() {
             <View style={[styles.right, { transform: [{ scale }] }]}>
 
               <View style={styles.message}>
-                <Text style={[styles.line, { color: sky.text }]}>{greeting}</Text>
-                <Text style={[styles.line, { color: sky.text }]}>{line}</Text>
+                <Text label style={[styles.line, { color: sky.text }]}>{greeting}</Text>
+                <Text label style={[styles.line, { color: sky.text }]}>{line}</Text>
               </View>
             </View>
     </>

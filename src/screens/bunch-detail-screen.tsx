@@ -112,7 +112,7 @@ export default function BunchDetailScreen() {
       <View style={[styles.center, skyBg]}>
         <Text style={[styles.body, { color: sky.text }]}>{t('common.error.network')}</Text>
         <Pressable onPress={() => refetch()} style={styles.retry}>
-          <Text style={styles.retryLabel}>{t('common.retry')}</Text>
+          <Text label style={styles.retryLabel}>{t('common.retry')}</Text>
         </Pressable>
       </View>
     );
@@ -170,10 +170,10 @@ export default function BunchDetailScreen() {
           <View style={styles.header}>
             <View style={styles.headerSide}>
               <IconButton icon="back" color={CANOPY_TEXT} onPress={back} label="뒤로" />
-              <Text style={styles.meta}>{`No.${bunch.sequence}`}</Text>
+              <Text label style={styles.meta}>{`No.${bunch.sequence}`}</Text>
             </View>
             <View style={styles.headerSide}>
-              <Text style={styles.meta}>{startLabel(bunch.startedOn)}</Text>
+              <Text label style={styles.meta}>{startLabel(bunch.startedOn)}</Text>
               <IconButton
                 icon="more"
                 color={CANOPY_TEXT}
@@ -182,7 +182,7 @@ export default function BunchDetailScreen() {
               />
             </View>
           </View>
-          <Text user style={styles.title}>{bunch.title}</Text>
+          <Text style={styles.title}>{bunch.title}</Text>
         </View>
         <View style={styles.slot} onLayout={(e) => setSlot(e.nativeEvent.layout)}>
           {bigScale > 0 ? (
@@ -252,14 +252,14 @@ export default function BunchDetailScreen() {
             style={styles.menuItem}
             accessibilityLabel={t('goal.edit')}
           >
-            <Text style={styles.menuLabel}>{t('goal.edit')}</Text>
+            <Text label style={styles.menuLabel}>{t('goal.edit')}</Text>
           </Pressable>
           <Pressable
             onPress={() => setMenu('confirm')}
             style={styles.menuItem}
             accessibilityLabel={t('goal.delete')}
           >
-            <Text style={[styles.menuLabel, styles.danger]}>{t('goal.delete')}</Text>
+            <Text label style={[styles.menuLabel, styles.danger]}>{t('goal.delete')}</Text>
           </Pressable>
         </View>
       ) : null}
@@ -282,7 +282,7 @@ export default function BunchDetailScreen() {
                 style={styles.keep}
                 accessibilityLabel={t('goal.delete.no')}
               >
-                <Text style={styles.menuLabel}>{t('goal.delete.no')}</Text>
+                <Text label style={styles.menuLabel}>{t('goal.delete.no')}</Text>
               </Pressable>
               <Pressable
                 onPress={() =>
@@ -292,7 +292,7 @@ export default function BunchDetailScreen() {
                 style={[styles.removeButton, (!footprint.data || remove.isPending) && styles.off]}
                 accessibilityLabel={t('goal.delete.yes')}
               >
-                <Text style={styles.removeLabel}>{t('goal.delete.yes')}</Text>
+                <Text label style={styles.removeLabel}>{t('goal.delete.yes')}</Text>
               </Pressable>
             </View>
           </View>
