@@ -8,13 +8,20 @@ describe('withAppFont', () => {
     expect(withAppFont(undefined).fontFamily).toBe('DoHyeon');
   });
 
-  test('사용자 값은 본문 글꼴, 600 이상은 굵은 파일', () => {
-    expect(withAppFont({ fontSize: 16, fontWeight: '600' }, true)).toEqual({ fontSize: 16, fontFamily: 'PokiiSansKRBold' });
-    expect(withAppFont({ fontWeight: '500' }, true).fontFamily).toBe('PokiiSansKR');
+  test('사용자 값은 앱 언어가 아니라 글 내용으로 본문 글꼴을 고른다', () => {
+    expect(withAppFont(undefined, true, '매일 영어 단어').fontFamily).toBe('PokiiSansKR');
+    expect(withAppFont(undefined, true, 'Learn 한국어').fontFamily).toBe('PokiiSansKR');
+    expect(withAppFont(undefined, true, 'Learn 20 words').fontFamily).toBe('DMSans');
+  });
+
+  test('사용자 값의 600 이상은 굵은 파일', () => {
+    expect(withAppFont({ fontSize: 16, fontWeight: '600' }, true, '영어')).toEqual({ fontSize: 16, fontFamily: 'PokiiSansKRBold' });
+    expect(withAppFont({ fontWeight: '700' }, true, 'words').fontFamily).toBe('DMSansBold');
+    expect(withAppFont({ fontWeight: '500' }, true, '영어').fontFamily).toBe('PokiiSansKR');
   });
 
   test('배열 스타일도 합친다', () => {
-    expect(withAppFont([{ color: 'red' }, { fontWeight: 'bold' }], true)).toEqual({
+    expect(withAppFont([{ color: 'red' }, { fontWeight: 'bold' }], true, '영어')).toEqual({
       color: 'red',
       fontFamily: 'PokiiSansKRBold',
     });
