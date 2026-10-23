@@ -40,6 +40,6 @@ export const MOODS: readonly Mood[] = ['excited', 'happy', 'calm', 'tired', 'sad
  */
 export const fonts = {
   label: { latin: 'Anton', hangul: 'DoHyeon' },
-  body: { latin: 'DMSans', hangul: 'PokiiSansKR' },
-  bodyBold: { latin: 'DMSansBold', hangul: 'PokiiSansKRBold' },
+  body: { latin: 'DMSans', hangul: 'Paperlogy' },
+  bodyBold: { latin: 'DMSansBold', hangul: 'PaperlogyBold' },
 } as const;

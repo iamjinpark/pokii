@@ -19,8 +19,8 @@ const FONTS = {
   DMSans: DMSans_400Regular,
   DMSansBold: DMSans_700Bold,
   DoHyeon: DoHyeon_400Regular,
-  PokiiSansKR: require('../../assets/fonts/PokiiSansKR-Regular.otf'),
-  PokiiSansKRBold: require('../../assets/fonts/PokiiSansKR-Bold.otf'),
+  Paperlogy: require('../../assets/fonts/Paperlogy-Regular.ttf'),
+  PaperlogyBold: require('../../assets/fonts/Paperlogy-Bold.ttf'),
 };
 
 function Routes() {

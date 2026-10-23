@@ -28,9 +28,9 @@ describe('withAppFont', () => {
     expect(withAppFont(undefined, true, true).fontFamily).toBe('DoHyeon');
   });
 
-  test('본문은 DM Sans·Pretendard, 600 이상은 굵은 파일', () => {
+  test('본문은 DM Sans·페이퍼로지, 600 이상은 굵은 파일', () => {
     expect(withAppFont(undefined).fontFamily).toBe('DMSans');
-    expect(withAppFont({ fontWeight: '600' }, false, true)).toEqual({ fontFamily: 'PokiiSansKRBold' });
+    expect(withAppFont({ fontWeight: '600' }, false, true)).toEqual({ fontFamily: 'PaperlogyBold' });
     expect(withAppFont({ fontWeight: 'bold' }).fontFamily).toBe('DMSansBold');
   });
 

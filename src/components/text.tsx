@@ -34,7 +34,7 @@ export function scriptRuns(text: string): { text: string; hangul: boolean }[] {
 }
 
 /**
- * 라벨(버튼·제목·칸 이름·번호·메뉴)은 Anton·도현, 나머지 본문은 DM Sans·Pretendard다 (스펙 9.2).
+ * 라벨(버튼·제목·칸 이름·번호·메뉴)은 Anton·도현, 나머지 본문은 DM Sans·페이퍼로지다 (스펙 9.2).
  * 글자가 한글이면 한글 글꼴, 아니면 라틴 글꼴. 라벨 글꼴은 굵기가 하나라 fontWeight를 버리고,
  * 본문은 커스텀 글꼴이 Android에서 fontWeight를 적용하지 못하므로 굵기를 글꼴 파일로 바꾼다.
  * fontFamily를 직접 주면 그대로 쓴다 (브랜드 로고 등).
