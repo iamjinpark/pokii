@@ -34,8 +34,12 @@ export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
 export type Mood = keyof typeof theme.mood;
 export const MOODS: readonly Mood[] = ['excited', 'happy', 'calm', 'tired', 'sad'];
 
-/** 언어별 글꼴 이름. 값은 루트 레이아웃의 useFonts 키와 같아야 한다 (스펙 9.2). */
+/**
+ * 글꼴 이름 (스펙 9.2). 역할(라벨·본문)과 글자(라틴·한글)로 고른다. 앱 언어와는 상관없다.
+ * 값은 루트 레이아웃의 useFonts 키와 같아야 한다.
+ */
 export const fonts = {
-  en: { display: 'Anton', body: 'DMSans', bodyBold: 'DMSansBold' },
-  ko: { display: 'DoHyeon', body: 'PokiiSansKR', bodyBold: 'PokiiSansKRBold' },
+  label: { latin: 'Anton', hangul: 'DoHyeon' },
+  body: { latin: 'DMSans', hangul: 'Paperlogy' },
+  bodyBold: { latin: 'DMSansBold', hangul: 'PaperlogyBold' },
 } as const;

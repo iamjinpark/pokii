@@ -206,11 +206,11 @@ export function BirdScene({
               />
               {bird.bubble === 'notice' ? (
                 <>
-                  <Text display style={styles.title}>{t('tree.full.title')}</Text>
+                  <Text style={styles.title}>{t('tree.full.title')}</Text>
                   <Text style={styles.body}>{t('tree.full.body')}</Text>
                 </>
               ) : (
-                <Text display style={styles.title}>{t(cheerKeyFor(today))}</Text>
+                <Text style={styles.title}>{t(cheerKeyFor(today))}</Text>
               )}
               <Image source={require('../../assets/tree/bird/bubble-tail.png')} style={styles.tail} />
             </View>

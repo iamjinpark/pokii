@@ -29,7 +29,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.root}>
-      <Text style={styles.label}>{t('settings.language')}</Text>
+      <Text label style={styles.label}>{t('settings.language')}</Text>
       <View style={styles.row}>
         {LANGUAGES.map((l) => {
           const on = l.locale === locale;
@@ -41,20 +41,20 @@ export default function SettingsScreen() {
               onPress={() => setLocale(l.locale)}
               style={[styles.option, on && styles.optionOn]}
             >
-              <Text style={[styles.optionLabel, on && styles.optionLabelOn]}>{l.label}</Text>
+              <Text label style={[styles.optionLabel, on && styles.optionLabelOn]}>{l.label}</Text>
             </Pressable>
           );
         })}
       </View>
 
-      <Text style={styles.label}>{t('settings.account')}</Text>
+      <Text label style={styles.label}>{t('settings.account')}</Text>
       <View style={styles.card}>
-        {provider ? <Text style={styles.provider}>{provider}</Text> : null}
+        {provider ? <Text label style={styles.provider}>{provider}</Text> : null}
         {user?.email ? <Text style={styles.email}>{user.email}</Text> : null}
       </View>
 
       <Pressable accessibilityRole="button" onPress={onSignOut} style={styles.signOut}>
-        <Text style={styles.signOutLabel}>{t('settings.signOut')}</Text>
+        <Text label style={styles.signOutLabel}>{t('settings.signOut')}</Text>
       </Pressable>
       {failed ? <Text style={styles.error}>{t('settings.signOut.failed')}</Text> : null}
     </View>

@@ -25,8 +25,8 @@ export function ScreenFrame({ title, eyebrow, onClose, footer, children }: Props
     <View style={styles.root}>
       <View style={styles.top}>
         <View style={styles.titles}>
-          {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
-          <Text style={styles.title} accessibilityRole="header">
+          {eyebrow ? <Text label style={styles.eyebrow}>{eyebrow}</Text> : null}
+          <Text label style={styles.title} accessibilityRole="header">
             {title}
           </Text>
         </View>

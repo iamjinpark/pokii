@@ -28,5 +28,5 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.ink,
     alignItems: 'center',
   },
-  title: { color: theme.ink, fontFamily: fonts.en.display, fontSize: fontSize.xl, lineHeight: HEADER_HEIGHT - BORDER_WIDTH },
+  title: { color: theme.ink, fontFamily: fonts.label.latin, fontSize: fontSize.xl, lineHeight: HEADER_HEIGHT - BORDER_WIDTH },
 });

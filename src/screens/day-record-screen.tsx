@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import { ScreenFrame } from '@/components/screen-frame';
-import { Text, TextInput } from '@/components/text';
+import { hasHangul, Text, TextInput, withAppFont } from '@/components/text';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -112,7 +112,7 @@ export default function DayRecordScreen() {
       <View style={styles.center}>
         <Text style={styles.body}>{t('common.error.network')}</Text>
         <Pressable onPress={() => refetch()} style={styles.retry}>
-          <Text style={styles.retryLabel}>{t('common.retry')}</Text>
+          <Text label style={styles.retryLabel}>{t('common.retry')}</Text>
         </Pressable>
       </View>
     );
@@ -153,12 +153,12 @@ export default function DayRecordScreen() {
               accessibilityState={{ disabled: !mood }}
               style={[styles.save, !mood && styles.saveOff]}
             >
-              <Text style={styles.saveLabel}>{t('day.save')}</Text>
+              <Text label style={styles.saveLabel}>{t('day.save')}</Text>
             </Pressable>
 
             {existing && !playing ? (
               <Pressable onPress={remove} style={styles.remove} accessibilityLabel={t('day.remove')}>
-                <Text style={styles.removeLabel}>{t('day.remove')}</Text>
+                <Text label style={styles.removeLabel}>{t('day.remove')}</Text>
               </Pressable>
             ) : null}
           </View>
@@ -204,7 +204,7 @@ export default function DayRecordScreen() {
           onSubmitEditing={save}
         />
 
-        <Animated.Text style={[styles.cheer, cheerStyle]}>
+        <Animated.Text style={[withAppFont(styles.cheer, false, hasHangul(t('day.saved'))), cheerStyle]}>
           {playing ? t('day.saved') : ' '}
         </Animated.Text>
       </ScreenFrame>

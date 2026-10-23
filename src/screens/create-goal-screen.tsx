@@ -96,14 +96,14 @@ export default function CreateGoalScreen() {
               <Text style={styles.confirmText}>{t('goal.new.discard')}</Text>
               <View style={styles.confirmRow}>
                 <Pressable onPress={() => setConfirming(false)} style={styles.keep}>
-                  <Text style={styles.keepLabel}>{t('goal.new.keep')}</Text>
+                  <Text label style={styles.keepLabel}>{t('goal.new.keep')}</Text>
                 </Pressable>
                 <Pressable
                   onPress={discard}
                   style={styles.leave}
                   accessibilityLabel={t('goal.new.leave')}
                 >
-                  <Text style={styles.leaveLabel}>{t('goal.new.leave')}</Text>
+                  <Text label style={styles.leaveLabel}>{t('goal.new.leave')}</Text>
                 </Pressable>
               </View>
             </View>
@@ -116,7 +116,7 @@ export default function CreateGoalScreen() {
             accessibilityState={{ disabled: !ready, busy: saving }}
             style={[styles.create, !ready && styles.createOff]}
           >
-            <Text style={styles.createLabel}>{t('goal.new.create')}</Text>
+            <Text label style={styles.createLabel}>{t('goal.new.create')}</Text>
           </Pressable>
         </>
       }
@@ -139,7 +139,7 @@ export default function CreateGoalScreen() {
         {`${count.title}/${TITLE_MAX}`}
       </Text>
 
-      <Text style={styles.label}>{t('goal.new.tagLabel')}</Text>
+      <Text label style={styles.label}>{t('goal.new.tagLabel')}</Text>
       <TextInput
         ref={tagInput}
         value={tag}

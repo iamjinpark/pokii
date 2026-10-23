@@ -67,7 +67,7 @@ export default function ResultScreen() {
       <View style={styles.center}>
         <Text style={styles.body}>{t('common.error.network')}</Text>
         <Pressable onPress={() => refetch()} style={styles.retry}>
-          <Text style={styles.retryLabel}>{t('common.retry')}</Text>
+          <Text label style={styles.retryLabel}>{t('common.retry')}</Text>
         </Pressable>
       </View>
     );
@@ -92,7 +92,7 @@ export default function ResultScreen() {
             accessibilityState={{ disabled: busy, busy }}
             style={[styles.primary, busy && styles.off]}
           >
-            <Text style={styles.primaryLabel}>{t('done.oneMore')}</Text>
+            <Text label style={styles.primaryLabel}>{t('done.oneMore')}</Text>
           </Pressable>
 
           <Pressable
@@ -102,7 +102,7 @@ export default function ResultScreen() {
             accessibilityState={{ disabled: busy, busy }}
             style={[styles.secondary, busy && styles.off]}
           >
-            <Text style={styles.secondaryLabel}>{t('done.finish')}</Text>
+            <Text label style={styles.secondaryLabel}>{t('done.finish')}</Text>
           </Pressable>
         </>
       }
@@ -111,7 +111,7 @@ export default function ResultScreen() {
         <Container grade={grade} />
         {filled >= SHOW_COUNT_FROM ? (
           <>
-            <Text style={styles.count}>{`${filled} / ${BUNCH_SIZE}`}</Text>
+            <Text label style={styles.count}>{`${filled} / ${BUNCH_SIZE}`}</Text>
             <Text style={styles.grade}>{t(GRADE_KEY[grade])}</Text>
           </>
         ) : (

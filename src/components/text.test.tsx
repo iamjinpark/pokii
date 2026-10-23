@@ -1,30 +1,40 @@
-import { withAppFont } from './text';
+import { scriptRuns, withAppFont } from './text';
 
-jest.mock('@/i18n', () => ({ appLocale: () => 'ko' }));
-
-describe('withAppFont', () => {
-  test('600 이상은 굵은 글꼴 파일로 바꾸고 fontWeight를 지운다', () => {
-    const style = withAppFont({ fontSize: 16, fontWeight: '600' });
-    expect(style).toEqual({ fontSize: 16, fontFamily: 'PokiiSansKRBold' });
+describe('scriptRuns', () => {
+  test('한글과 라틴 구간을 나누고 띄어쓰기·문장부호는 앞 구간에 붙인다', () => {
+    expect(scriptRuns('Learn 한국어!')).toEqual([
+      { text: 'Learn ', hangul: false },
+      { text: '한국어!', hangul: true },
+    ]);
   });
 
-  test('굵기가 없거나 600 미만이면 보통 글꼴이다', () => {
-    expect(withAppFont(undefined).fontFamily).toBe('PokiiSansKR');
-    expect(withAppFont({ fontWeight: '500' }).fontFamily).toBe('PokiiSansKR');
+  test('숫자는 라틴 구간이다', () => {
+    expect(scriptRuns('오늘 시작 · 10일').map((r) => r.text)).toEqual(['오늘 시작 · ', '10', '일']);
   });
 
-  test('display는 굵기와 무관하게 제목 글꼴이다', () => {
-    expect(withAppFont({ fontWeight: '800' }, true).fontFamily).toBe('DoHyeon');
+  test('한 가지 글자만 있으면 구간 하나', () => {
+    expect(scriptRuns('No.2')).toEqual([{ text: 'No.2', hangul: false }]);
+    expect(scriptRuns('새 목표')).toEqual([{ text: '새 목표', hangul: true }]);
   });
 
-  test('배열 스타일도 합친다', () => {
-    expect(withAppFont([{ color: 'red' }, { fontWeight: 'bold' }])).toEqual({
-      color: 'red',
-      fontFamily: 'PokiiSansKRBold',
-    });
+  test('문장부호로 시작해도 다음 글자 구간에 붙는다', () => {
+    expect(scriptRuns('"안녕"')).toEqual([{ text: '"안녕"', hangul: true }]);
   });
 });
 
-test('fontFamily를 직접 주면 언어별 글꼴보다 우선한다', () => {
-  expect(withAppFont({ fontFamily: 'Anton', fontWeight: '700' }).fontFamily).toBe('Anton');
+describe('withAppFont', () => {
+  test('라벨은 굵기와 무관하게 Anton·도현이고 fontWeight를 지운다', () => {
+    expect(withAppFont({ fontSize: 16, fontWeight: '800' }, true)).toEqual({ fontSize: 16, fontFamily: 'Anton' });
+    expect(withAppFont(undefined, true, true).fontFamily).toBe('DoHyeon');
+  });
+
+  test('본문은 DM Sans·페이퍼로지, 600 이상은 굵은 파일', () => {
+    expect(withAppFont(undefined).fontFamily).toBe('DMSans');
+    expect(withAppFont({ fontWeight: '600' }, false, true)).toEqual({ fontFamily: 'PaperlogyBold' });
+    expect(withAppFont({ fontWeight: 'bold' }).fontFamily).toBe('DMSansBold');
+  });
+
+  test('fontFamily를 직접 주면 그대로 쓴다', () => {
+    expect(withAppFont({ fontFamily: 'Anton', fontWeight: '700' }, false, true).fontFamily).toBe('Anton');
+  });
 });

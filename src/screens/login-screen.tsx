@@ -28,14 +28,14 @@ export default function LoginScreen() {
           disabled={busy !== null}
           onPress={() => handle('google')}
         >
-          <Text style={styles.googleLabel}>{t('login.google')}</Text>
+          <Text label style={styles.googleLabel}>{t('login.google')}</Text>
         </Pressable>
         <Pressable
           style={[styles.button, styles.kakao]}
           disabled={busy !== null}
           onPress={() => handle('kakao')}
         >
-          <Text style={styles.kakaoLabel}>{t('login.kakao')}</Text>
+          <Text label style={styles.kakaoLabel}>{t('login.kakao')}</Text>
         </Pressable>
       </View>
     </View>
@@ -44,7 +44,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.paper, alignItems: 'center', justifyContent: 'center', padding: space.xl },
-  mark: { fontSize: fontSize.number, fontFamily: fonts.en.display, color: theme.ink, marginBottom: space.xxl + space.lg },
+  mark: { fontSize: fontSize.number, fontFamily: fonts.label.latin, color: theme.ink, marginBottom: space.xxl + space.lg },
   buttons: { alignSelf: 'stretch', gap: space.lg },
   button: { height: 52, borderRadius: radius.round, alignItems: 'center', justifyContent: 'center' },
   google: { backgroundColor: theme.ink },

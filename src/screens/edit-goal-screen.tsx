@@ -39,7 +39,7 @@ export default function EditGoalScreen() {
       <View style={styles.center}>
         <Text style={styles.body}>{t('common.error.network')}</Text>
         <Pressable onPress={() => refetch()} style={styles.retry}>
-          <Text style={styles.retryLabel}>{t('common.retry')}</Text>
+          <Text label style={styles.retryLabel}>{t('common.retry')}</Text>
         </Pressable>
       </View>
     );
@@ -70,7 +70,7 @@ export default function EditGoalScreen() {
           accessibilityState={{ disabled: !ready, busy: saving }}
           style={[styles.save, !ready && styles.off]}
         >
-          <Text style={styles.saveLabel}>{t('goal.edit.save')}</Text>
+          <Text label style={styles.saveLabel}>{t('goal.edit.save')}</Text>
         </Pressable>
       }
     >
@@ -90,7 +90,7 @@ export default function EditGoalScreen() {
         {`${count.title}/${TITLE_MAX}`}
       </Text>
 
-      <Text style={styles.label}>{t('goal.new.tagLabel')}</Text>
+      <Text label style={styles.label}>{t('goal.new.tagLabel')}</Text>
       <TextInput
         ref={tagInput}
         value={tag}
