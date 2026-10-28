@@ -23,18 +23,24 @@ describe('scriptRuns', () => {
 });
 
 describe('withAppFont', () => {
-  test('라벨은 굵기와 무관하게 Anton·도현이고 fontWeight를 지운다', () => {
-    expect(withAppFont({ fontSize: 16, fontWeight: '800' }, true)).toEqual({ fontSize: 16, fontFamily: 'Anton' });
-    expect(withAppFont(undefined, true, true).fontFamily).toBe('DoHyeon');
+  test('역할 크기·굵기를 깔고 화면 스타일이 위에 얹힌다', () => {
+    expect(withAppFont({ color: 'red' }, 'label')).toEqual({ fontFamily: 'DMSansBold', fontSize: 14, lineHeight: 18, color: 'red' });
+    expect(withAppFont(undefined, 'caption', true)).toEqual({ fontFamily: 'Paperlogy', fontSize: 12, lineHeight: 17 });
   });
 
-  test('본문은 DM Sans·페이퍼로지, 600 이상은 굵은 파일', () => {
-    expect(withAppFont(undefined).fontFamily).toBe('DMSans');
-    expect(withAppFont({ fontWeight: '600' }, false, true)).toEqual({ fontFamily: 'PaperlogyBold' });
-    expect(withAppFont({ fontWeight: 'bold' }).fontFamily).toBe('DMSansBold');
+  test('title은 도현, display는 영어 Anton·한글 도현, 굵기는 버린다', () => {
+    expect(withAppFont({ fontWeight: '800' }, 'title').fontFamily).toBe('DoHyeon');
+    expect(withAppFont(undefined, 'display').fontFamily).toBe('Anton');
+    expect(withAppFont(undefined, 'display', true).fontFamily).toBe('DoHyeon');
+  });
+
+  test('본문 역할은 굵기로 파일을 고른다', () => {
+    expect(withAppFont(undefined, 'body').fontFamily).toBe('DMSans');
+    expect(withAppFont(undefined, 'button', true).fontFamily).toBe('PaperlogyMedium');
+    expect(withAppFont(undefined, 'headline').fontFamily).toBe('DMSansBold');
   });
 
   test('fontFamily를 직접 주면 그대로 쓴다', () => {
-    expect(withAppFont({ fontFamily: 'Anton', fontWeight: '700' }, false, true).fontFamily).toBe('Anton');
+    expect(withAppFont({ fontFamily: 'Anton', fontWeight: '700' }, 'body', true).fontFamily).toBe('Anton');
   });
 });

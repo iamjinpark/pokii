@@ -1,5 +1,6 @@
 import { Anton_400Regular } from '@expo-google-fonts/anton/400Regular';
 import { DMSans_400Regular } from '@expo-google-fonts/dm-sans/400Regular';
+import { DMSans_500Medium } from '@expo-google-fonts/dm-sans/500Medium';
 import { DMSans_700Bold } from '@expo-google-fonts/dm-sans/700Bold';
 import { DoHyeon_400Regular } from '@expo-google-fonts/do-hyeon/400Regular';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -17,9 +18,11 @@ import { queryClient } from '@/utils/query';
 const FONTS = {
   Anton: Anton_400Regular,
   DMSans: DMSans_400Regular,
+  DMSansMedium: DMSans_500Medium,
   DMSansBold: DMSans_700Bold,
   DoHyeon: DoHyeon_400Regular,
   Paperlogy: require('../../assets/fonts/Paperlogy-Regular.ttf'),
+  PaperlogyMedium: require('../../assets/fonts/Paperlogy-Medium.ttf'),
   PaperlogyBold: require('../../assets/fonts/Paperlogy-Bold.ttf'),
 };
 

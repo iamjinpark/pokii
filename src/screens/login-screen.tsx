@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
+import { Button } from '@/components/button';
 import { Text } from '@/components/text';
 import { t } from '@/i18n';
-import { fonts, fontSize, radius, space, theme } from '@/theme';
+import { fonts, fontSize, space, theme } from '@/theme';
 import { signInWith, type OAuthProvider } from '@/utils/sign-in';
 
 export default function LoginScreen() {
@@ -23,20 +24,16 @@ export default function LoginScreen() {
     <View style={styles.root}>
       <Text style={styles.mark}>POKII</Text>
       <View style={styles.buttons}>
-        <Pressable
-          style={[styles.button, styles.google]}
-          disabled={busy !== null}
-          onPress={() => handle('google')}
-        >
-          <Text label style={styles.googleLabel}>{t('login.google')}</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.button, styles.kakao]}
-          disabled={busy !== null}
+        <Button label={t('login.google')} onPress={() => handle('google')} disabled={busy !== null} busy={busy === 'google'} />
+        {/* 카카오 로그인 버튼은 카카오 브랜드 노랑을 쓴다 (디자인 시스템 예외). */}
+        <Button
+          kind="secondary"
+          label={t('login.kakao')}
           onPress={() => handle('kakao')}
-        >
-          <Text label style={styles.kakaoLabel}>{t('login.kakao')}</Text>
-        </Pressable>
+          disabled={busy !== null}
+          busy={busy === 'kakao'}
+          style={styles.kakao}
+        />
       </View>
     </View>
   );
@@ -44,11 +41,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.paper, alignItems: 'center', justifyContent: 'center', padding: space.xl },
-  mark: { fontSize: fontSize.number, fontFamily: fonts.label.latin, color: theme.ink, marginBottom: space.xxl + space.lg },
-  buttons: { alignSelf: 'stretch', gap: space.lg },
-  button: { height: 52, borderRadius: radius.round, alignItems: 'center', justifyContent: 'center' },
-  google: { backgroundColor: theme.ink },
-  googleLabel: { color: theme.paper, fontSize: fontSize.sm, fontWeight: '700' },
+  mark: { fontSize: fontSize.number, lineHeight: 56, fontFamily: fonts.brand, color: theme.ink, marginBottom: space.xxl + space.lg },
+  buttons: { alignSelf: 'stretch', gap: space.sm },
   kakao: { backgroundColor: '#FEE500' },
-  kakaoLabel: { color: theme.ink, fontSize: fontSize.sm, fontWeight: '700' },
 });

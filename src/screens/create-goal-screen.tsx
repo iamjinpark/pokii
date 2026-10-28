@@ -1,13 +1,16 @@
 import { useNavigation, useRouter } from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
 import { useRef, useState } from 'react';
-import { Pressable, StyleSheet, type TextInput as RNTextInput, View } from 'react-native';
+import { StyleSheet, type TextInput as RNTextInput, View } from 'react-native';
+import { Button } from '@/components/button';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { Field } from '@/components/field';
 import { ScreenFrame } from '@/components/screen-frame';
-import { Text, TextInput } from '@/components/text';
+import { Text } from '@/components/text';
 import { useCreateGoal } from '@/hooks/use-create-goal';
 import { useToday } from '@/hooks/use-today';
 import { t } from '@/i18n';
-import { fontSize, radius, space, theme } from '@/theme';
+import { space, theme } from '@/theme';
 import { canCreateGoal, charCount, suggestTag, TAG_MAX, TITLE_MAX } from '@/utils/goal';
 
 /**
@@ -81,126 +84,61 @@ export default function CreateGoalScreen() {
   };
 
   const count = { title: charCount(title.trim()), tag: charCount(tag.trim()) };
-  const over = { title: count.title > TITLE_MAX, tag: count.tag > TAG_MAX };
 
   return (
-    <ScreenFrame
-      title={t('goal.new.title')}
-      // 저장 중에는 닫기를 감춘다 (설계 7.3).
-      onClose={saving ? undefined : back}
-      footer={
-        <>
-          {confirming ? (
-            // Alert은 웹에서 동작하지 않는다. 확인을 화면 안에서 묻는다.
-            <View style={styles.confirm}>
-              <Text style={styles.confirmText}>{t('goal.new.discard')}</Text>
-              <View style={styles.confirmRow}>
-                <Pressable onPress={() => setConfirming(false)} style={styles.keep}>
-                  <Text label style={styles.keepLabel}>{t('goal.new.keep')}</Text>
-                </Pressable>
-                <Pressable
-                  onPress={discard}
-                  style={styles.leave}
-                  accessibilityLabel={t('goal.new.leave')}
-                >
-                  <Text label style={styles.leaveLabel}>{t('goal.new.leave')}</Text>
-                </Pressable>
-              </View>
-            </View>
-          ) : null}
-
-          <Pressable
-            onPress={submit}
-            disabled={!ready}
-            accessibilityLabel={t('goal.new.create')}
-            accessibilityState={{ disabled: !ready, busy: saving }}
-            style={[styles.create, !ready && styles.createOff]}
-          >
-            <Text label style={styles.createLabel}>{t('goal.new.create')}</Text>
-          </Pressable>
-        </>
-      }
-    >
-      <TextInput
-        value={title}
-        onChangeText={setTitle}
-        placeholder={t('goal.new.titlePlaceholder')}
-        placeholderTextColor={theme.hint}
-        style={styles.title}
-        editable={!saving}
-        multiline
-        // 여러 줄 칸이지만 완료 키는 줄을 바꾸지 않고 짧은 이름 칸으로 넘어간다.
-        returnKeyType="next"
-        submitBehavior="submit"
-        onSubmitEditing={() => tagInput.current?.focus()}
-        accessibilityLabel={t('goal.new.titlePlaceholder')}
-      />
-      <Text style={[styles.counter, over.title && styles.counterOver]}>
-        {`${count.title}/${TITLE_MAX}`}
-      </Text>
-
-      <Text label style={styles.label}>{t('goal.new.tagLabel')}</Text>
-      <TextInput
-        ref={tagInput}
-        value={tag}
-        onChangeText={setTypedTag}
-        style={styles.tag}
-        editable={!saving}
-        returnKeyType="done"
-        onSubmitEditing={submit}
-        accessibilityLabel={t('goal.new.tagLabel')}
-      />
-      <Text style={[styles.counter, over.tag && styles.counterOver]}>
-        {`${count.tag}/${TAG_MAX}`}
-      </Text>
-
-      <Text style={styles.hint}>{t('goal.new.hint')}</Text>
-
-      {create.isError ? <Text style={styles.failed}>{t('goal.new.failed')}</Text> : null}
-    </ScreenFrame>
+    <View style={styles.root}>
+      <ScreenFrame
+        title={t('goal.new.title')}
+        // 저장 중에는 닫기를 감춘다 (설계 7.3).
+        onClose={saving ? undefined : back}
+        footer={<Button label={t('goal.new.create')} onPress={submit} disabled={!ready} busy={saving} />}
+      >
+        <View style={styles.fields}>
+          <Field
+            label={t('field.goal')}
+            value={title}
+            onChangeText={setTitle}
+            placeholder={t('goal.new.titlePlaceholder')}
+            editable={!saving}
+            multiline
+            // 여러 줄 칸이지만 완료 키는 줄을 바꾸지 않고 짧은 이름 칸으로 넘어간다.
+            returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => tagInput.current?.focus()}
+            count={count.title}
+            max={TITLE_MAX}
+          />
+          <Field
+            ref={tagInput}
+            label={t('goal.new.tagLabel')}
+            value={tag}
+            onChangeText={setTypedTag}
+            editable={!saving}
+            returnKeyType="done"
+            onSubmitEditing={submit}
+            count={count.tag}
+            max={TAG_MAX}
+          />
+        </View>
+        <Text variant="caption" style={styles.hint}>{t('goal.new.hint')}</Text>
+        {create.isError ? <Text style={styles.failed}>{t('goal.new.failed')}</Text> : null}
+      </ScreenFrame>
+      {confirming ? (
+        <ConfirmDialog
+          message={t('goal.new.discard')}
+          cancelLabel={t('goal.new.keep')}
+          confirmLabel={t('goal.new.leave')}
+          onCancel={() => setConfirming(false)}
+          onConfirm={discard}
+        />
+      ) : null}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  title: {
-    minHeight: 76,
-    borderRadius: radius.lg,
-    backgroundColor: theme.paper,
-    padding: space.lg,
-    fontSize: fontSize.md,
-    fontWeight: '600',
-    color: theme.ink,
-    textAlignVertical: 'top',
-  },
-  label: { marginTop: space.xl, fontSize: fontSize.xs, fontWeight: '700', color: theme.ink },
-  tag: {
-    marginTop: space.sm,
-    height: 48,
-    borderRadius: radius.lg,
-    backgroundColor: theme.paper,
-    paddingHorizontal: space.lg,
-    fontSize: fontSize.md,
-    fontWeight: '700',
-    color: theme.ink,
-  },
-  counter: { marginTop: space.sm, alignSelf: 'flex-end', fontSize: fontSize.xs, fontWeight: '700', color: theme.hint },
-  counterOver: { color: theme.amber },
-  hint: { marginTop: space.xl, fontSize: fontSize.xs, fontWeight: '600', color: theme.ink, opacity: 0.7 },
-  failed: { marginTop: space.lg, fontSize: fontSize.sm, fontWeight: '700', color: theme.amber },
-  confirm: { gap: space.sm },
-  confirmText: { fontSize: fontSize.sm, fontWeight: '700', color: theme.ink },
-  confirmRow: { flexDirection: 'row', gap: space.sm },
-  keep: { paddingVertical: space.sm, paddingHorizontal: space.lg, borderRadius: radius.round, backgroundColor: theme.paper },
-  keepLabel: { fontSize: fontSize.sm, fontWeight: '700', color: theme.ink },
-  leave: { paddingVertical: space.sm, paddingHorizontal: space.lg, borderRadius: radius.round, backgroundColor: theme.amber },
-  leaveLabel: { fontSize: fontSize.sm, fontWeight: '700', color: theme.paper },
-  create: {
-    height: 52,
-    borderRadius: radius.round,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.ink,
-  },
-  createOff: { opacity: 0.35 },
-  createLabel: { color: theme.paper, fontSize: fontSize.sm, fontWeight: '700' },
+  fields: { gap: space.xl },
+  hint: { marginTop: space.lg, color: theme.ink, opacity: 0.7 },
+  failed: { marginTop: space.lg, color: theme.amber },
+  root: { flex: 1 },
 });

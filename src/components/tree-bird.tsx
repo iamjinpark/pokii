@@ -206,11 +206,11 @@ export function BirdScene({
               />
               {bird.bubble === 'notice' ? (
                 <>
-                  <Text style={styles.title}>{t('tree.full.title')}</Text>
-                  <Text style={styles.body}>{t('tree.full.body')}</Text>
+                  <Text variant="body" style={styles.title}>{t('tree.full.title')}</Text>
+                  <Text variant="caption" style={styles.body}>{t('tree.full.body')}</Text>
                 </>
               ) : (
-                <Text style={styles.title}>{t(cheerKeyFor(today))}</Text>
+                <Text variant="body" style={styles.title}>{t(cheerKeyFor(today))}</Text>
               )}
               <Image source={require('../../assets/tree/bird/bubble-tail.png')} style={styles.tail} />
             </View>
@@ -229,6 +229,6 @@ const styles = StyleSheet.create({
   paper: { ...StyleSheet.absoluteFill, width: '100%', height: '100%' },
   /** 따로 오린 삼각 조각 꼬리. 아래의 새 쪽을 가리킨다. */
   tail: { position: 'absolute', bottom: -22, right: 30, width: 20, height: 26 },
-  title: { fontSize: 16, color: theme.ink },
-  body: { marginTop: 2, fontSize: 12, color: theme.ink },
+  title: { color: theme.ink },
+  body: { marginTop: 2, color: theme.ink },
 });

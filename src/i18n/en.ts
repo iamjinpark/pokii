@@ -66,6 +66,10 @@ export const en = {
   'bubble.close': 'close',
   'common.retry': 'retry',
   'common.error.network': "couldn't reach your tree.",
+  'field.goal': 'goal',
+  'field.note': 'note',
+  'field.optional': '(optional)',
+  'field.tooLong': 'up to {max} characters',
 } as const;
 
 export type TranslationKey = keyof typeof en;

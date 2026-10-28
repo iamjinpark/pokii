@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { Button } from '@/components/button';
 import { ScreenFrame } from '@/components/screen-frame';
 import { Text } from '@/components/text';
 import { Container } from '@/components/container';
@@ -8,7 +9,7 @@ import { useFinishGoal, useStartNextBunch } from '@/hooks/use-close-bunch';
 import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useToday } from '@/hooks/use-today';
 import { t, type TranslationKey } from '@/i18n';
-import { fontSize, radius, space, theme } from '@/theme';
+import { space, theme } from '@/theme';
 import {
   BUNCH_SIZE,
   containerFor,
@@ -65,10 +66,8 @@ export default function ResultScreen() {
   if (isError || !bunch) {
     return (
       <View style={styles.center}>
-        <Text style={styles.body}>{t('common.error.network')}</Text>
-        <Pressable onPress={() => refetch()} style={styles.retry}>
-          <Text label style={styles.retryLabel}>{t('common.retry')}</Text>
-        </Pressable>
+        <Text style={styles.ink}>{t('common.error.network')}</Text>
+        <Button size="M" label={t('common.retry')} onPress={() => refetch()} style={styles.centered} />
       </View>
     );
   }
@@ -85,25 +84,8 @@ export default function ResultScreen() {
       onClose={busy ? undefined : back}
       footer={
         <>
-          <Pressable
-            onPress={() => oneMore.mutate(undefined, { onSuccess: toTree })}
-            disabled={busy}
-            accessibilityLabel={t('done.oneMore')}
-            accessibilityState={{ disabled: busy, busy }}
-            style={[styles.primary, busy && styles.off]}
-          >
-            <Text label style={styles.primaryLabel}>{t('done.oneMore')}</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => finish.mutate(undefined, { onSuccess: toTree })}
-            disabled={busy}
-            accessibilityLabel={t('done.finish')}
-            accessibilityState={{ disabled: busy, busy }}
-            style={[styles.secondary, busy && styles.off]}
-          >
-            <Text label style={styles.secondaryLabel}>{t('done.finish')}</Text>
-          </Pressable>
+          <Button label={t('done.oneMore')} onPress={() => oneMore.mutate(undefined, { onSuccess: toTree })} disabled={busy} busy={busy} />
+          <Button kind="text" label={t('done.finish')} onPress={() => finish.mutate(undefined, { onSuccess: toTree })} disabled={busy} busy={busy} />
         </>
       }
     >
@@ -111,44 +93,26 @@ export default function ResultScreen() {
         <Container grade={grade} />
         {filled >= SHOW_COUNT_FROM ? (
           <>
-            <Text label style={styles.count}>{`${filled} / ${BUNCH_SIZE}`}</Text>
-            <Text style={styles.grade}>{t(GRADE_KEY[grade])}</Text>
+            <Text variant="display" style={styles.count}>{`${filled} / ${BUNCH_SIZE}`}</Text>
+            <Text variant="body" style={styles.grade}>{t(GRADE_KEY[grade])}</Text>
           </>
         ) : (
-          <Text style={styles.encourage}>{t('done.encourage')}</Text>
+          <Text variant="body" style={styles.encourage}>{t('done.encourage')}</Text>
         )}
       </View>
 
-      {failed ? <Text style={styles.failed}>{t('done.failed')}</Text> : null}
+      {failed ? <Text variant="body" style={styles.failed}>{t('done.failed')}</Text> : null}
     </ScreenFrame>
   );
 }
 
 const styles = StyleSheet.create({
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.sky,
-    gap: space.lg,
-  },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.sky, gap: space.lg },
+  centered: { alignSelf: 'center' },
+  ink: { color: theme.ink },
   result: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg },
-  count: { fontSize: fontSize.xl, fontWeight: '800', color: theme.ink },
-  grade: { fontSize: fontSize.sm, fontWeight: '700', color: theme.vine },
-  encourage: { fontSize: fontSize.md, fontWeight: '700', color: theme.ink, textAlign: 'center' },
-  failed: { fontSize: fontSize.sm, fontWeight: '700', color: theme.amber, textAlign: 'center' },
-  primary: {
-    height: 52,
-    borderRadius: radius.round,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.ink,
-  },
-  primaryLabel: { color: theme.paper, fontSize: fontSize.sm, fontWeight: '700' },
-  secondary: { height: 48, alignItems: 'center', justifyContent: 'center' },
-  secondaryLabel: { color: theme.ink, fontSize: fontSize.sm, fontWeight: '700', opacity: 0.8 },
-  off: { opacity: 0.35 },
-  body: { fontSize: fontSize.sm, fontWeight: '600', color: theme.ink },
-  retry: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
-  retryLabel: { color: theme.paper, fontWeight: '700' },
+  count: { color: theme.ink },
+  grade: { color: theme.vine },
+  encourage: { color: theme.ink, textAlign: 'center' },
+  failed: { color: theme.amber, textAlign: 'center' },
 });
