@@ -1,3 +1,5 @@
+import type { TextStyle } from 'react-native';
+
 export const theme = {
   vine: '#03703D',
   sky: '#DCF4FF',
@@ -35,11 +37,33 @@ export type Mood = keyof typeof theme.mood;
 export const MOODS: readonly Mood[] = ['excited', 'happy', 'calm', 'tired', 'sad'];
 
 /**
- * 글꼴 이름 (스펙 9.2). 역할(라벨·본문)과 글자(라틴·한글)로 고른다. 앱 언어와는 상관없다.
- * 값은 루트 레이아웃의 useFonts 키와 같아야 한다.
+ * 글꼴 이름 (스펙 9.2). 표시용(Display·Title)과 텍스트용(나머지)으로 나누고, 글자(라틴·한글)로 고른다.
+ * 앱 언어와는 상관없다. 값은 루트 레이아웃의 useFonts 키와 같아야 한다.
  */
 export const fonts = {
-  label: { latin: 'Anton', hangul: 'DoHyeon' },
+  /** 헤더 로고·탭 바·로그인 로고에만. */
+  brand: 'Anton',
+  /** 나무 인사·결과 개수. 영어는 굵은 Anton, 한글은 도현. */
+  display: { latin: 'Anton', hangul: 'DoHyeon' },
+  /** 화면 제목. */
+  title: { latin: 'DoHyeon', hangul: 'DoHyeon' },
   body: { latin: 'DMSans', hangul: 'Paperlogy' },
+  bodyMedium: { latin: 'DMSansMedium', hangul: 'PaperlogyMedium' },
   bodyBold: { latin: 'DMSansBold', hangul: 'PaperlogyBold' },
 } as const;
+
+/**
+ * 글씨 역할 (스펙 9.2). 화면은 크기·굵기를 직접 적지 않고 역할 이름만 쓴다.
+ * display·title은 표시용 글꼴이라 굵기가 하나다.
+ */
+export type TextVariant = 'display' | 'title' | 'headline' | 'body' | 'button' | 'label' | 'caption';
+
+export const textStyles: Record<TextVariant, TextStyle> = {
+  display: { fontSize: fontSize.xl, lineHeight: 32 },
+  title: { fontSize: fontSize.lg, lineHeight: 25 },
+  headline: { fontSize: fontSize.lg, lineHeight: 26, fontWeight: '700' },
+  body: { fontSize: fontSize.md, lineHeight: 23, fontWeight: '400' },
+  button: { fontSize: fontSize.md, lineHeight: 20, fontWeight: '500' },
+  label: { fontSize: fontSize.sm, lineHeight: 18, fontWeight: '700' },
+  caption: { fontSize: fontSize.xs, lineHeight: 17, fontWeight: '400' },
+};

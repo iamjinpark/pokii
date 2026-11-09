@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { ZoomIn, ZoomOut } from 'react-native-reanimated';
 import { Text } from '@/components/text';
-import { fontSize, space, theme } from '@/theme';
+import { space, theme } from '@/theme';
 
 /** 말풍선 최대 폭. 두 줄을 넘는 제목은 줄바꿈한다. */
 const MAX_W = 170;
@@ -19,7 +19,7 @@ export function BunchBubble({ title, x, y, onPress }: { title: string; x: number
       <Animated.View entering={ZoomIn.duration(220)} exiting={ZoomOut.duration(140)} style={styles.lift}>
         <Pressable onPress={onPress} style={styles.bubble} accessibilityRole="button" accessibilityLabel={title}>
           <Image source={require('../../assets/tree/bubble-cut.svg')} contentFit="fill" style={StyleSheet.absoluteFill} />
-          <Text style={styles.title} numberOfLines={2}>
+          <Text variant="body" style={styles.title} numberOfLines={2}>
             {title}
           </Text>
           <Image source={require('../../assets/tree/bubble-button.svg')} style={styles.button} />
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     maxWidth: MAX_W, flexDirection: 'row', alignItems: 'center', gap: space.sm,
     paddingLeft: space.lg, paddingRight: space.lg, paddingVertical: space.md,
   },
-  title: { flexShrink: 1, fontSize: fontSize.sm, lineHeight: 18, color: theme.paper },
+  title: { flexShrink: 1, color: theme.paper },
   /** 누를 수 있다는 흰 동그라미 단추. */
   button: { width: 14, height: 14 },
   /** 아래로 뾰족한 꼬리. 몸통 그림 아래 끝에 살짝 겹쳐 붙인다. */

@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HEADER_HEIGHT, TAB_BAR_HEIGHT } from '@/components/app-header';
-import { SURFACE, SURFACE_RADIUS, SURFACE_TEXT } from '@/components/surface';
+import { SURFACE, SURFACE_TEXT } from '@/components/surface';
 import { Text } from '@/components/text';
+import { Button } from '@/components/button';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { IconButton } from '@/components/icon-button';
 import { Grape } from '@/components/grape';
 import { BERRIES, berryBox, BERRY_D, BUNCH_EXTENT, STEM_LEAF } from '@/components/tree-bunch';
@@ -17,7 +19,7 @@ import { skyBackground, skyNow } from '@/utils/sky';
 import { weatherNow } from '@/utils/weather';
 import { STAGE_W } from '@/utils/stage';
 import { t } from '@/i18n';
-import { fontSize, radius, space, theme } from '@/theme';
+import { space, theme } from '@/theme';
 import {
   bunchDates,
   footerKey,
@@ -70,7 +72,6 @@ const HEADER_TITLE_GAP = 16;
 /** 덤불 위 글자색. */
 const CANOPY_TEXT = theme.paper;
 /** 삭제 글씨 (놀이터에서 고른 값: 흰색). */
-const SURFACE_DANGER = theme.paper;
 
 
 export default function BunchDetailScreen() {
@@ -111,9 +112,7 @@ export default function BunchDetailScreen() {
     return (
       <View style={[styles.center, skyBg]}>
         <Text style={[styles.body, { color: sky.text }]}>{t('common.error.network')}</Text>
-        <Pressable onPress={() => refetch()} style={styles.retry}>
-          <Text label style={styles.retryLabel}>{t('common.retry')}</Text>
-        </Pressable>
+        <Button size="M" label={t('common.retry')} onPress={() => refetch()} style={styles.centered} />
       </View>
     );
   }
@@ -170,10 +169,10 @@ export default function BunchDetailScreen() {
           <View style={styles.header}>
             <View style={styles.headerSide}>
               <IconButton icon="back" color={CANOPY_TEXT} onPress={back} label="뒤로" />
-              <Text label style={styles.meta}>{`No.${bunch.sequence}`}</Text>
+              <Text variant="body" style={styles.meta}>{`No.${bunch.sequence}`}</Text>
             </View>
             <View style={styles.headerSide}>
-              <Text label style={styles.meta}>{startLabel(bunch.startedOn)}</Text>
+              <Text variant="body" style={styles.meta}>{startLabel(bunch.startedOn)}</Text>
               <IconButton
                 icon="more"
                 color={CANOPY_TEXT}
@@ -182,7 +181,7 @@ export default function BunchDetailScreen() {
               />
             </View>
           </View>
-          <Text style={styles.title}>{bunch.title}</Text>
+          <Text variant="headline" style={styles.title}>{bunch.title}</Text>
         </View>
         <View style={styles.slot} onLayout={(e) => setSlot(e.nativeEvent.layout)}>
           {bigScale > 0 ? (
@@ -227,9 +226,8 @@ export default function BunchDetailScreen() {
 
       {/* 안내 문구는 토스트처럼 반투명 배경에 띄운다. 송이와 겹쳐도 읽힌다. */}
       {key ? (
-        <View style={[styles.toast, styles.surface]}>
-          {/* 토스트는 하늘 위에 떠서, 밝은 하늘(아침·낮·노을)엔 남색, 어두운 하늘엔 흰 글씨로 바꾼다. */}
-          <Text style={[styles.toastLabel, { color: sky.dark ? SURFACE_TEXT : theme.ink }]}>{t(key)}</Text>
+        <View style={[styles.surface, styles.toast]}>
+          <Text style={styles.toastLabel}>{t(key)}</Text>
         </View>
       ) : null}
 
@@ -237,7 +235,7 @@ export default function BunchDetailScreen() {
       <WeatherLayer weather={weather} night={sky.dark} width={area.width} height={area.height} />
 
       {/* 메뉴·삭제 확인이 떠 있을 때 바깥을 누르면 닫힌다. */}
-      {menu !== 'closed' ? (
+      {menu === 'open' ? (
         <Pressable
           style={StyleSheet.absoluteFill}
           onPress={() => setMenu('closed')}
@@ -246,57 +244,34 @@ export default function BunchDetailScreen() {
       ) : null}
 
       {menu === 'open' ? (
-        <View style={[styles.menu, styles.overlay, styles.surface]}>
+        <View style={[styles.surface, styles.menu, styles.overlay]}>
           <Pressable
             onPress={() => router.push({ pathname: '/goal/[id]/edit', params: { id } })}
             style={styles.menuItem}
             accessibilityLabel={t('goal.edit')}
           >
-            <Text label style={styles.menuLabel}>{t('goal.edit')}</Text>
+            <Text variant="button" style={styles.menuLabel}>{t('goal.edit')}</Text>
           </Pressable>
           <Pressable
             onPress={() => setMenu('confirm')}
             style={styles.menuItem}
             accessibilityLabel={t('goal.delete')}
           >
-            <Text label style={[styles.menuLabel, styles.danger]}>{t('goal.delete')}</Text>
+            <Text variant="button" style={[styles.menuLabel, styles.danger]}>{t('goal.delete')}</Text>
           </Pressable>
         </View>
       ) : null}
 
-      {/* 모달은 화면 가운데. 바깥(뒤 Pressable)을 누르면 닫히도록 가운데 정렬 틀은 터치를 흘려보낸다. */}
       {menu === 'confirm' ? (
-        <View style={styles.modalFrame} pointerEvents="box-none">
-          <View style={[styles.menu, styles.modal, styles.surface]}>
-            <Text style={styles.confirmText}>
-              {footprint.data
-                ? t('goal.delete.confirm', {
-                    bunches: footprint.data.bunches,
-                    grapes: footprint.data.grapes,
-                  })
-                : '…'}
-            </Text>
-            <View style={styles.confirmRow}>
-              <Pressable
-                onPress={() => setMenu('closed')}
-                style={styles.keep}
-                accessibilityLabel={t('goal.delete.no')}
-              >
-                <Text label style={styles.menuLabel}>{t('goal.delete.no')}</Text>
-              </Pressable>
-              <Pressable
-                onPress={() =>
-                  remove.mutate(undefined, { onSuccess: back })
-                }
-                disabled={!footprint.data || remove.isPending}
-                style={[styles.removeButton, (!footprint.data || remove.isPending) && styles.off]}
-                accessibilityLabel={t('goal.delete.yes')}
-              >
-                <Text label style={styles.removeLabel}>{t('goal.delete.yes')}</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
+        <ConfirmDialog
+          message={footprint.data ? t('goal.delete.confirm', { bunches: footprint.data.bunches, grapes: footprint.data.grapes }) : '…'}
+          cancelLabel={t('goal.delete.no')}
+          confirmLabel={t('goal.delete.yes')}
+          onCancel={() => setMenu('closed')}
+          onConfirm={() => remove.mutate(undefined, { onSuccess: back })}
+          confirmDisabled={!footprint.data || remove.isPending}
+          busy={remove.isPending}
+        />
       ) : null}
 
     </View>
@@ -322,33 +297,16 @@ const styles = StyleSheet.create({
   headerSide: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   /** 떠 있는 면(드롭다운·삭제 확인·토스트). 값은 components/surface. */
   surface: SURFACE,
-  menu: { borderRadius: SURFACE_RADIUS, paddingHorizontal: space.lg, paddingVertical: space.xs },
-  /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. 너비는 글자에 맞추고, 긴 삭제 확인 문구만 최대 폭에서 줄바꿈한다. */
-  overlay: { position: 'absolute', top: 64, right: 14, minWidth: 100, maxWidth: 280, zIndex: 2, elevation: 2 },
-  modalFrame: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
-  modal: { width: '84%', maxWidth: 320 },
-  menuItem: { paddingVertical: space.sm },
-  menuLabel: { fontSize: fontSize.sm, color: SURFACE_TEXT },
-  danger: { color: SURFACE_DANGER },
-  confirmText: { fontSize: fontSize.xs, color: SURFACE_TEXT, lineHeight: 20, paddingTop: space.sm },
-  confirmRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: space.sm, paddingTop: space.lg, paddingBottom: space.sm },
-  keep: { paddingVertical: space.sm, paddingHorizontal: space.lg, borderRadius: SURFACE_RADIUS, backgroundColor: 'rgba(255, 255, 255, 0.08)' },
-  removeButton: {
-    paddingVertical: space.sm,
-    paddingHorizontal: space.lg,
-    borderRadius: SURFACE_RADIUS,
-    backgroundColor: SURFACE_DANGER,
-  },
-  removeLabel: { fontSize: fontSize.sm, color: theme.ink },
-  off: { opacity: 0.4 },
-  meta: { fontSize: fontSize.md, color: CANOPY_TEXT },
-  title: { fontSize: fontSize.lg, fontWeight: '700', lineHeight: 26, color: CANOPY_TEXT, paddingHorizontal: space.xl },
-  toast: {
-    position: 'absolute', bottom: 16, alignSelf: 'center', maxWidth: '90%', pointerEvents: 'none',
-    paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: SURFACE_RADIUS,
-  },
-  toastLabel: { fontSize: fontSize.xs, textAlign: 'center' },
-  body: { fontSize: fontSize.sm, fontWeight: '600', textAlign: 'center' },
-  retry: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
-  retryLabel: { color: theme.paper, fontWeight: '700' },
+  /** 메뉴는 세로 점 버튼 바로 아래, 제목·송이 위에 뜬다. 너비는 글자에 맞춘다. 항목은 버튼 M 높이(44). */
+  menu: { paddingVertical: space.xs },
+  overlay: { position: 'absolute', top: 64, right: space.xl, minWidth: 140, maxWidth: 280, zIndex: 2, elevation: 2 },
+  menuItem: { height: 44, justifyContent: 'center' },
+  menuLabel: { color: SURFACE_TEXT },
+  danger: { color: theme.amber },
+  meta: { color: CANOPY_TEXT },
+  title: { color: CANOPY_TEXT, paddingHorizontal: space.xl },
+  toast: { position: 'absolute', bottom: space.xl, alignSelf: 'center', maxWidth: '90%', pointerEvents: 'none', paddingVertical: space.md },
+  toastLabel: { color: SURFACE_TEXT, textAlign: 'center' },
+  body: { textAlign: 'center' },
+  centered: { alignSelf: 'center' },
 });

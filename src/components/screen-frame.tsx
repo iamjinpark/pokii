@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { IconButton } from '@/components/icon-button';
 import { Text } from '@/components/text';
-import { fontSize, space, theme } from '@/theme';
+import { space, theme } from '@/theme';
 
 type Props = {
   title: string;
@@ -25,8 +25,8 @@ export function ScreenFrame({ title, eyebrow, onClose, footer, children }: Props
     <View style={styles.root}>
       <View style={styles.top}>
         <View style={styles.titles}>
-          {eyebrow ? <Text label style={styles.eyebrow}>{eyebrow}</Text> : null}
-          <Text label style={styles.title} accessibilityRole="header">
+          {eyebrow ? <Text variant="label" style={styles.eyebrow}>{eyebrow}</Text> : null}
+          <Text variant="title" style={styles.title} accessibilityRole="header">
             {title}
           </Text>
         </View>
@@ -55,9 +55,9 @@ const styles = StyleSheet.create({
   top: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.xl, paddingTop: space.xl },
   closeSpace: { width: 24, height: 24 },
   titles: { flex: 1 },
-  eyebrow: { fontSize: fontSize.xs, fontWeight: '700', color: theme.ink, letterSpacing: 0.5 },
-  title: { fontSize: fontSize.lg, fontWeight: '800', color: theme.ink },
+  eyebrow: { color: theme.ink, letterSpacing: 0.5 },
+  title: { color: theme.ink },
   scroll: { flex: 1 },
   content: { flexGrow: 1, padding: space.xl },
-  footer: { gap: space.lg, paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.xl, backgroundColor: theme.sky },
+  footer: { gap: space.sm, paddingHorizontal: space.xl, paddingTop: space.lg, paddingBottom: space.xl, backgroundColor: theme.sky },
 });

@@ -21,6 +21,7 @@ import { HEADER_HEIGHT, TAB_BAR_HEIGHT } from '@/components/app-header';
 import { Text } from '@/components/text';
 import { BirdScene } from '@/components/tree-bird';
 import { BunchBubble } from '@/components/bunch-bubble';
+import { Button } from '@/components/button';
 import { BUNCH_H, BUNCH_W, TreeBunch } from '@/components/tree-bunch';
 import type { Goal } from '@/hooks/use-goals';
 import { SLOTS, useGoals } from '@/hooks/use-goals';
@@ -33,7 +34,7 @@ import { setDevWeather, type Weather, weatherNow } from '@/utils/weather';
 import { SnowCap, useWindSway, WeatherLayer } from '@/components/weather-layer';
 import { STAGE_H, STAGE_W, stageScale } from '@/utils/stage';
 import { t } from '@/i18n';
-import { fontSize, radius, space, theme } from '@/theme';
+import { radius, space, theme } from '@/theme';
 
 
 /**
@@ -238,10 +239,8 @@ export default function TreeScreen() {
   if (isError) {
     return (
       <View style={[styles.center, skyBg]}>
-        <Text style={[styles.body, { color: sky.text }]}>{t('common.error.network')}</Text>
-        <Pressable onPress={() => refetch()} style={styles.retry}>
-          <Text label style={styles.retryLabel}>{t('common.retry')}</Text>
-        </Pressable>
+        <Text style={[styles.ink, { color: sky.text }]}>{t('common.error.network')}</Text>
+        <Button size="M" label={t('common.retry')} onPress={() => refetch()} style={styles.centered} />
       </View>
     );
   }
@@ -308,7 +307,7 @@ export default function TreeScreen() {
                         accessibilityLabel={`빈 가지 ${slot}`}
                         onPress={() => router.push('/goal/new')}
                       >
-                        <Text label style={styles.plus}>+</Text>
+                        <Text variant="display" style={styles.plus}>+</Text>
                       </Pressable>
                     )}
                   </View>
@@ -339,8 +338,8 @@ export default function TreeScreen() {
             <View style={[styles.right, { transform: [{ scale }] }]}>
 
               <View style={styles.message}>
-                <Text label style={[styles.line, { color: sky.text }]}>{greeting}</Text>
-                <Text label style={[styles.line, { color: sky.text }]}>{line}</Text>
+                <Text variant="display" style={[styles.line, { color: sky.text }]}>{greeting}</Text>
+                <Text variant="display" style={[styles.line, { color: sky.text }]}>{line}</Text>
               </View>
             </View>
     </>
@@ -397,12 +396,12 @@ export default function TreeScreen() {
         <View style={styles.devSky}>
           <View style={styles.devRow}>
             <Pressable onPress={() => setDevMinutes(null)}>
-              <Text style={styles.devSkyLabel}>
+              <Text variant="caption" style={styles.devSkyLabel}>
                 {devMinutes === null ? '하늘: 지금' : `하늘: ${hhmm(devMinutes)} (지금으로)`}
               </Text>
             </Pressable>
             <Pressable onPress={cycleDevWeather}>
-              <Text style={styles.devSkyLabel}>{DEV_WEATHER_LABEL[weather]}</Text>
+              <Text variant="caption" style={styles.devSkyLabel}>{DEV_WEATHER_LABEL[weather]}</Text>
             </Pressable>
           </View>
           <View
@@ -426,7 +425,7 @@ export default function TreeScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, overflow: 'hidden' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg },
-  body: { fontSize: fontSize.sm, fontWeight: '600' },
+  body: {},
   sky: {
     position: 'absolute', top: 0, right: 0, width: STAGE_W, height: 260,
     transformOrigin: 'top right',
@@ -462,16 +461,16 @@ const styles = StyleSheet.create({
     borderWidth: 2.5, borderStyle: 'dashed', borderColor: theme.sky,
     alignItems: 'center', justifyContent: 'center',
   },
-  plus: { fontSize: fontSize.xl, fontWeight: '800', color: theme.sky },
+  plus: { color: theme.sky },
   message: { position: 'absolute', right: 15, top: 606 },
-  line: { fontSize: fontSize.xl },
-  retry: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
-  retryLabel: { color: theme.paper, fontWeight: '700' },
+  line: {},
+  centered: { alignSelf: 'center' },
+  ink: { color: theme.ink },
   devSky: {
     position: 'absolute', top: 8, alignSelf: 'center', alignItems: 'center', gap: space.sm,
     paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.lg, backgroundColor: 'rgba(0,0,0,0.45)',
   },
-  devSkyLabel: { color: theme.paper, fontSize: fontSize.xs, fontWeight: '700' },
+  devSkyLabel: { color: theme.paper },
   devRow: { flexDirection: 'row', gap: space.lg },
   devBar: {
     width: DEV_BAR_W, height: 24, justifyContent: 'center',

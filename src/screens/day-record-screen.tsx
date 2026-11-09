@@ -6,8 +6,10 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { Button } from '@/components/button';
+import { Field } from '@/components/field';
 import { ScreenFrame } from '@/components/screen-frame';
-import { hasHangul, Text, TextInput, withAppFont } from '@/components/text';
+import { hasHangul, Text, withAppFont } from '@/components/text';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -19,7 +21,7 @@ import { useCurrentBunch } from '@/hooks/use-current-bunch';
 import { useRemoveGrape, useSaveGrape } from '@/hooks/use-grape-mutations';
 import { useToday } from '@/hooks/use-today';
 import { t, type TranslationKey } from '@/i18n';
-import { fontSize, type Mood, MOODS, radius, space, theme } from '@/theme';
+import { type Mood, MOODS, radius, space, theme } from '@/theme';
 import { canFill } from '@/utils/bunch';
 import type { IsoDate } from '@/utils/date';
 
@@ -110,10 +112,8 @@ export default function DayRecordScreen() {
   if (isError || !bunch) {
     return (
       <View style={styles.center}>
-        <Text style={styles.body}>{t('common.error.network')}</Text>
-        <Pressable onPress={() => refetch()} style={styles.retry}>
-          <Text label style={styles.retryLabel}>{t('common.retry')}</Text>
-        </Pressable>
+        <Text style={styles.ink}>{t('common.error.network')}</Text>
+        <Button size="M" label={t('common.retry')} onPress={() => refetch()} style={styles.centered} />
       </View>
     );
   }
@@ -145,23 +145,10 @@ export default function DayRecordScreen() {
         title={t('day.title')}
         onClose={close}
         footer={
-          <View style={styles.actions}>
-            <Pressable
-              onPress={save}
-              disabled={!mood}
-              accessibilityLabel={t('day.save')}
-              accessibilityState={{ disabled: !mood }}
-              style={[styles.save, !mood && styles.saveOff]}
-            >
-              <Text label style={styles.saveLabel}>{t('day.save')}</Text>
-            </Pressable>
-
-            {existing && !playing ? (
-              <Pressable onPress={remove} style={styles.remove} accessibilityLabel={t('day.remove')}>
-                <Text label style={styles.removeLabel}>{t('day.remove')}</Text>
-              </Pressable>
-            ) : null}
-          </View>
+          <>
+            <Button label={t('day.save')} onPress={save} disabled={!mood} />
+            {existing && !playing ? <Button kind="dangerText" label={t('day.remove')} onPress={remove} /> : null}
+          </>
         }
       >
         <View style={styles.preview}>
@@ -175,7 +162,7 @@ export default function DayRecordScreen() {
               />
             ) : null}
           </View>
-          <Text style={styles.moodName}>{mood ? t(MOOD_KEY[mood]) : ' '}</Text>
+          <Text variant="body" style={styles.moodName}>{mood ? t(MOOD_KEY[mood]) : ' '}</Text>
         </View>
 
         <View style={styles.moods}>
@@ -190,13 +177,15 @@ export default function DayRecordScreen() {
           ))}
         </View>
 
-        <TextInput
+        <Field
+          label={t('field.note')}
+          optional
           value={note}
           onChangeText={setTypedNote}
           maxLength={NOTE_MAX}
+          count={[...note].length}
+          max={NOTE_MAX}
           placeholder={t('day.note.placeholder')}
-          placeholderTextColor={theme.hint}
-          style={styles.note}
           multiline
           // 마지막 칸이라 완료 키로 바로 저장한다. 기분을 안 골랐으면 키보드만 내려간다.
           returnKeyType="done"
@@ -204,7 +193,7 @@ export default function DayRecordScreen() {
           onSubmitEditing={save}
         />
 
-        <Animated.Text style={[withAppFont(styles.cheer, false, hasHangul(t('day.saved'))), cheerStyle]}>
+        <Animated.Text style={[withAppFont(styles.cheer, 'body', hasHangul(t('day.saved'))), cheerStyle]}>
           {playing ? t('day.saved') : ' '}
         </Animated.Text>
       </ScreenFrame>
@@ -222,14 +211,10 @@ export default function DayRecordScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.sky,
-    gap: space.lg,
-  },
-  preview: { alignItems: 'center', gap: space.sm, marginTop: space.lg },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.sky, gap: space.lg },
+  centered: { alignSelf: 'center' },
+  ink: { color: theme.ink },
+  preview: { alignItems: 'center', gap: space.sm },
   berry: {
     width: 84,
     height: 84,
@@ -239,42 +224,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   paint: { width: '100%' },
-  cheer: {
-    marginTop: space.xl,
-    textAlign: 'center',
-    fontSize: fontSize.sm,
-    fontWeight: '700',
-    color: theme.vine,
-    minHeight: 20,
-  },
-  moodName: { fontSize: fontSize.sm, fontWeight: '700', color: theme.ink, minHeight: 20 },
-  moods: { flexDirection: 'row', justifyContent: 'center', gap: space.lg, marginTop: space.xxl },
+  moodName: { color: theme.ink, minHeight: 23 },
+  moods: { flexDirection: 'row', justifyContent: 'center', gap: space.lg, marginVertical: space.xl },
   swatch: { width: 40, height: 40, borderRadius: radius.round },
   picked: { borderWidth: 3, borderColor: theme.ink },
-  note: {
-    marginTop: space.xxl,
-    minHeight: 84,
-    borderRadius: radius.lg,
-    backgroundColor: theme.paper,
-    padding: space.lg,
-    fontSize: fontSize.sm,
-    color: theme.ink,
-    textAlignVertical: 'top',
-  },
-  actions: { alignItems: 'center', gap: space.lg },
-  save: {
-    alignSelf: 'stretch',
-    height: 52,
-    borderRadius: radius.round,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.ink,
-  },
-  saveOff: { opacity: 0.35 },
-  saveLabel: { color: theme.paper, fontSize: fontSize.sm, fontWeight: '700' },
-  remove: { paddingVertical: space.sm },
-  removeLabel: { fontSize: fontSize.sm, fontWeight: '700', color: theme.amber },
-  body: { fontSize: fontSize.sm, fontWeight: '600', color: theme.ink },
-  retry: { paddingHorizontal: space.lg, paddingVertical: space.sm, borderRadius: radius.round, backgroundColor: theme.ink },
-  retryLabel: { color: theme.paper, fontWeight: '700' },
+  cheer: { marginTop: space.lg, textAlign: 'center', color: theme.vine, minHeight: 23 },
 });
